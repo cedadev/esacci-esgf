@@ -8,6 +8,7 @@ import netCDF4
 try:
     from cached_property import cached_property as prop
 except ImportError:
+    print "warning: cached_property not available"
     prop = property
 
 
@@ -57,7 +58,10 @@ class ThreddsXML(object):
         self.root.set("xmlns:xlink", self.xlink)
 
     def write(self, filename):
-        self.tree.write(filename, encoding=self.encoding)
+        tmpfile = filename + ".tmp"
+        self.tree.write(tmpfile, encoding=self.encoding)
+        os.system("xmllint --format %s > %s" % (tmpfile, filename))
+        os.remove(tmpfile)
 
     def tag_full_name(self, tag_base_name):
         return "{%s}%s" % (self.ns, tag_base_name)
@@ -91,7 +95,9 @@ class ThreddsXML(object):
 
     def new_child(self, parent, *args, **kwargs):
         "As new_element, but add result as child of specified parent element"
-        return parent.append(self.new_element(*args, **kwargs))
+        child = self.new_element(*args, **kwargs)
+        parent.append(child)
+        return child
 
     @prop
     def top_level_dataset(self):
@@ -122,7 +128,7 @@ class ThreddsXML(object):
         sv = self.new_element("service",
                               name = "wms",
                               serviceType="WMS",
-                              base="/thredds/wms")
+                              base="/thredds/wms/")
         self.insert_element_before_similar(self.root, sv)
 
     def strip_restrictAccess(self):
@@ -188,12 +194,17 @@ class ThreddsXML(object):
         nc = self.new_child(acc, "netcdf", xmlns="http://www.unidata.ucar.edu/namespaces/netcdf/ncml-2.2")
         agg = self.new_child(nc, "aggregation", dimName="time", type="joinNew")
         self.new_child(agg, "remove", name="time", type="variable")
+        for varname in self.netcdf_variables:
+            self.new_child(agg, "variableAgg", name=varname)
+        for path in self.netcdf_files:
+            self.new_child(agg, "netcdf", location=path)
+        self.top_level_dataset.append(ds)            
 
     def tweak(self):
         self.insert_wms_service()
         self.insert_viewer_metadata()
         self.strip_restrictAccess()
-        print self.netcdf_variables
+        self.add_wms_ds()
 
 def main():
     tx = ThreddsXML(do_file_filter = True, valid_file_index=1)
