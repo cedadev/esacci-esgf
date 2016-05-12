@@ -5,11 +5,7 @@ import os
 import xml.etree.cElementTree as ET
 import netCDF4
 
-try:
-    from cached_property import cached_property as prop
-except ImportError:
-    print "warning: cached_property not available"
-    prop = property
+from cached_property import cached_property
 
 
 class NcFile(object):
@@ -99,20 +95,25 @@ class ThreddsXML(object):
         parent.append(child)
         return child
 
-    @prop
+    @cached_property
     def top_level_dataset(self):
         for child in self.root.getchildren():
             if self.tag_base_name_is(child, "dataset"):
                 return child
 
-    @prop
+    @cached_property
     def second_level_datasets(self):
         return [child for child in self.top_level_dataset.getchildren()
                 if self.tag_base_name_is(child, "dataset")]
 
-    @prop
+    @cached_property
     def dataset_id(self):
         return self.top_level_dataset.attrib["ID"]
+
+    def delete_all_children_called(self, parent, tagname):
+        for child in parent.getchildren():
+            if self.tag_base_name_is(child, tagname):
+                parent.remove(child)
 
     def insert_viewer_metadata(self):
         mt = self.new_element("metadata", inherited="true")
@@ -129,7 +130,8 @@ class ThreddsXML(object):
                               name = "wms",
                               serviceType="WMS",
                               base="/thredds/wms/")
-        self.insert_element_before_similar(self.root, sv)
+        #self.insert_element_before_similar(self.root, sv)
+        self.root.insert(0, sv)
 
     def strip_restrictAccess(self):
         """
@@ -150,7 +152,7 @@ class ThreddsXML(object):
         return os.path.join(self.thredds_roots[ds_root],
                             fileserver_url[pos + 1 :])
 
-    @prop
+    @cached_property
     def netcdf_files(self):
         files = [self.path_on_disk(element.attrib['urlPath'])
                  for element in self.second_level_datasets
@@ -175,7 +177,7 @@ class ThreddsXML(object):
     def netcdf_variables_for_file(self, path):
         return set(NcFile(path).multidim_vars())
 
-    @prop
+    @cached_property
     def netcdf_variables(self):
         files = self.netcdf_files
         varnames = self.netcdf_variables_for_file(files[0])
@@ -190,8 +192,8 @@ class ThreddsXML(object):
     def add_wms_ds(self):
         dsid = self.dataset_id
         ds = self.new_element("dataset", name=dsid, ID=dsid, urlPath=dsid)
-        acc = self.new_child(ds, "access", serviceName="wms", urlPath=dsid)
-        nc = self.new_child(acc, "netcdf", xmlns="http://www.unidata.ucar.edu/namespaces/netcdf/ncml-2.2")
+        self.new_child(ds, "access", serviceName="wms", urlPath=dsid)
+        nc = self.new_child(ds, "netcdf", xmlns="http://www.unidata.ucar.edu/namespaces/netcdf/ncml-2.2")
         agg = self.new_child(nc, "aggregation", dimName="time", type="joinNew")
         self.new_child(agg, "remove", name="time", type="variable")
         for varname in self.netcdf_variables:
@@ -200,16 +202,28 @@ class ThreddsXML(object):
             self.new_child(agg, "netcdf", location=path)
         self.top_level_dataset.append(ds)            
 
-    def tweak(self):
-        self.insert_wms_service()
+
+    def all_changes(self):
+
         self.insert_viewer_metadata()
         self.strip_restrictAccess()
+
+        # remove all services and just add the WMS one
+        self.delete_all_children_called(self.root, "service")
+        self.insert_wms_service()
+
+        # ensure some cached_properties get evaluated before we delete elements
+        self.netcdf_files
+        self.netcdf_variables
+        
+        # remove all (2nd level) datasets and just add the WMS one
+        self.delete_all_children_called(self.top_level_dataset, "dataset")
         self.add_wms_ds()
 
 def main():
     tx = ThreddsXML(do_file_filter = True, valid_file_index=1)
     tx.read("input.xml")
-    tx.tweak()
+    tx.all_changes()
     tx.write("output.xml")
 
 if __name__ == '__main__':
