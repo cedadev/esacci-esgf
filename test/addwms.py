@@ -4,6 +4,7 @@ import re
 import os
 import xml.etree.cElementTree as ET
 import netCDF4
+from itertools import takewhile
 
 from cached_property import cached_property
 
@@ -22,7 +23,8 @@ class ThreddsXML(object):
     A class for processing THREDDS XML files and tweaking them to add WMS tags.
 
     Instantiate with check_vars_in_all_files=True to open all the netCDF files and
-    only expose the variables that are in common between them.
+    add tags for variables that appear in any file (as any variables encountered on 
+    scanning but not formally listed will be served with wrong time information).
     Otherwise it will only scan the first file for variable names.
     """
 
@@ -183,12 +185,32 @@ class ThreddsXML(object):
         varnames = self.netcdf_variables_for_file(files[0])
         if self.check_vars_in_all_files:
             for path in files[1:]:
-                varnames = varnames.intersection(self.netcdf_variables_for_file(path))
+                varnames = varnames.union(self.netcdf_variables_for_file(path))
                 print len(varnames)
         aslist = list(varnames)
         aslist.sort()
         return aslist
 
+    # https://www.rosettacode.org/wiki/Find_common_directory_path#Python
+    def allnamesequal(self, name):
+	return all(n==name[0] for n in name[1:]) 
+    def commonprefix(self, paths, sep='/'):
+	bydirectorylevels = zip(*[p.split(sep) for p in paths])
+	return sep.join(x[0] for x in takewhile(self.allnamesequal, bydirectorylevels))
+
+    re_date = re.compile("(.*?[^0-9])[12][0-9]{3}(0[1-9]|1[0-2])(0[1-9]|[12][0-9]|3[01])")
+    def get_date_format_mark_1(self, file_path):
+        base = os.path.basename(file_path)
+        m = self.re_date.match(base)
+        if not m:
+            raise Exception("filename %s doesn't seem to contain a date" % file_path)
+        return m.group(1) + "#yyyyMMdd"
+
+    def get_date_format_mark(self, paths):
+        all_date_formats = map(self.get_date_format_mark_1, paths)
+        assert len(set(all_date_formats)) == 1  # if don't all give same string, need to refine
+        return all_date_formats[0]
+        
     def add_wms_ds(self):
         dsid = self.dataset_id
         ds = self.new_element("dataset", name=dsid, ID=dsid, urlPath=dsid)
@@ -198,8 +220,11 @@ class ThreddsXML(object):
         self.new_child(agg, "remove", name="time", type="variable")
         for varname in self.netcdf_variables:
             self.new_child(agg, "variableAgg", name=varname)
-        for path in self.netcdf_files:
-            self.new_child(agg, "netcdf", location=path)
+
+        common_dir = self.commonprefix(map(os.path.dirname, self.netcdf_files))
+        self.new_child(agg, "scan", location=common_dir,
+                       dateFormatMark=self.get_date_format_mark(self.netcdf_files))
+
         self.top_level_dataset.append(ds)            
 
 
