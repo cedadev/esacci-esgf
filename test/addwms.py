@@ -34,8 +34,8 @@ class ThreddsXML(object):
                  xlink = "http://www.w3.org/1999/xlink",
                  thredds_roots = {},
 
-                 do_file_filter = False,
-                 valid_file_index = 0,
+                 check_filenames_similar = False,
+                 valid_file_pattern = None,
                  check_vars_in_all_files = False):
         self.ns = ns
         self.encoding = encoding
@@ -44,9 +44,9 @@ class ThreddsXML(object):
         self.thredds_roots.setdefault("esg_esacci", "/neodc")
 
         # options related to quirks in the data
-        self.do_file_filter = do_file_filter
+        self.check_filenames_similar = check_filenames_similar
         self.check_vars_in_all_files = check_vars_in_all_files
-        self.valid_file_index = valid_file_index
+        self.valid_file_pattern = valid_file_pattern
 
     def read(self, filename):
         ET.register_namespace("", self.ns)
@@ -159,19 +159,36 @@ class ThreddsXML(object):
         files = [self.path_on_disk(element.attrib['urlPath'])
                  for element in self.second_level_datasets
                  if element.attrib["serviceName"] == "HTTPServer"]
-        if self.do_file_filter:
-            files = self.filter_files(files)
+
+        if self.valid_file_pattern:
+            files = self.apply_filter_verbose(self.filter_files_by_pattern,
+                                              files, 
+                                              self.valid_file_pattern)            
+        if self.check_filenames_similar:
+            files = self.apply_filter_verbose(self.filter_files_by_similarity,
+                                              files)
         return files
 
-    def filter_files(self, files):
+    def apply_filter_verbose(self, func, orig_list, *args):
+        filtered_list = func(orig_list, *args)
+        if len(filtered_list) != len(orig_list):
+            print "After calling %s" % func.__name__
+            print "%s out of %s files used" % (len(filtered_list), len(orig_list))
+            print "Example file used:     %s" % filtered_list[0]
+            print "Example file not used: %s" % (set(orig_list) - set(filtered_list)).pop()
+        return filtered_list
+
+    def filter_files_by_pattern(self, files, pattern):
+        return filter(re.compile(pattern).search, files)
+
+    def filter_files_by_similarity(self, files):
         """
-        Subset a file list to be only the ones whose pathnames differ from the example path 
-        only by the substitution of digits.  The example filename is the first filename, unless 
-        a different list index for an example valid file has been passed to the constructor.
+        Subset a file list to be only the ones whose pathnames differ from the first filename 
+        only by the substitution of digits.
         """
         recomp = re.compile("[0-9]")
         do_subs = lambda path: recomp.sub("0", path)
-        example_path = files[self.valid_file_index]
+        example_path = files[0]
         substituted_example = do_subs(example_path)
         matches = lambda path: (do_subs(path) == substituted_example)
         return filter(matches, files)
@@ -186,7 +203,7 @@ class ThreddsXML(object):
         if self.check_vars_in_all_files:
             for path in files[1:]:
                 varnames = varnames.union(self.netcdf_variables_for_file(path))
-                print len(varnames)
+                #print len(varnames)
         aslist = list(varnames)
         aslist.sort()
         return aslist
@@ -198,13 +215,26 @@ class ThreddsXML(object):
 	bydirectorylevels = zip(*[p.split(sep) for p in paths])
 	return sep.join(x[0] for x in takewhile(self.allnamesequal, bydirectorylevels))
 
-    re_date = re.compile("(.*?[^0-9])[12][0-9]{3}(0[1-9]|1[0-2])(0[1-9]|[12][0-9]|3[01])")
+    re_prefix = "(.*?[^0-9]|)"
+    re_yyyy = "[12][0-9]{3}"
+    re_mm = "(0[1-9]|1[0-2])"
+    re_dd = "(0[1-9]|[12][0-9]|3[01])"
+    recomp_date_ymd = re.compile(re_prefix + re_yyyy + re_mm + re_dd)
+    recomp_date_ym = re.compile(re_prefix + re_yyyy + re_mm)
+    recomp_date_y = re.compile(re_prefix + re_yyyy)
+
     def get_date_format_mark_1(self, file_path):
         base = os.path.basename(file_path)
-        m = self.re_date.match(base)
-        if not m:
-            raise Exception("filename %s doesn't seem to contain a date" % file_path)
-        return m.group(1) + "#yyyyMMdd"
+        m = self.recomp_date_ymd.match(base)
+        if m:
+            return m.group(1) + "#yyyyMMdd"
+        m = self.recomp_date_ym.match(base)
+        if m:
+            return m.group(1) + "#yyyyMM"
+        m = self.recomp_date_y.match(base)
+        if m:
+            return m.group(1) + "#yyyy"
+        raise Exception("filename %s doesn't seem to contain a date" % file_path)
 
     def get_date_format_mark(self, paths):
         all_date_formats = map(self.get_date_format_mark_1, paths)
@@ -240,17 +270,53 @@ class ThreddsXML(object):
         # ensure some cached_properties get evaluated before we delete elements
         self.netcdf_files
         self.netcdf_variables
+        #print self.netcdf_files
         
         # remove all (2nd level) datasets and just add the WMS one
         self.delete_all_children_called(self.top_level_dataset, "dataset")
         self.add_wms_ds()
 
-def main():
-    tx = ThreddsXML(do_file_filter = True, valid_file_index=1)
-    tx.read("input.xml")
-    tx.all_changes()
-    tx.write("output.xml")
 
+class ProcessBatch(object):
+    def __init__(self, indir='all_inputs', outdir='thredds'):
+        self.indir = indir
+        self.outdir = outdir
+
+    def do_all(self):
+        for fn in self.get_all_basenames():
+            print fn
+            self.process_file(fn)
+            print
+
+    def get_all_basenames(self):
+        return [fn for fn in os.listdir(self.indir) if fn.endswith(".xml")]
+
+    def get_kwargs(self, basename):
+        "return argument dictionary to deal with special cases where files are heterogeneous"
+        if basename.startswith("esacci.OC."):
+            dirs = {'day': 'daily',
+                    'mon': 'monthly',
+                    'yr': 'annual',
+                    '8-days': '8day'}
+            freq = basename.split(".")[2]
+            pattern = 'geographic.*' + dirs[freq]
+            return {'valid_file_pattern' : pattern}
+        elif basename.startswith("esacci.SEAICE."):
+            return {'valid_file_pattern' : 'NorthernHemisphere'}
+        else:
+            return {}
+
+    def process_file(self, basename):
+        in_file = os.path.join(self.indir, basename)
+        out_file = os.path.join(self.outdir, basename)
+
+        kwargs = self.get_kwargs(basename)
+
+        tx = ThreddsXML(check_filenames_similar = True, **kwargs)
+        tx.read(in_file)
+        tx.all_changes()
+        tx.write(out_file)
+    
 if __name__ == '__main__':
-    #tree = get_tree("input.xml")
-    main()
+    pb = ProcessBatch()
+    pb.do_all()
