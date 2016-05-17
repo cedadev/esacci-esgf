@@ -18,35 +18,15 @@ class NcFile(object):
         return [name for name, var in self.ds.variables.iteritems()
                 if len(var.shape) >= 2]
 
-class ThreddsXML(object):
-    """
-    A class for processing THREDDS XML files and tweaking them to add WMS tags.
+class ThreddsXMLBase(object):
 
-    Instantiate with check_vars_in_all_files=True to open all the netCDF files and
-    add tags for variables that appear in any file (as any variables encountered on 
-    scanning but not formally listed will be served with wrong time information).
-    Otherwise it will only scan the first file for variable names.
-    """
-
-    def __init__(self, 
-                 ns = "http://www.unidata.ucar.edu/namespaces/thredds/InvCatalog/v1.0",
-                 encoding = 'UTF-8',
-                 xlink = "http://www.w3.org/1999/xlink",
-                 thredds_roots = {},
-
-                 check_filenames_similar = False,
-                 valid_file_pattern = None,
-                 check_vars_in_all_files = False):
+    def __init__(self,
+                  ns = "http://www.unidata.ucar.edu/namespaces/thredds/InvCatalog/v1.0",
+                  encoding = 'UTF-8',
+                  xlink = "http://www.w3.org/1999/xlink"):        
         self.ns = ns
         self.encoding = encoding
         self.xlink = xlink
-        self.thredds_roots = thredds_roots
-        self.thredds_roots.setdefault("esg_esacci", "/neodc")
-
-        # options related to quirks in the data
-        self.check_filenames_similar = check_filenames_similar
-        self.check_vars_in_all_files = check_vars_in_all_files
-        self.valid_file_pattern = valid_file_pattern
 
     def read(self, filename):
         ET.register_namespace("", self.ns)
@@ -97,6 +77,47 @@ class ThreddsXML(object):
         parent.append(child)
         return child
 
+    def delete_all_children_called(self, parent, tagname):
+        for child in parent.getchildren():
+            if self.tag_base_name_is(child, tagname):
+                parent.remove(child)
+
+class ThreddsXMLTopLevel(ThreddsXMLBase):
+    def add_ref(self, href, name, title=None):
+        if not title:
+            title = name
+        atts = {'xlink:title' : title,
+                'xlink:href' : href,
+                'name' : name}
+        self.new_child(self.root, "catalogRef", **atts)
+
+class ThreddsXMLDataset(ThreddsXMLBase):
+    """
+    A class for processing THREDDS XML files and tweaking them to add WMS tags.
+
+    Instantiate with check_vars_in_all_files=True to open all the netCDF files and
+    add tags for variables that appear in any file (as any variables encountered on 
+    scanning but not formally listed will be served with wrong time information).
+    Otherwise it will only scan the first file for variable names.
+    """
+
+    def __init__(self, 
+                 thredds_roots = {},
+                 check_filenames_similar = False,
+                 valid_file_pattern = None,
+                 check_vars_in_all_files = False,
+                 **kwargs):
+
+        ThreddsXMLBase.__init__(self, **kwargs)
+
+        self.thredds_roots = thredds_roots
+        self.thredds_roots.setdefault("esg_esacci", "/neodc")
+
+        # options related to quirks in the data
+        self.check_filenames_similar = check_filenames_similar
+        self.check_vars_in_all_files = check_vars_in_all_files
+        self.valid_file_pattern = valid_file_pattern
+
     @cached_property
     def top_level_dataset(self):
         for child in self.root.getchildren():
@@ -111,11 +132,6 @@ class ThreddsXML(object):
     @cached_property
     def dataset_id(self):
         return self.top_level_dataset.attrib["ID"]
-
-    def delete_all_children_called(self, parent, tagname):
-        for child in parent.getchildren():
-            if self.tag_base_name_is(child, tagname):
-                parent.remove(child)
 
     def insert_viewer_metadata(self):
         mt = self.new_element("metadata", inherited="true")
@@ -284,15 +300,26 @@ class ThreddsXML(object):
 
 
 class ProcessBatch(object):
-    def __init__(self, indir='all_inputs', outdir='thredds'):
+    def __init__(self, indir='all_inputs', outdir='thredds',
+                 cat_in = 'thredds/catalog_orig.xml',
+                 cat_out = 'thredds/catalog.xml'):
         self.indir = indir
         self.outdir = outdir
+        self.cat_in = cat_in
+        self.cat_out = cat_out
 
     def do_all(self):
+        tx_cat = ThreddsXMLTopLevel()
+        tx_cat.read(self.cat_in)
         for fn in self.get_all_basenames():
             print fn
             self.process_file(fn)
             print
+            title = fn
+            assert fn.endswith(".xml")
+            name = fn[:-4]
+            tx_cat.add_ref(title, name)
+        tx_cat.write(self.cat_out)
 
     def get_all_basenames(self):
         return [fn for fn in os.listdir(self.indir) if fn.endswith(".xml")]
@@ -320,7 +347,7 @@ class ProcessBatch(object):
 
         kwargs = self.get_kwargs(basename)
 
-        tx = ThreddsXML(check_filenames_similar = True, **kwargs)
+        tx = ThreddsXMLDataset(check_filenames_similar = True, **kwargs)
         tx.read(in_file)
         tx.all_changes()
         tx.write(out_file)
