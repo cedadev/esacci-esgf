@@ -19,7 +19,9 @@ class NcFile(object):
                 if len(var.shape) >= 2]
 
 class ThreddsXMLBase(object):
-
+    """
+    Base class re generic stuff we want to do to THREDDS XML files
+    """
     def __init__(self,
                   ns = "http://www.unidata.ucar.edu/namespaces/thredds/InvCatalog/v1.0",
                   encoding = 'UTF-8',
@@ -83,6 +85,11 @@ class ThreddsXMLBase(object):
                 parent.remove(child)
 
 class ThreddsXMLTopLevel(ThreddsXMLBase):
+    """
+    A class for manipulating the top-level THREDDS catalog
+    (on the WMS server)
+    """
+
     def add_ref(self, href, name, title=None):
         if not title:
             title = name
@@ -91,7 +98,47 @@ class ThreddsXMLTopLevel(ThreddsXMLBase):
                 'name' : name}
         self.new_child(self.root, "catalogRef", **atts)
 
-class ThreddsXMLDataset(ThreddsXMLBase):
+class ThreddsXMLDatasetBase(ThreddsXMLBase):
+    """
+    An intermediate class re THREDDS catalogs that describe datasets - 
+    methods in common to what we want to do on the data node 
+    and on the WMS server
+    """
+    @cached_property
+    def top_level_dataset(self):
+        for child in self.root.getchildren():
+            if self.tag_base_name_is(child, "dataset"):
+                return child
+
+    @cached_property
+    def second_level_datasets(self):
+        return [child for child in self.top_level_dataset.getchildren()
+                if self.tag_base_name_is(child, "dataset")]
+
+    @cached_property
+    def dataset_id(self):
+        return self.top_level_dataset.attrib["ID"]
+
+    def insert_viewer_metadata(self):
+        mt = self.new_element("metadata", inherited="true")
+        self.new_child(mt, "serviceName", "all")
+        self.new_child(mt, "authority", "pml.ac.uk:")
+        self.new_child(mt, "dataType", "Grid")
+        self.new_child(mt, "property", name="viewer", 
+                       value="http://jasmin.eofrom.space/?wms_url={WMS},GISportal Viewer")
+        self.insert_element_before_similar(self.top_level_dataset, mt)
+        
+    def insert_wms_service(self,
+                           base="/thredds/wms"):
+        "Add a new 'service' element."
+        sv = self.new_element("service",
+                              name = "wms",
+                              serviceType="WMS",
+                              base=base)
+        #self.insert_element_before_similar(self.root, sv)
+        self.root.insert(0, sv)        
+
+class ThreddsXMLDatasetOnWMSServer(ThreddsXMLDatasetBase):
     """
     A class for processing THREDDS XML files and tweaking them to add WMS tags.
 
@@ -117,39 +164,6 @@ class ThreddsXMLDataset(ThreddsXMLBase):
         self.check_filenames_similar = check_filenames_similar
         self.check_vars_in_all_files = check_vars_in_all_files
         self.valid_file_pattern = valid_file_pattern
-
-    @cached_property
-    def top_level_dataset(self):
-        for child in self.root.getchildren():
-            if self.tag_base_name_is(child, "dataset"):
-                return child
-
-    @cached_property
-    def second_level_datasets(self):
-        return [child for child in self.top_level_dataset.getchildren()
-                if self.tag_base_name_is(child, "dataset")]
-
-    @cached_property
-    def dataset_id(self):
-        return self.top_level_dataset.attrib["ID"]
-
-    def insert_viewer_metadata(self):
-        mt = self.new_element("metadata", inherited="true")
-        self.new_child(mt, "serviceName", "all")
-        self.new_child(mt, "authority", "pml.ac.uk:")
-        self.new_child(mt, "dataType", "Grid")
-        self.new_child(mt, "property", name="viewer", 
-                       value="http://jasmin.eofrom.space/?wms_url={WMS},GISportal Viewer")
-        self.insert_element_before_similar(self.top_level_dataset, mt)
-        
-    def insert_wms_service(self):
-        "Add a new 'service' element."
-        sv = self.new_element("service",
-                              name = "wms",
-                              serviceType="WMS",
-                              base="/thredds/wms/")
-        #self.insert_element_before_similar(self.root, sv)
-        self.root.insert(0, sv)
 
     def strip_restrictAccess(self):
         """
@@ -262,7 +276,7 @@ class ThreddsXMLDataset(ThreddsXMLBase):
         all_date_formats = map(self.get_date_format_mark_1, paths)
         assert len(set(all_date_formats)) == 1  # if don't all give same string, need to refine
         return all_date_formats[0]
-        
+
     def add_wms_ds(self):
         dsid = self.dataset_id
         ds = self.new_element("dataset", name=dsid, ID=dsid, urlPath=dsid)
@@ -278,8 +292,7 @@ class ThreddsXMLDataset(ThreddsXMLBase):
                        dateFormatMark=self.get_date_format_mark(self.netcdf_files))
 
         self.top_level_dataset.append(ds)            
-
-
+    
     def all_changes(self):
 
         self.insert_viewer_metadata()
@@ -297,6 +310,7 @@ class ThreddsXMLDataset(ThreddsXMLBase):
         # remove all (2nd level) datasets and just add the WMS one
         self.delete_all_children_called(self.top_level_dataset, "dataset")
         self.add_wms_ds()
+
 
 
 class ProcessBatch(object):
@@ -347,7 +361,7 @@ class ProcessBatch(object):
 
         kwargs = self.get_kwargs(basename)
 
-        tx = ThreddsXMLDataset(check_filenames_similar = True, **kwargs)
+        tx = ThreddsXMLDatasetOnWMSServer(check_filenames_similar = True, **kwargs)
         tx.read(in_file)
         tx.all_changes()
         tx.write(out_file)
