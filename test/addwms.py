@@ -151,8 +151,14 @@ class ThreddsXML(object):
         """
         pos = fileserver_url.index("/")
         ds_root = fileserver_url[:pos]
-        return os.path.join(self.thredds_roots[ds_root],
+        path = os.path.join(self.thredds_roots[ds_root],
                             fileserver_url[pos + 1 :])
+        path = os.path.normpath(path)
+        # hack to avoid path inconsistency
+        m = re.match("^(/neodc/esacci/[^/]+)/", path)
+        if m:
+            path = os.readlink(m.group(1)) + path[m.end(1) :]
+        return path
 
     @cached_property
     def netcdf_files(self):
@@ -301,6 +307,8 @@ class ProcessBatch(object):
             freq = basename.split(".")[2]
             pattern = 'geographic.*' + dirs[freq]
             return {'valid_file_pattern' : pattern}
+        elif basename == 'esacci.GHG.day.L2.CH4.TANSO-FTS.GOSAT.GOSAT.v2-3-6.r1.v20160427.xml':
+            return {'valid_file_pattern' : 'SRPR'}
         elif basename.startswith("esacci.SEAICE."):
             return {'valid_file_pattern' : 'NorthernHemisphere'}
         else:
