@@ -1,5 +1,14 @@
 #!/usr/bin/env python2.7
 
+"""
+Script to create THREDDS xml files for use on the WMS server
+based on XML files copied from the data node, and also to produce 
+a top-level THREDDS catalog for the WMS server based on a template
+file with the addition of the links to per-dataset catalog files.
+
+For default filenames used, see default args to ProcessBatch.__init__()
+"""
+
 import re
 import os
 import netCDF4
@@ -205,16 +214,14 @@ class ThreddsXMLDatasetOnWMSServer(ThreddsXMLDatasetBase):
         self.delete_all_children_called(self.top_level_dataset, "dataset")
         self.add_wms_ds()
 
-
-
 class ProcessBatch(object):
-    def __init__(self, indir='all_inputs', outdir='thredds',
-                 cat_in = 'thredds/catalog_orig.xml',
-                 cat_out = 'thredds/catalog.xml'):
+    def __init__(self, indir='input_catalogs', outdir='output_catalogs',
+                 cat_in = 'catalog_in.xml',
+                 cat_out = 'catalog.xml'):
         self.indir = indir
         self.outdir = outdir
         self.cat_in = cat_in
-        self.cat_out = cat_out
+        self.cat_out = os.path.join(outdir, cat_out)
 
     def do_all(self):
         tx_cat = ThreddsXMLTopLevel()
