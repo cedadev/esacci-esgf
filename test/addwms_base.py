@@ -75,6 +75,9 @@ class ThreddsXMLDatasetBase(ThreddsXMLBase):
     methods in common to what we want to do on the data node 
     and on the WMS server
     """
+    def __init__(self, **kwargs):
+        ThreddsXMLBase.__init__(self, **kwargs)
+
     @cached_property
     def top_level_dataset(self):
         for child in self.root.getchildren():

@@ -58,7 +58,7 @@ class ThreddsXMLDatasetOnWMSServer(ThreddsXMLDatasetBase):
                  check_vars_in_all_files = False,
                  **kwargs):
 
-        ThreddsXMLBase.__init__(self, **kwargs)
+        ThreddsXMLDatasetBase.__init__(self, **kwargs)
 
         self.thredds_roots = thredds_roots
         self.thredds_roots.setdefault("esg_esacci", "/neodc")
