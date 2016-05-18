@@ -18,7 +18,7 @@ class ThreddsXMLDatasetOnDataNode(ThreddsXMLDatasetBase):
     that point to external WMS server
     """
     def __init__(self,
-                 wms_url_base = 'https://cci-odp-data.cems.rl.ac.uk/thredds/wms',
+                 wms_url_base = 'https://cci-odp-data.cems.rl.ac.uk/thredds/wms/',
                  **kwargs):
         ThreddsXMLDatasetBase.__init__(self, **kwargs)
         self.wms_url_base = wms_url_base
