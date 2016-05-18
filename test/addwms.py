@@ -2,12 +2,11 @@
 
 import re
 import os
-import xml.etree.cElementTree as ET
 import netCDF4
 from itertools import takewhile
-
 from cached_property import cached_property
 
+from addwms_base import ThreddsXMLBase, ThreddsXMLDatasetBase
 
 class NcFile(object):
 
@@ -17,72 +16,6 @@ class NcFile(object):
     def multidim_vars(self):
         return [name for name, var in self.ds.variables.iteritems()
                 if len(var.shape) >= 2]
-
-class ThreddsXMLBase(object):
-    """
-    Base class re generic stuff we want to do to THREDDS XML files
-    """
-    def __init__(self,
-                  ns = "http://www.unidata.ucar.edu/namespaces/thredds/InvCatalog/v1.0",
-                  encoding = 'UTF-8',
-                  xlink = "http://www.w3.org/1999/xlink"):        
-        self.ns = ns
-        self.encoding = encoding
-        self.xlink = xlink
-
-    def read(self, filename):
-        ET.register_namespace("", self.ns)
-        self.tree = ET.ElementTree()
-        self.tree.parse(filename)
-        self.root = self.tree.getroot()
-        self.root.set("xmlns:xlink", self.xlink)
-
-    def write(self, filename):
-        tmpfile = filename + ".tmp"
-        self.tree.write(tmpfile, encoding=self.encoding)
-        os.system("xmllint --format %s > %s" % (tmpfile, filename))
-        os.remove(tmpfile)
-
-    def tag_full_name(self, tag_base_name):
-        return "{%s}%s" % (self.ns, tag_base_name)
-
-    def tag_base_name(self, tag_full_name):
-        return tag_full_name[tag_full_name.index("}") + 1 :]
-
-    def tag_base_name_is(self, element, tag_name):
-        return self.tag_base_name(element.tag) == tag_name
-
-    def insert_element_before_similar(self, parent, new_child):
-        "Add a child element, if possible putting it before another child with the same tag"
-        new_tag = self.tag_base_name(new_child.tag)
-        for i, child in enumerate(parent.getchildren()):
-            if not self.tag_base_name_is(child, new_tag):
-                parent.insert(i, new_child)
-                break
-        else:
-            element.append(new_child)
-
-    def new_element(self, tag_base_name, *args, **attributes):
-        """
-        Create a new element. Arguments are the tag name, a single optional positional argument 
-        which is the element text, and then the attributes.
-        """
-        el = ET.Element(self.tag_full_name(tag_base_name), **attributes)
-        if args:
-            (text,) = args
-            el.text = text
-        return el
-
-    def new_child(self, parent, *args, **kwargs):
-        "As new_element, but add result as child of specified parent element"
-        child = self.new_element(*args, **kwargs)
-        parent.append(child)
-        return child
-
-    def delete_all_children_called(self, parent, tagname):
-        for child in parent.getchildren():
-            if self.tag_base_name_is(child, tagname):
-                parent.remove(child)
 
 class ThreddsXMLTopLevel(ThreddsXMLBase):
     """
@@ -98,45 +31,6 @@ class ThreddsXMLTopLevel(ThreddsXMLBase):
                 'name' : name}
         self.new_child(self.root, "catalogRef", **atts)
 
-class ThreddsXMLDatasetBase(ThreddsXMLBase):
-    """
-    An intermediate class re THREDDS catalogs that describe datasets - 
-    methods in common to what we want to do on the data node 
-    and on the WMS server
-    """
-    @cached_property
-    def top_level_dataset(self):
-        for child in self.root.getchildren():
-            if self.tag_base_name_is(child, "dataset"):
-                return child
-
-    @cached_property
-    def second_level_datasets(self):
-        return [child for child in self.top_level_dataset.getchildren()
-                if self.tag_base_name_is(child, "dataset")]
-
-    @cached_property
-    def dataset_id(self):
-        return self.top_level_dataset.attrib["ID"]
-
-    def insert_viewer_metadata(self):
-        mt = self.new_element("metadata", inherited="true")
-        self.new_child(mt, "serviceName", "all")
-        self.new_child(mt, "authority", "pml.ac.uk:")
-        self.new_child(mt, "dataType", "Grid")
-        self.new_child(mt, "property", name="viewer", 
-                       value="http://jasmin.eofrom.space/?wms_url={WMS},GISportal Viewer")
-        self.insert_element_before_similar(self.top_level_dataset, mt)
-        
-    def insert_wms_service(self,
-                           base="/thredds/wms"):
-        "Add a new 'service' element."
-        sv = self.new_element("service",
-                              name = "wms",
-                              serviceType="WMS",
-                              base=base)
-        #self.insert_element_before_similar(self.root, sv)
-        self.root.insert(0, sv)        
 
 class ThreddsXMLDatasetOnWMSServer(ThreddsXMLDatasetBase):
     """
