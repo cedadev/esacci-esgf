@@ -103,7 +103,7 @@ class ThreddsXMLDatasetBase(ThreddsXMLBase):
         self.insert_element_before_similar(self.top_level_dataset, mt)
         
     def insert_wms_service(self,
-                           base="/thredds/wms"):
+                           base="/thredds/wms/"):
         "Add a new 'service' element."
         sv = self.new_element("service",
                               name = "wms",
@@ -112,3 +112,12 @@ class ThreddsXMLDatasetBase(ThreddsXMLBase):
         #self.insert_element_before_similar(self.root, sv)
         self.root.insert(0, sv)        
 
+    def insert_wcs_service(self,
+                           base="/thredds/wcs/"):
+        "Add a new 'service' element."
+        sv = self.new_element("service",
+                              name = "wcs",
+                              serviceType="WCS",
+                              base=base)
+        #self.insert_element_before_similar(self.root, sv)
+        self.root.insert(0, sv)        

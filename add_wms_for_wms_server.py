@@ -56,12 +56,14 @@ class ThreddsXMLDatasetOnWMSServer(ThreddsXMLDatasetBase):
                  check_filenames_similar = False,
                  valid_file_pattern = None,
                  check_vars_in_all_files = False,
+                 do_wcs = False,
                  **kwargs):
 
         ThreddsXMLDatasetBase.__init__(self, **kwargs)
 
         self.thredds_roots = thredds_roots
         self.thredds_roots.setdefault("esg_esacci", "/neodc")
+        self.do_wcs = do_wcs
 
         # options related to quirks in the data
         self.check_filenames_similar = check_filenames_similar
@@ -184,6 +186,8 @@ class ThreddsXMLDatasetOnWMSServer(ThreddsXMLDatasetBase):
         dsid = self.dataset_id
         ds = self.new_element("dataset", name=dsid, ID=dsid, urlPath=dsid)
         self.new_child(ds, "access", serviceName="wms", urlPath=dsid)
+        if self.do_wcs:
+            self.new_child(ds, "access", serviceName="wcs", urlPath=dsid)
         nc = self.new_child(ds, "netcdf", xmlns="http://www.unidata.ucar.edu/namespaces/netcdf/ncml-2.2")
         agg = self.new_child(nc, "aggregation", dimName="time", type="joinNew")
         self.new_child(agg, "remove", name="time", type="variable")
@@ -204,6 +208,8 @@ class ThreddsXMLDatasetOnWMSServer(ThreddsXMLDatasetBase):
         # remove all services and just add the WMS one
         self.delete_all_children_called(self.root, "service")
         self.insert_wms_service()
+        if self.do_wcs:
+            self.insert_wcs_service()            
 
         # ensure some cached_properties get evaluated before we delete elements
         self.netcdf_files
@@ -262,7 +268,9 @@ class ProcessBatch(object):
 
         kwargs = self.get_kwargs(basename)
 
-        tx = ThreddsXMLDatasetOnWMSServer(check_filenames_similar = True, **kwargs)
+        tx = ThreddsXMLDatasetOnWMSServer(check_filenames_similar = True, 
+                                          do_wcs = True,
+                                          **kwargs)
         tx.read(in_file)
         tx.all_changes()
         tx.write(out_file)

@@ -44,9 +44,9 @@ def query_all(s, query="*.*", chunk=1000):
         start += chunk
 
   
-def update_wms_url(doc):
+def update_wms_and_wcs_urls(doc):
     """
-    Update the WMS URL in the "url" list in the document so as to add the 
+    Update the WMS and/or WCS URLs in the "url" list in the document so as to add the 
     query parameters needed for GetCapabilities if they are not already there.
     Works equally with a dataset document and a file document.
 
@@ -58,6 +58,11 @@ def update_wms_url(doc):
         bits = url_with_svc.split('|')
         if bits[2] == 'WMS' and '?' not in bits[0]:
             bits[0] += '?service=WMS&version=1.3.0&request=GetCapabilities'
+            urls[i] = string.join(bits, '|')
+            changed = True
+        # WCS similar but note different version
+        if bits[2] == 'WCS' and '?' not in bits[0]:
+            bits[0] += '?service=WCS&version=1.0.0&request=GetCapabilities'
             urls[i] = string.join(bits, '|')
             changed = True
     return changed
