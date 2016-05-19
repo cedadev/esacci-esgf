@@ -19,7 +19,7 @@ class ThreddsXMLDatasetOnDataNode(ThreddsXMLDatasetBase):
     """
     def __init__(self,
                  wms_url_base = 'https://cci-odp-data.cems.rl.ac.uk/thredds/wms/',
-                 wcs_url_base = 'https://cci-odp-data.cems.rl.ac.uk/thredds/wms/',
+                 wcs_url_base = 'https://cci-odp-data.cems.rl.ac.uk/thredds/wcs/',
                  do_wcs = False,
                  **kwargs):
         ThreddsXMLDatasetBase.__init__(self, **kwargs)
