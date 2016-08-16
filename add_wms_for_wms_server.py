@@ -11,6 +11,7 @@ For default filenames used, see default args to ProcessBatch.__init__()
 
 import re
 import os
+import traceback
 import netCDF4
 from itertools import takewhile
 from cached_property import cached_property
@@ -240,7 +241,10 @@ class ProcessBatch(object):
                 name = fn[:-4]
                 tx_cat.add_ref(title, name)
             except:
-                print "WARNING: %s failed\n" % fn
+                print "WARNING: %s failed, exception follows\n" % fn
+                print "=============="
+                traceback.print_exc()
+                print "=============="
         tx_cat.write(self.cat_out)
 
     def get_all_basenames(self):
