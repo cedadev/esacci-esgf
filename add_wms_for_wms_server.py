@@ -115,11 +115,13 @@ class ThreddsXMLDatasetOnWMSServer(ThreddsXMLDatasetBase):
         if len(filtered_list) != len(orig_list):
             print "After calling %s" % func.__name__
             print "%s out of %s files used" % (len(filtered_list), len(orig_list))
-            print "Example file used:     %s" % filtered_list[0]
+            if filtered_list:
+                print "Example file used:     %s" % filtered_list[0]
             print "Example file not used: %s" % (set(orig_list) - set(filtered_list)).pop()
         return filtered_list
 
     def filter_files_by_pattern(self, files, pattern):
+        print "applying filtering pattern: %s" % pattern
         return filter(re.compile(pattern).search, files)
 
     def filter_files_by_similarity(self, files):
@@ -233,13 +235,16 @@ class ProcessBatch(object):
         tx_cat = ThreddsXMLTopLevel()
         tx_cat.read(self.cat_in)
         for fn in self.get_all_basenames():
-            print fn
-            self.process_file(fn)
-            print
-            title = fn
-            assert fn.endswith(".xml")
-            name = fn[:-4]
-            tx_cat.add_ref(title, name)
+            try:
+                print fn
+                self.process_file(fn)
+                print
+                title = fn
+                assert fn.endswith(".xml")
+                name = fn[:-4]
+                tx_cat.add_ref(title, name)
+            except:
+                print "WARNING: %s failed\n" % fn
         tx_cat.write(self.cat_out)
 
     def get_all_basenames(self):
