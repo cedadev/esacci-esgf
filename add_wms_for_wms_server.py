@@ -62,7 +62,7 @@ class ThreddsXMLDatasetOnWMSServer(ThreddsXMLDatasetBase):
         ThreddsXMLDatasetBase.__init__(self, **kwargs)
 
         self.thredds_roots = thredds_roots
-        self.thredds_roots.setdefault("esg_esacci", "/neodc")
+        self.thredds_roots.setdefault("esg_esacci", "/neodc/esacci")
         self.do_wcs = do_wcs
 
         # options related to quirks in the data
@@ -89,10 +89,6 @@ class ThreddsXMLDatasetOnWMSServer(ThreddsXMLDatasetBase):
         path = os.path.join(self.thredds_roots[ds_root],
                             fileserver_url[pos + 1 :])
         path = os.path.normpath(path)
-        # hack to avoid path inconsistency
-        m = re.match("^(/neodc/esacci/[^/]+)/", path)
-        if m:
-            path = os.readlink(m.group(1)) + path[m.end(1) :]
         return path
 
     @cached_property
