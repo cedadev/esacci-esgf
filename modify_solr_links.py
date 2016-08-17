@@ -68,12 +68,12 @@ def update_wms_and_wcs_urls(doc):
     return changed
     
 if __name__ == '__main__':
-    s = pysolr.Solr('http://esgf-test2.ceda.ac.uk:8984/solr/datasets')
+    s = pysolr.Solr('http://esgf-index1.ceda.ac.uk:8984/solr/datasets')
     dsets = query_all(s, query='esacci')
     for ds in dsets:
         solr_update_doc(s, ds, update_wms_and_wcs_urls)
 
-    s = pysolr.Solr('http://esgf-test2.ceda.ac.uk:8984/solr/files')
+    s = pysolr.Solr('http://esgf-index1.ceda.ac.uk:8984/solr/files')
     files = query_all(s, query='esacci')
     for f in files:
         solr_update_doc(s, f, update_wms_and_wcs_urls)
