@@ -11,6 +11,7 @@ For default filenames used, see default args to ProcessBatch.__init__()
 
 import re
 import os
+import traceback
 import netCDF4
 from itertools import takewhile
 from cached_property import cached_property
@@ -62,7 +63,7 @@ class ThreddsXMLDatasetOnWMSServer(ThreddsXMLDatasetBase):
         ThreddsXMLDatasetBase.__init__(self, **kwargs)
 
         self.thredds_roots = thredds_roots
-        self.thredds_roots.setdefault("esg_esacci", "/neodc")
+        self.thredds_roots.setdefault("esg_esacci", "/neodc/esacci")
         self.do_wcs = do_wcs
 
         # options related to quirks in the data
@@ -89,10 +90,6 @@ class ThreddsXMLDatasetOnWMSServer(ThreddsXMLDatasetBase):
         path = os.path.join(self.thredds_roots[ds_root],
                             fileserver_url[pos + 1 :])
         path = os.path.normpath(path)
-        # hack to avoid path inconsistency
-        m = re.match("^(/neodc/esacci/[^/]+)/", path)
-        if m:
-            path = os.readlink(m.group(1)) + path[m.end(1) :]
         return path
 
     @cached_property
@@ -115,11 +112,13 @@ class ThreddsXMLDatasetOnWMSServer(ThreddsXMLDatasetBase):
         if len(filtered_list) != len(orig_list):
             print "After calling %s" % func.__name__
             print "%s out of %s files used" % (len(filtered_list), len(orig_list))
-            print "Example file used:     %s" % filtered_list[0]
+            if filtered_list:
+                print "Example file used:     %s" % filtered_list[0]
             print "Example file not used: %s" % (set(orig_list) - set(filtered_list)).pop()
         return filtered_list
 
     def filter_files_by_pattern(self, files, pattern):
+        print "applying filtering pattern: %s" % pattern
         return filter(re.compile(pattern).search, files)
 
     def filter_files_by_similarity(self, files):
@@ -233,13 +232,19 @@ class ProcessBatch(object):
         tx_cat = ThreddsXMLTopLevel()
         tx_cat.read(self.cat_in)
         for fn in self.get_all_basenames():
-            print fn
-            self.process_file(fn)
-            print
-            title = fn
-            assert fn.endswith(".xml")
-            name = fn[:-4]
-            tx_cat.add_ref(title, name)
+            try:
+                print fn
+                self.process_file(fn)
+                print
+                title = fn
+                assert fn.endswith(".xml")
+                name = fn[:-4]
+                tx_cat.add_ref(title, name)
+            except:
+                print "WARNING: %s failed, exception follows\n" % fn
+                print "=============="
+                traceback.print_exc()
+                print "=============="
         tx_cat.write(self.cat_out)
 
     def get_all_basenames(self):
