@@ -149,6 +149,9 @@ class ProcessBatchBase(object):
     def get_basenames(self):
         return self.basenames
 
-    def get_all_basenames(self):
-        return [fn for fn in os.listdir(self.indir) if fn.endswith(".xml")]
+    def get_all_basenames(self, dn=None):
+        if dn == None:
+            dn = self.indir
+        return [fn for fn in os.listdir(dn) if 
+                fn.startswith("esacci") and fn.endswith(".xml")]
 

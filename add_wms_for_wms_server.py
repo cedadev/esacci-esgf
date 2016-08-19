@@ -231,22 +231,23 @@ class ProcessBatch(ProcessBatchBase):
         self.parse_args(args)
 
     def do_all(self):
-        tx_cat = ThreddsXMLTopLevel()
-        tx_cat.read(self.cat_in)
         for fn in self.basenames:
             try:
                 print fn
                 self.process_file(fn)
                 print
-                title = fn
-                assert fn.endswith(".xml")
-                name = fn[:-4]
-                tx_cat.add_ref(title, name)
             except:
                 print "WARNING: %s failed, exception follows\n" % fn
                 print "=============="
                 traceback.print_exc()
                 print "=============="
+        tx_cat = ThreddsXMLTopLevel()
+        tx_cat.read(self.cat_in)
+        for fn in self.get_all_basenames(self.outdir):
+            title = fn
+            assert fn.endswith(".xml")
+            name = fn[:-4]
+            tx_cat.add_ref(title, name)
         tx_cat.write(self.cat_out)
 
     def get_kwargs(self, basename):

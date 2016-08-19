@@ -20,8 +20,4 @@
     <service name="dap4" serviceType="DAP4" base="/thredds/dap4/" />
   </service>
 
-  <catalogRef xlink:title="ESA CCI Aerosol" xlink:href="catalog-aerosol.xml" name="aerosol"/>
-  <catalogRef xlink:title="ESA CCI Ocean Colour" xlink:href="catalog-oc.xml" name="oc"/>
-  <catalogRef xlink:title="ESA CCI Ozone" xlink:href="catalog-ozone.xml" name="ozone"/>
-  <catalogRef xlink:title="ESA CCI Sea Surface Temperature" xlink:href="catalog-sst.xml" name="sst"/>
 </catalog>
