@@ -196,7 +196,8 @@ class ThreddsXMLDatasetOnWMSServer(ThreddsXMLDatasetBase):
 
         common_dir = self.commonprefix(map(os.path.dirname, self.netcdf_files))
         self.new_child(agg, "scan", location=common_dir,
-                       dateFormatMark=self.get_date_format_mark(self.netcdf_files))
+                       dateFormatMark=self.get_date_format_mark(self.netcdf_files),
+                       suffix=".nc")
 
         self.top_level_dataset.append(ds)            
     
