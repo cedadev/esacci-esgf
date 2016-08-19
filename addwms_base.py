@@ -1,3 +1,4 @@
+import sys
 import os
 import xml.etree.cElementTree as ET
 
@@ -121,3 +122,33 @@ class ThreddsXMLDatasetBase(ThreddsXMLBase):
                               base=base)
         #self.insert_element_before_similar(self.root, sv)
         self.root.insert(0, sv)        
+
+
+class ProcessBatchBase(object):
+
+    def usage(self):
+        prog = sys.argv[0]
+        print """Usage:
+
+   %s -a    - add WMS tags to all files found in %s
+
+   %s file1 [file2...]  - add WMS tags to specific files (base name only; files are assumed to be 
+                         in %s and any directory part will be ignored
+""" % (prog, self.indir, prog, self.indir)
+    
+    def parse_args(self, args):
+        if not args:
+            self.usage()
+            raise ValueError("bad command line arguments")
+            
+        if args == ['-a']:
+            self.basenames = self.get_all_basenames()
+        else:
+            self.basenames = map(os.path.basename, args)
+
+    def get_basenames(self):
+        return self.basenames
+
+    def get_all_basenames(self):
+        return [fn for fn in os.listdir(self.indir) if fn.endswith(".xml")]
+

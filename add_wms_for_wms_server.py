@@ -10,13 +10,14 @@ For default filenames used, see default args to ProcessBatch.__init__()
 """
 
 import re
+import sys
 import os
 import traceback
 import netCDF4
 from itertools import takewhile
 from cached_property import cached_property
 
-from addwms_base import ThreddsXMLBase, ThreddsXMLDatasetBase
+from addwms_base import ThreddsXMLBase, ThreddsXMLDatasetBase, ProcessBatchBase
 
 class NcFile(object):
 
@@ -219,19 +220,20 @@ class ThreddsXMLDatasetOnWMSServer(ThreddsXMLDatasetBase):
         self.delete_all_children_called(self.top_level_dataset, "dataset")
         self.add_wms_ds()
 
-class ProcessBatch(object):
-    def __init__(self, indir='input_catalogs', outdir='output_catalogs',
+class ProcessBatch(ProcessBatchBase):
+    def __init__(self, args, indir='input_catalogs', outdir='output_catalogs',
                  cat_in = 'catalog_in.xml',
                  cat_out = 'catalog.xml'):
         self.indir = indir
         self.outdir = outdir
         self.cat_in = cat_in
         self.cat_out = os.path.join(outdir, cat_out)
+        self.parse_args(args)
 
     def do_all(self):
         tx_cat = ThreddsXMLTopLevel()
         tx_cat.read(self.cat_in)
-        for fn in self.get_all_basenames():
+        for fn in self.basenames:
             try:
                 print fn
                 self.process_file(fn)
@@ -246,9 +248,6 @@ class ProcessBatch(object):
                 traceback.print_exc()
                 print "=============="
         tx_cat.write(self.cat_out)
-
-    def get_all_basenames(self):
-        return [fn for fn in os.listdir(self.indir) if fn.endswith(".xml")]
 
     def get_kwargs(self, basename):
         "return argument dictionary to deal with special cases where files are heterogeneous"
@@ -281,5 +280,5 @@ class ProcessBatch(object):
         tx.write(out_file)
     
 if __name__ == '__main__':
-    pb = ProcessBatch()
+    pb = ProcessBatch(sys.argv[1:])
     pb.do_all()

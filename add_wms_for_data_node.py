@@ -8,16 +8,17 @@ addition of external links for the WMS service.
 For default filenames used, see default args to ProcessBatch.__init__()
 """
 
+import sys
 import os
 
-from addwms_base import ThreddsXMLDatasetBase
+from addwms_base import ThreddsXMLDatasetBase, ProcessBatchBase
 
 class ThreddsXMLDatasetOnDataNode(ThreddsXMLDatasetBase):
     """
     A class for processing THREDDS XML files and tweaking them to add WMS tags
     that point to external WMS server
     """
-    def __init__(self,
+    def __init__(self, 
                  wms_url_base = 'https://cci-odp-data.cems.rl.ac.uk/thredds/wms/',
                  wcs_url_base = 'https://cci-odp-data.cems.rl.ac.uk/thredds/wcs/',
                  do_wcs = False,
@@ -44,19 +45,17 @@ class ThreddsXMLDatasetOnDataNode(ThreddsXMLDatasetBase):
         self.insert_access_links()
 
     
-class ProcessBatch(object):
-    def __init__(self, indir='input_catalogs', outdir='output_catalogs_for_data_node'):
+class ProcessBatch(ProcessBatchBase):
+    def __init__(self, args, indir='input_catalogs', outdir='output_catalogs_for_data_node'):
         self.indir = indir
         self.outdir = outdir
+        self.parse_args(args)
 
     def do_all(self):
-        for fn in self.get_all_basenames():
+        for fn in self.basenames:
             print fn
             self.process_file(fn)
             print
-
-    def get_all_basenames(self):
-        return [fn for fn in os.listdir(self.indir) if fn.endswith(".xml")]
 
     def process_file(self, basename):
         in_file = os.path.join(self.indir, basename)
@@ -67,5 +66,5 @@ class ProcessBatch(object):
         tx.write(out_file)
     
 if __name__ == '__main__':
-    pb = ProcessBatch()
+    pb = ProcessBatch(sys.argv[1:])
     pb.do_all()
