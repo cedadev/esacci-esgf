@@ -189,14 +189,12 @@ class ThreddsXMLDatasetOnWMSServer(ThreddsXMLDatasetBase):
         if self.do_wcs:
             self.new_child(ds, "access", serviceName="wcs", urlPath=dsid)
         nc = self.new_child(ds, "netcdf", xmlns="http://www.unidata.ucar.edu/namespaces/netcdf/ncml-2.2")
-        agg = self.new_child(nc, "aggregation", dimName="time", type="joinNew")
-        self.new_child(agg, "remove", name="time", type="variable")
+        agg = self.new_child(nc, "aggregation", dimName="time", type="joinExisting")
         for varname in self.netcdf_variables:
             self.new_child(agg, "variableAgg", name=varname)
 
         common_dir = self.commonprefix(map(os.path.dirname, self.netcdf_files))
         self.new_child(agg, "scan", location=common_dir,
-                       dateFormatMark=self.get_date_format_mark(self.netcdf_files),
                        suffix=".nc")
 
         self.top_level_dataset.append(ds)            
