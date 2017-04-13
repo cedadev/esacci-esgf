@@ -255,13 +255,14 @@ class ProcessBatch(ProcessBatchBase):
             dirs = {'day': 'daily',
                     'mon': 'monthly',
                     'yr': 'annual',
-                    '8-days': '8day'}
+                    '8-days': '8day',
+                    '5-days': '5day'}
             freq = basename.split(".")[2]
             pattern = 'geographic.*' + dirs[freq]
             return {'valid_file_pattern' : pattern}
         elif basename == 'esacci.GHG.day.L2.CH4.TANSO-FTS.GOSAT.GOSAT.v2-3-6.r1.v20160427.xml':
             return {'valid_file_pattern' : 'SRPR'}
-        elif basename.startswith("esacci.SEAICE."):
+        elif basename.startswith("esacci.SEAICE.") and not (".NH." in basename or ".SH." in basename):
             return {'valid_file_pattern' : 'NorthernHemisphere'}
         else:
             return {}
