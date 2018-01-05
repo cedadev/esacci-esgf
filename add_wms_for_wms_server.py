@@ -66,11 +66,21 @@ class ThreddsXMLDatasetOnWMSServer(ThreddsXMLDatasetBase):
         self.thredds_roots = thredds_roots
         self.thredds_roots.setdefault("esg_esacci", "/neodc/esacci")
         self.do_wcs = do_wcs
+        self.aggregations = {}
 
         # options related to quirks in the data
         self.check_filenames_similar = check_filenames_similar
         self.check_vars_in_all_files = check_vars_in_all_files
         self.valid_file_pattern = valid_file_pattern
+
+    def write(self, filename, agg_dir):
+        """
+        Write this catalog to 'filename', and save aggregations in 'agg_dir'
+        """
+        ThreddsXMLDatasetBase.write(self, filename)
+
+        for name, agg in self.aggregations.items():
+            agg.write(os.path.join(agg_dir, name))
 
     def strip_restrictAccess(self):
         """
@@ -188,15 +198,30 @@ class ThreddsXMLDatasetOnWMSServer(ThreddsXMLDatasetBase):
         self.new_child(ds, "access", serviceName="wms", urlPath=dsid)
         if self.do_wcs:
             self.new_child(ds, "access", serviceName="wcs", urlPath=dsid)
-        nc = self.new_child(ds, "netcdf", xmlns="http://www.unidata.ucar.edu/namespaces/netcdf/ncml-2.2")
-        agg = self.new_child(nc, "aggregation", dimName="time", type="joinExisting")
+
+        # Create new XML document to store NcML aggregation
+        agg_xml = ThreddsXMLBase(ns="http://www.unidata.ucar.edu/namespaces/netcdf/ncml-2.2")
+        ncml = agg_xml.new_element("netcdf")
+        agg_xml.set_root(ncml)
+
+        agg = agg_xml.new_child(ncml, "aggregation", dimName="time", type="joinExisting")
         for varname in self.netcdf_variables:
-            self.new_child(agg, "variableAgg", name=varname)
+            agg_xml.new_child(agg, "variableAgg", name=varname)
 
         common_dir = self.commonprefix(map(os.path.dirname, self.netcdf_files))
-        self.new_child(agg, "scan", location=common_dir,
-                       suffix=".nc")
+        agg_xml.new_child(agg, "scan", location=common_dir,
+                          suffix=".nc")
 
+        agg_filename = "%s.ncml" % dsid
+        self.aggregations[agg_filename] = agg_xml
+
+        # TODO: Use relative path to avoid hardcoding path
+        agg_full_path = os.path.join(self.AGGREGATIONS_DIRECTORY, agg_filename)
+
+        # Create a 'netcdf' element in the catalog that points to the file containing the
+        # aggregation
+        catalog_ncml = self.new_child(ds, "netcdf", location=agg_full_path,
+                                      xmlns="http://www.unidata.ucar.edu/namespaces/netcdf/ncml-2.2")
         self.top_level_dataset.append(ds)            
     
     def all_changes(self):
@@ -225,6 +250,7 @@ class ProcessBatch(ProcessBatchBase):
                  cat_out = 'catalog.xml'):
         self.indir = indir
         self.outdir = outdir
+        self.agg_outdir = os.path.join(self.outdir, "aggregations")
         self.cat_in = cat_in
         self.cat_out = os.path.join(outdir, cat_out)
         self.parse_args(args)
@@ -278,7 +304,7 @@ class ProcessBatch(ProcessBatchBase):
                                           **kwargs)
         tx.read(in_file)
         tx.all_changes()
-        tx.write(out_file)
+        tx.write(out_file, agg_dir=self.agg_outdir)
     
 if __name__ == '__main__':
     pb = ProcessBatch(sys.argv[1:])
