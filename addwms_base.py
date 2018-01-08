@@ -22,6 +22,7 @@ class ThreddsXMLBase(object):
         self.root.set("xmlns:xlink", self.xlink)
 
     def read(self, filename):
+        self.in_filename = filename
         ET.register_namespace("", self.ns)
         self.tree = ET.ElementTree()
         self.tree.parse(filename)
@@ -81,10 +82,6 @@ class ThreddsXMLDatasetBase(ThreddsXMLBase):
     methods in common to what we want to do on the data node 
     and on the WMS server
     """
-
-    # Path to the directory where NcML aggregation files will be located on
-    # the thredds server
-    AGGREGATIONS_DIRECTORY = "/esg/content/thredds/esgcet/1/aggregations"
 
     def __init__(self, **kwargs):
         ThreddsXMLBase.__init__(self, **kwargs)
