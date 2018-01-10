@@ -67,10 +67,28 @@ class ThreddsXMLDatasetOnWMSServer(ThreddsXMLDatasetBase):
         self.thredds_roots.setdefault("esg_esacci", "/neodc/esacci")
         self.do_wcs = do_wcs
 
+        # For each NcML file for an aggregation of datasets, map
+        # (file basename, subdir) -> ThreddsXMLBase, where subdir is the subdirectory
+        # of 'aggregations' in the THREDDS content directory in which the file will live
+        self.aggregations = {}
+
         # options related to quirks in the data
         self.check_filenames_similar = check_filenames_similar
         self.check_vars_in_all_files = check_vars_in_all_files
         self.valid_file_pattern = valid_file_pattern
+
+    def write(self, filename, agg_dir):
+        """
+        Write this catalog to 'filename', and save aggregations in 'agg_dir'
+        """
+        ThreddsXMLDatasetBase.write(self, filename)
+
+        for (filename, subdir), agg in self.aggregations.items():
+            abs_subdir = os.path.join(agg_dir, subdir)
+            if not os.path.isdir(abs_subdir):
+                os.makedirs(abs_subdir)
+
+            agg.write(os.path.join(abs_subdir, filename))
 
     def strip_restrictAccess(self):
         """
@@ -185,18 +203,45 @@ class ThreddsXMLDatasetOnWMSServer(ThreddsXMLDatasetBase):
     def add_wms_ds(self):
         dsid = self.dataset_id
         ds = self.new_element("dataset", name=dsid, ID=dsid, urlPath=dsid)
-        self.new_child(ds, "access", serviceName="wms", urlPath=dsid)
+
+        services = ["wms", "OpenDAPServer"]
         if self.do_wcs:
-            self.new_child(ds, "access", serviceName="wcs", urlPath=dsid)
-        nc = self.new_child(ds, "netcdf", xmlns="http://www.unidata.ucar.edu/namespaces/netcdf/ncml-2.2")
-        agg = self.new_child(nc, "aggregation", dimName="time", type="joinExisting")
+            services.append("wcs")
+
+        for service_name in services:
+            self.new_child(ds, "access", serviceName=service_name, urlPath=dsid)
+
+        # Create new XML document to store NcML aggregation
+        agg_xml = ThreddsXMLBase(ns="http://www.unidata.ucar.edu/namespaces/netcdf/ncml-2.2")
+        ncml = agg_xml.new_element("netcdf")
+        agg_xml.set_root(ncml)
+
+        agg = agg_xml.new_child(ncml, "aggregation", dimName="time", type="joinExisting")
         for varname in self.netcdf_variables:
-            self.new_child(agg, "variableAgg", name=varname)
+            agg_xml.new_child(agg, "variableAgg", name=varname)
 
         common_dir = self.commonprefix(map(os.path.dirname, self.netcdf_files))
-        self.new_child(agg, "scan", location=common_dir,
-                       suffix=".nc")
+        agg_xml.new_child(agg, "scan", location=common_dir,
+                          suffix=".nc")
 
+        # Get directory to store aggregation in by splitting dataset ID into
+        # its facets and having a subdirectory for each component.
+        components = os.path.basename(self.in_filename).split(".")
+        if len(components) > 0:
+            if components[0] == "esacci":
+                components.pop(0)
+            if components[-1] == "xml":
+                components.pop(-1)
+
+        sub_dir = os.path.join(*components)
+        agg_basename = "%s.ncml" % dsid
+        self.aggregations[(agg_basename, sub_dir)] = agg_xml
+
+        # Create a 'netcdf' element in the catalog that points to the file containing the
+        # aggregation
+        agg_full_path = os.path.join("content", "aggregations", sub_dir, agg_basename)
+        catalog_ncml = self.new_child(ds, "netcdf", location=agg_full_path,
+                                      xmlns="http://www.unidata.ucar.edu/namespaces/netcdf/ncml-2.2")
         self.top_level_dataset.append(ds)            
     
     def all_changes(self):
@@ -205,7 +250,6 @@ class ThreddsXMLDatasetOnWMSServer(ThreddsXMLDatasetBase):
         self.strip_restrictAccess()
 
         # remove all services and just add the WMS one
-        self.delete_all_children_called(self.root, "service")
         self.insert_wms_service()
         if self.do_wcs:
             self.insert_wcs_service()            
@@ -221,10 +265,12 @@ class ThreddsXMLDatasetOnWMSServer(ThreddsXMLDatasetBase):
 
 class ProcessBatch(ProcessBatchBase):
     def __init__(self, args, indir='input_catalogs', outdir='output_catalogs',
+                 agg_outdir='aggregations',
                  cat_in = 'catalog_in.xml',
                  cat_out = 'catalog.xml'):
         self.indir = indir
         self.outdir = outdir
+        self.agg_outdir = agg_outdir
         self.cat_in = cat_in
         self.cat_out = os.path.join(outdir, cat_out)
         self.parse_args(args)
@@ -278,7 +324,7 @@ class ProcessBatch(ProcessBatchBase):
                                           **kwargs)
         tx.read(in_file)
         tx.all_changes()
-        tx.write(out_file)
+        tx.write(out_file, agg_dir=self.agg_outdir)
     
 if __name__ == '__main__':
     pb = ProcessBatch(sys.argv[1:])

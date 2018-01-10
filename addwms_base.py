@@ -16,7 +16,13 @@ class ThreddsXMLBase(object):
         self.encoding = encoding
         self.xlink = xlink
 
+    def set_root(self, root):
+        self.tree = ET.ElementTree(root)
+        self.root = root
+        self.root.set("xmlns:xlink", self.xlink)
+
     def read(self, filename):
+        self.in_filename = filename
         ET.register_namespace("", self.ns)
         self.tree = ET.ElementTree()
         self.tree.parse(filename)
@@ -76,6 +82,7 @@ class ThreddsXMLDatasetBase(ThreddsXMLBase):
     methods in common to what we want to do on the data node 
     and on the WMS server
     """
+
     def __init__(self, **kwargs):
         ThreddsXMLBase.__init__(self, **kwargs)
 
