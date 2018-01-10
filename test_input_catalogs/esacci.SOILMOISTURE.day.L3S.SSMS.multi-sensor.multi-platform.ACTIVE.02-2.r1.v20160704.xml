@@ -1,0 +1,661 @@
+<?xml version='1.0' encoding='UTF-8'?>
+<catalog xmlns:xlink="http://www.w3.org/1999/xlink" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns="http://www.unidata.ucar.edu/namespaces/thredds/InvCatalog/v1.0" name="TDS configuration file" xsi:schemaLocation="http://www.unidata.ucar.edu/namespaces/thredds/InvCatalog/v1.0 http://www.unidata.ucar.edu/schemas/thredds/InvCatalog.1.0.2.xsd">
+  <service base="/thredds/dodsC/" desc="OpenDAP" name="gridded" serviceType="OpenDAP">
+    <property name="requires_authorization" value="false"/>
+    <property name="application" value="Web Browser"/>
+  </service>
+  <service base="http://esgf-test2.ceda.ac.uk/las/getUI.do" desc="Live Access Server" name="LASatCEDA_ESGF_TEST2" serviceType="LAS">
+    <property name="requires_authorization" value="false"/>
+    <property name="application" value="Web Browser"/>
+  </service>
+  <service base="" name="fileservice" serviceType="Compound">
+    <service base="/thredds/fileServer/" desc="HTTPServer" name="HTTPServer" serviceType="HTTPServer">
+      <property name="requires_authorization" value="true"/>
+      <property name="application" value="Web Browser"/>
+      <property name="application" value="Web Script"/>
+    </service>
+    <service base="gsiftp://esgf-test2.ceda.ac.uk:2811/" desc="GridFTP" name="GRIDFTP" serviceType="GridFTP">
+      <property name="requires_authorization" value="true"/>
+      <property name="application" value="DataMover-Lite"/>
+    </service>
+    <service base="/thredds/dodsC/" desc="OpenDAP" name="OpenDAPServer" serviceType="OpenDAP">
+      <property name="requires_authorization" value="false"/>
+      <property name="application" value="Web Browser"/>
+    </service>
+  </service>
+  <service base="srm://esgf-test2.ceda.ac.uk:6288/srm/v2/server?SFN=/archive.sample.gov/" desc="SRM" name="HRMatPCMDI" serviceType="SRM">
+    <property name="requires_authorization" value="false"/>
+  </service>
+  <property name="catalog_version" value="2"/>
+  <dataset ID="esacci.SOILMOISTURE.day.L3S.SSMS.multi-sensor.multi-platform.ACTIVE.02-2.r1.v20160704" name="esacci.SOILMOISTURE.day.L3S.SSMS.multi-sensor.multi-platform.ACTIVE.02-2.r1" restrictAccess="esg-user">
+    <property name="dataset_id" value="esacci.SOILMOISTURE.day.L3S.SSMS.multi-sensor.multi-platform.ACTIVE.02-2.r1"/>
+    <property name="dataset_version" value="20160704"/>
+    <property name="dataset_id_template_" value="%(project)s.%(cci_project)s.%(time_frequency)s.%(processing_level)s.%(data_type)s.%(sensor_id)s.%(platform_id)s.%(product_string)s.%(product_version)s.%(realization)s"/>
+    <property name="project" value="esacci"/>
+    <property name="cci_project" value="SOILMOISTURE"/>
+    <property name="time_frequency" value="day"/>
+    <property name="processing_level" value="L3S"/>
+    <property name="data_type" value="SSMS"/>
+    <property name="sensor_id" value="multi-sensor"/>
+    <property name="platform_id" value="multi-platform"/>
+    <property name="product_string" value="ACTIVE"/>
+    <property name="product_version" value="02-2"/>
+    <property name="realization" value="r1"/>
+    <metadata inherited="true">
+      <variables vocabulary="CF-1.0">
+        <variable name="mode" vocabulary_name="Satellite Mode" units="None">Satellite Mode</variable>
+        <variable name="freqband" vocabulary_name="Frequency Band" units="None">Frequency Band</variable>
+        <variable name="sensor" vocabulary_name="Sensor" units="None">Sensor</variable>
+        <variable name="sm" vocabulary_name="Percent of Saturation Soil Moisture" units="percent">Percent of Saturation Soil Moisture</variable>
+        <variable name="dnflag" vocabulary_name="Day(100) or Night(110) Flag" units="None">Day(100) or Night(110) Flag</variable>
+        <variable name="sm_uncertainty" vocabulary_name="Percent of Saturation Soil Moisture Uncertainty" units="percent">Percent of Saturation Soil Moisture Uncertainty</variable>
+        <variable name="flag" vocabulary_name="Flag" units="None">Flag</variable>
+        <variable name="t0" vocabulary_name="Observation Timestamp" units="days since 1970-01-01 00:00:00 UTC">Observation Timestamp</variable>
+      </variables>
+    </metadata>
+    <metadata inherited="true">
+      <dataType>Grid</dataType>
+      <dataFormat>NetCDF</dataFormat>
+    </metadata>
+    <dataset ID="esacci.SOILMOISTURE.day.L3S.SSMS.multi-sensor.multi-platform.ACTIVE.02-2.r1.v20160704.ESACCI-SOILMOISTURE-L3S-SSMS-ACTIVE-19910805000000-fv02.2.nc" name="ESACCI-SOILMOISTURE-L3S-SSMS-ACTIVE-19910805000000-fv02.2.nc" urlPath="esg_esacci/soil_moisture/data/daily_files/ACTIVE/v02.2/1991/ESACCI-SOILMOISTURE-L3S-SSMS-ACTIVE-19910805000000-fv02.2.nc" serviceName="HTTPServer">
+      <property name="file_id" value="esacci.SOILMOISTURE.day.L3S.SSMS.multi-sensor.multi-platform.ACTIVE.02-2.r1.ESACCI-SOILMOISTURE-L3S-SSMS-ACTIVE-19910805000000-fv02.2.nc"/>
+      <property name="file_version" value="1"/>
+      <property name="size" value="138782"/>
+      <property name="tracking_id" value="05d20bfc-2da2-4a0e-95c4-0b0c348c837e"/>
+      <property name="mod_time" value="2016-03-07 18:23:16"/>
+      <property name="checksum" value="73f736849e306851ae78adb64c358ec362efbcb38a2697cb46fdc42d2cdadeb2"/>
+      <property name="checksum_type" value="SHA256"/>
+      <dataSize units="bytes">138782</dataSize>
+      <access serviceName="GRIDFTP" urlPath="/esg_esacci/soil_moisture/data/daily_files/ACTIVE/v02.2/1991/ESACCI-SOILMOISTURE-L3S-SSMS-ACTIVE-19910805000000-fv02.2.nc"/>
+      <access serviceName="OpenDAPServer" urlPath="esg_esacci/soil_moisture/data/daily_files/ACTIVE/v02.2/1991/ESACCI-SOILMOISTURE-L3S-SSMS-ACTIVE-19910805000000-fv02.2.nc"/>
+    </dataset>
+    <dataset ID="esacci.SOILMOISTURE.day.L3S.SSMS.multi-sensor.multi-platform.ACTIVE.02-2.r1.v20160704.ESACCI-SOILMOISTURE-L3S-SSMS-ACTIVE-19910806000000-fv02.2.nc" name="ESACCI-SOILMOISTURE-L3S-SSMS-ACTIVE-19910806000000-fv02.2.nc" urlPath="esg_esacci/soil_moisture/data/daily_files/ACTIVE/v02.2/1991/ESACCI-SOILMOISTURE-L3S-SSMS-ACTIVE-19910806000000-fv02.2.nc" serviceName="HTTPServer">
+      <property name="file_id" value="esacci.SOILMOISTURE.day.L3S.SSMS.multi-sensor.multi-platform.ACTIVE.02-2.r1.ESACCI-SOILMOISTURE-L3S-SSMS-ACTIVE-19910806000000-fv02.2.nc"/>
+      <property name="file_version" value="1"/>
+      <property name="size" value="171980"/>
+      <property name="tracking_id" value="6a3ce349-27df-4e09-9cb4-149db42e9f7e"/>
+      <property name="mod_time" value="2016-03-07 18:23:16"/>
+      <property name="checksum" value="f56734b6950b3aaac21ba453f34598982213f7c76c93aa1a9738a2daa5f9e3ff"/>
+      <property name="checksum_type" value="SHA256"/>
+      <dataSize units="bytes">171980</dataSize>
+      <access serviceName="GRIDFTP" urlPath="/esg_esacci/soil_moisture/data/daily_files/ACTIVE/v02.2/1991/ESACCI-SOILMOISTURE-L3S-SSMS-ACTIVE-19910806000000-fv02.2.nc"/>
+      <access serviceName="OpenDAPServer" urlPath="esg_esacci/soil_moisture/data/daily_files/ACTIVE/v02.2/1991/ESACCI-SOILMOISTURE-L3S-SSMS-ACTIVE-19910806000000-fv02.2.nc"/>
+    </dataset>
+    <dataset ID="esacci.SOILMOISTURE.day.L3S.SSMS.multi-sensor.multi-platform.ACTIVE.02-2.r1.v20160704.ESACCI-SOILMOISTURE-L3S-SSMS-ACTIVE-19910807000000-fv02.2.nc" name="ESACCI-SOILMOISTURE-L3S-SSMS-ACTIVE-19910807000000-fv02.2.nc" urlPath="esg_esacci/soil_moisture/data/daily_files/ACTIVE/v02.2/1991/ESACCI-SOILMOISTURE-L3S-SSMS-ACTIVE-19910807000000-fv02.2.nc" serviceName="HTTPServer">
+      <property name="file_id" value="esacci.SOILMOISTURE.day.L3S.SSMS.multi-sensor.multi-platform.ACTIVE.02-2.r1.ESACCI-SOILMOISTURE-L3S-SSMS-ACTIVE-19910807000000-fv02.2.nc"/>
+      <property name="file_version" value="1"/>
+      <property name="size" value="143586"/>
+      <property name="tracking_id" value="0183588c-3337-4612-b04e-2564097923b5"/>
+      <property name="mod_time" value="2016-03-07 18:23:16"/>
+      <property name="checksum" value="1f14544a6bfd02c298aa0956181d5bd209ddb6c4c414851c8e33dc1f042f38e9"/>
+      <property name="checksum_type" value="SHA256"/>
+      <dataSize units="bytes">143586</dataSize>
+      <access serviceName="GRIDFTP" urlPath="/esg_esacci/soil_moisture/data/daily_files/ACTIVE/v02.2/1991/ESACCI-SOILMOISTURE-L3S-SSMS-ACTIVE-19910807000000-fv02.2.nc"/>
+      <access serviceName="OpenDAPServer" urlPath="esg_esacci/soil_moisture/data/daily_files/ACTIVE/v02.2/1991/ESACCI-SOILMOISTURE-L3S-SSMS-ACTIVE-19910807000000-fv02.2.nc"/>
+    </dataset>
+    <dataset ID="esacci.SOILMOISTURE.day.L3S.SSMS.multi-sensor.multi-platform.ACTIVE.02-2.r1.v20160704.ESACCI-SOILMOISTURE-L3S-SSMS-ACTIVE-19910808000000-fv02.2.nc" name="ESACCI-SOILMOISTURE-L3S-SSMS-ACTIVE-19910808000000-fv02.2.nc" urlPath="esg_esacci/soil_moisture/data/daily_files/ACTIVE/v02.2/1991/ESACCI-SOILMOISTURE-L3S-SSMS-ACTIVE-19910808000000-fv02.2.nc" serviceName="HTTPServer">
+      <property name="file_id" value="esacci.SOILMOISTURE.day.L3S.SSMS.multi-sensor.multi-platform.ACTIVE.02-2.r1.ESACCI-SOILMOISTURE-L3S-SSMS-ACTIVE-19910808000000-fv02.2.nc"/>
+      <property name="file_version" value="1"/>
+      <property name="size" value="184012"/>
+      <property name="tracking_id" value="921f2f41-c8f0-4c16-a903-5c0682c5be06"/>
+      <property name="mod_time" value="2016-03-07 18:23:16"/>
+      <property name="checksum" value="5bbe5ea1e81a6bce6b76bdb70975eeb2bfe9ce9acf72d000913da8968a6a9544"/>
+      <property name="checksum_type" value="SHA256"/>
+      <dataSize units="bytes">184012</dataSize>
+      <access serviceName="GRIDFTP" urlPath="/esg_esacci/soil_moisture/data/daily_files/ACTIVE/v02.2/1991/ESACCI-SOILMOISTURE-L3S-SSMS-ACTIVE-19910808000000-fv02.2.nc"/>
+      <access serviceName="OpenDAPServer" urlPath="esg_esacci/soil_moisture/data/daily_files/ACTIVE/v02.2/1991/ESACCI-SOILMOISTURE-L3S-SSMS-ACTIVE-19910808000000-fv02.2.nc"/>
+    </dataset>
+    <dataset ID="esacci.SOILMOISTURE.day.L3S.SSMS.multi-sensor.multi-platform.ACTIVE.02-2.r1.v20160704.ESACCI-SOILMOISTURE-L3S-SSMS-ACTIVE-19910809000000-fv02.2.nc" name="ESACCI-SOILMOISTURE-L3S-SSMS-ACTIVE-19910809000000-fv02.2.nc" urlPath="esg_esacci/soil_moisture/data/daily_files/ACTIVE/v02.2/1991/ESACCI-SOILMOISTURE-L3S-SSMS-ACTIVE-19910809000000-fv02.2.nc" serviceName="HTTPServer">
+      <property name="file_id" value="esacci.SOILMOISTURE.day.L3S.SSMS.multi-sensor.multi-platform.ACTIVE.02-2.r1.ESACCI-SOILMOISTURE-L3S-SSMS-ACTIVE-19910809000000-fv02.2.nc"/>
+      <property name="file_version" value="1"/>
+      <property name="size" value="161816"/>
+      <property name="tracking_id" value="fbd7f0c7-f7dc-4799-9dbe-32b615db154c"/>
+      <property name="mod_time" value="2016-03-07 18:23:16"/>
+      <property name="checksum" value="c9a0019638e2cb9d019adc857331728a9d7d1d05909f376e71e6d49f7fa709a1"/>
+      <property name="checksum_type" value="SHA256"/>
+      <dataSize units="bytes">161816</dataSize>
+      <access serviceName="GRIDFTP" urlPath="/esg_esacci/soil_moisture/data/daily_files/ACTIVE/v02.2/1991/ESACCI-SOILMOISTURE-L3S-SSMS-ACTIVE-19910809000000-fv02.2.nc"/>
+      <access serviceName="OpenDAPServer" urlPath="esg_esacci/soil_moisture/data/daily_files/ACTIVE/v02.2/1991/ESACCI-SOILMOISTURE-L3S-SSMS-ACTIVE-19910809000000-fv02.2.nc"/>
+    </dataset>
+    <dataset ID="esacci.SOILMOISTURE.day.L3S.SSMS.multi-sensor.multi-platform.ACTIVE.02-2.r1.v20160704.ESACCI-SOILMOISTURE-L3S-SSMS-ACTIVE-19910810000000-fv02.2.nc" name="ESACCI-SOILMOISTURE-L3S-SSMS-ACTIVE-19910810000000-fv02.2.nc" urlPath="esg_esacci/soil_moisture/data/daily_files/ACTIVE/v02.2/1991/ESACCI-SOILMOISTURE-L3S-SSMS-ACTIVE-19910810000000-fv02.2.nc" serviceName="HTTPServer">
+      <property name="file_id" value="esacci.SOILMOISTURE.day.L3S.SSMS.multi-sensor.multi-platform.ACTIVE.02-2.r1.ESACCI-SOILMOISTURE-L3S-SSMS-ACTIVE-19910810000000-fv02.2.nc"/>
+      <property name="file_version" value="1"/>
+      <property name="size" value="148549"/>
+      <property name="tracking_id" value="78154827-09d1-4e82-a77c-47adf982945d"/>
+      <property name="mod_time" value="2016-03-07 18:23:16"/>
+      <property name="checksum" value="0e7612adef04814d1a03930308e5559b281544e431f95e2bb355f1e1fdb61f2c"/>
+      <property name="checksum_type" value="SHA256"/>
+      <dataSize units="bytes">148549</dataSize>
+      <access serviceName="GRIDFTP" urlPath="/esg_esacci/soil_moisture/data/daily_files/ACTIVE/v02.2/1991/ESACCI-SOILMOISTURE-L3S-SSMS-ACTIVE-19910810000000-fv02.2.nc"/>
+      <access serviceName="OpenDAPServer" urlPath="esg_esacci/soil_moisture/data/daily_files/ACTIVE/v02.2/1991/ESACCI-SOILMOISTURE-L3S-SSMS-ACTIVE-19910810000000-fv02.2.nc"/>
+    </dataset>
+    <dataset ID="esacci.SOILMOISTURE.day.L3S.SSMS.multi-sensor.multi-platform.ACTIVE.02-2.r1.v20160704.ESACCI-SOILMOISTURE-L3S-SSMS-ACTIVE-19910811000000-fv02.2.nc" name="ESACCI-SOILMOISTURE-L3S-SSMS-ACTIVE-19910811000000-fv02.2.nc" urlPath="esg_esacci/soil_moisture/data/daily_files/ACTIVE/v02.2/1991/ESACCI-SOILMOISTURE-L3S-SSMS-ACTIVE-19910811000000-fv02.2.nc" serviceName="HTTPServer">
+      <property name="file_id" value="esacci.SOILMOISTURE.day.L3S.SSMS.multi-sensor.multi-platform.ACTIVE.02-2.r1.ESACCI-SOILMOISTURE-L3S-SSMS-ACTIVE-19910811000000-fv02.2.nc"/>
+      <property name="file_version" value="1"/>
+      <property name="size" value="131049"/>
+      <property name="tracking_id" value="49624dff-e6bb-49ec-b733-b7167ae0caf8"/>
+      <property name="mod_time" value="2016-03-07 18:23:16"/>
+      <property name="checksum" value="b83857f3b8b772a64dd84e226f38ddb777333265373cd535eedb0e85c464af5a"/>
+      <property name="checksum_type" value="SHA256"/>
+      <dataSize units="bytes">131049</dataSize>
+      <access serviceName="GRIDFTP" urlPath="/esg_esacci/soil_moisture/data/daily_files/ACTIVE/v02.2/1991/ESACCI-SOILMOISTURE-L3S-SSMS-ACTIVE-19910811000000-fv02.2.nc"/>
+      <access serviceName="OpenDAPServer" urlPath="esg_esacci/soil_moisture/data/daily_files/ACTIVE/v02.2/1991/ESACCI-SOILMOISTURE-L3S-SSMS-ACTIVE-19910811000000-fv02.2.nc"/>
+    </dataset>
+    <dataset ID="esacci.SOILMOISTURE.day.L3S.SSMS.multi-sensor.multi-platform.ACTIVE.02-2.r1.v20160704.ESACCI-SOILMOISTURE-L3S-SSMS-ACTIVE-19910812000000-fv02.2.nc" name="ESACCI-SOILMOISTURE-L3S-SSMS-ACTIVE-19910812000000-fv02.2.nc" urlPath="esg_esacci/soil_moisture/data/daily_files/ACTIVE/v02.2/1991/ESACCI-SOILMOISTURE-L3S-SSMS-ACTIVE-19910812000000-fv02.2.nc" serviceName="HTTPServer">
+      <property name="file_id" value="esacci.SOILMOISTURE.day.L3S.SSMS.multi-sensor.multi-platform.ACTIVE.02-2.r1.ESACCI-SOILMOISTURE-L3S-SSMS-ACTIVE-19910812000000-fv02.2.nc"/>
+      <property name="file_version" value="1"/>
+      <property name="size" value="150560"/>
+      <property name="tracking_id" value="08fbbc2f-356d-4444-889c-45343797a8d4"/>
+      <property name="mod_time" value="2016-03-07 18:23:16"/>
+      <property name="checksum" value="197293afbed5fb66985638360ec28246398e4bc11d523c9121c8fbe93a773622"/>
+      <property name="checksum_type" value="SHA256"/>
+      <dataSize units="bytes">150560</dataSize>
+      <access serviceName="GRIDFTP" urlPath="/esg_esacci/soil_moisture/data/daily_files/ACTIVE/v02.2/1991/ESACCI-SOILMOISTURE-L3S-SSMS-ACTIVE-19910812000000-fv02.2.nc"/>
+      <access serviceName="OpenDAPServer" urlPath="esg_esacci/soil_moisture/data/daily_files/ACTIVE/v02.2/1991/ESACCI-SOILMOISTURE-L3S-SSMS-ACTIVE-19910812000000-fv02.2.nc"/>
+    </dataset>
+    <dataset ID="esacci.SOILMOISTURE.day.L3S.SSMS.multi-sensor.multi-platform.ACTIVE.02-2.r1.v20160704.ESACCI-SOILMOISTURE-L3S-SSMS-ACTIVE-19910813000000-fv02.2.nc" name="ESACCI-SOILMOISTURE-L3S-SSMS-ACTIVE-19910813000000-fv02.2.nc" urlPath="esg_esacci/soil_moisture/data/daily_files/ACTIVE/v02.2/1991/ESACCI-SOILMOISTURE-L3S-SSMS-ACTIVE-19910813000000-fv02.2.nc" serviceName="HTTPServer">
+      <property name="file_id" value="esacci.SOILMOISTURE.day.L3S.SSMS.multi-sensor.multi-platform.ACTIVE.02-2.r1.ESACCI-SOILMOISTURE-L3S-SSMS-ACTIVE-19910813000000-fv02.2.nc"/>
+      <property name="file_version" value="1"/>
+      <property name="size" value="154638"/>
+      <property name="tracking_id" value="f6bd8b9a-4467-4efe-8c50-269c525eb5cb"/>
+      <property name="mod_time" value="2016-03-07 18:23:16"/>
+      <property name="checksum" value="8f05d7ebc9a576e52cbf67f42771710c42e1dff06c256192c94fc36de1073ba8"/>
+      <property name="checksum_type" value="SHA256"/>
+      <dataSize units="bytes">154638</dataSize>
+      <access serviceName="GRIDFTP" urlPath="/esg_esacci/soil_moisture/data/daily_files/ACTIVE/v02.2/1991/ESACCI-SOILMOISTURE-L3S-SSMS-ACTIVE-19910813000000-fv02.2.nc"/>
+      <access serviceName="OpenDAPServer" urlPath="esg_esacci/soil_moisture/data/daily_files/ACTIVE/v02.2/1991/ESACCI-SOILMOISTURE-L3S-SSMS-ACTIVE-19910813000000-fv02.2.nc"/>
+    </dataset>
+    <dataset ID="esacci.SOILMOISTURE.day.L3S.SSMS.multi-sensor.multi-platform.ACTIVE.02-2.r1.v20160704.ESACCI-SOILMOISTURE-L3S-SSMS-ACTIVE-19910814000000-fv02.2.nc" name="ESACCI-SOILMOISTURE-L3S-SSMS-ACTIVE-19910814000000-fv02.2.nc" urlPath="esg_esacci/soil_moisture/data/daily_files/ACTIVE/v02.2/1991/ESACCI-SOILMOISTURE-L3S-SSMS-ACTIVE-19910814000000-fv02.2.nc" serviceName="HTTPServer">
+      <property name="file_id" value="esacci.SOILMOISTURE.day.L3S.SSMS.multi-sensor.multi-platform.ACTIVE.02-2.r1.ESACCI-SOILMOISTURE-L3S-SSMS-ACTIVE-19910814000000-fv02.2.nc"/>
+      <property name="file_version" value="1"/>
+      <property name="size" value="174556"/>
+      <property name="tracking_id" value="ea5b94ba-dd3a-4e7a-9755-5f7506f9b790"/>
+      <property name="mod_time" value="2016-03-07 18:23:16"/>
+      <property name="checksum" value="d7a5c9f3c7ce41f96d2d702cca8a8225d03811003927723861782a978d3cfa38"/>
+      <property name="checksum_type" value="SHA256"/>
+      <dataSize units="bytes">174556</dataSize>
+      <access serviceName="GRIDFTP" urlPath="/esg_esacci/soil_moisture/data/daily_files/ACTIVE/v02.2/1991/ESACCI-SOILMOISTURE-L3S-SSMS-ACTIVE-19910814000000-fv02.2.nc"/>
+      <access serviceName="OpenDAPServer" urlPath="esg_esacci/soil_moisture/data/daily_files/ACTIVE/v02.2/1991/ESACCI-SOILMOISTURE-L3S-SSMS-ACTIVE-19910814000000-fv02.2.nc"/>
+    </dataset>
+    <dataset ID="esacci.SOILMOISTURE.day.L3S.SSMS.multi-sensor.multi-platform.ACTIVE.02-2.r1.v20160704.ESACCI-SOILMOISTURE-L3S-SSMS-ACTIVE-19910815000000-fv02.2.nc" name="ESACCI-SOILMOISTURE-L3S-SSMS-ACTIVE-19910815000000-fv02.2.nc" urlPath="esg_esacci/soil_moisture/data/daily_files/ACTIVE/v02.2/1991/ESACCI-SOILMOISTURE-L3S-SSMS-ACTIVE-19910815000000-fv02.2.nc" serviceName="HTTPServer">
+      <property name="file_id" value="esacci.SOILMOISTURE.day.L3S.SSMS.multi-sensor.multi-platform.ACTIVE.02-2.r1.ESACCI-SOILMOISTURE-L3S-SSMS-ACTIVE-19910815000000-fv02.2.nc"/>
+      <property name="file_version" value="1"/>
+      <property name="size" value="162663"/>
+      <property name="tracking_id" value="3267fd86-70d4-4dbc-840d-518c7e63bc76"/>
+      <property name="mod_time" value="2016-03-07 18:23:16"/>
+      <property name="checksum" value="dc1360d95ce87b019e330d56dc8118e104f7a15518a5c41b1a3f2b75673bae4d"/>
+      <property name="checksum_type" value="SHA256"/>
+      <dataSize units="bytes">162663</dataSize>
+      <access serviceName="GRIDFTP" urlPath="/esg_esacci/soil_moisture/data/daily_files/ACTIVE/v02.2/1991/ESACCI-SOILMOISTURE-L3S-SSMS-ACTIVE-19910815000000-fv02.2.nc"/>
+      <access serviceName="OpenDAPServer" urlPath="esg_esacci/soil_moisture/data/daily_files/ACTIVE/v02.2/1991/ESACCI-SOILMOISTURE-L3S-SSMS-ACTIVE-19910815000000-fv02.2.nc"/>
+    </dataset>
+    <dataset ID="esacci.SOILMOISTURE.day.L3S.SSMS.multi-sensor.multi-platform.ACTIVE.02-2.r1.v20160704.ESACCI-SOILMOISTURE-L3S-SSMS-ACTIVE-19910816000000-fv02.2.nc" name="ESACCI-SOILMOISTURE-L3S-SSMS-ACTIVE-19910816000000-fv02.2.nc" urlPath="esg_esacci/soil_moisture/data/daily_files/ACTIVE/v02.2/1991/ESACCI-SOILMOISTURE-L3S-SSMS-ACTIVE-19910816000000-fv02.2.nc" serviceName="HTTPServer">
+      <property name="file_id" value="esacci.SOILMOISTURE.day.L3S.SSMS.multi-sensor.multi-platform.ACTIVE.02-2.r1.ESACCI-SOILMOISTURE-L3S-SSMS-ACTIVE-19910816000000-fv02.2.nc"/>
+      <property name="file_version" value="1"/>
+      <property name="size" value="157908"/>
+      <property name="tracking_id" value="5a7457fd-f784-442f-840a-b8c7cf7d4df7"/>
+      <property name="mod_time" value="2016-03-07 18:23:16"/>
+      <property name="checksum" value="ffbae0152804157c493001798e22cf0fe6c2bee17ff53a2d637efff887be6f33"/>
+      <property name="checksum_type" value="SHA256"/>
+      <dataSize units="bytes">157908</dataSize>
+      <access serviceName="GRIDFTP" urlPath="/esg_esacci/soil_moisture/data/daily_files/ACTIVE/v02.2/1991/ESACCI-SOILMOISTURE-L3S-SSMS-ACTIVE-19910816000000-fv02.2.nc"/>
+      <access serviceName="OpenDAPServer" urlPath="esg_esacci/soil_moisture/data/daily_files/ACTIVE/v02.2/1991/ESACCI-SOILMOISTURE-L3S-SSMS-ACTIVE-19910816000000-fv02.2.nc"/>
+    </dataset>
+    <dataset ID="esacci.SOILMOISTURE.day.L3S.SSMS.multi-sensor.multi-platform.ACTIVE.02-2.r1.v20160704.ESACCI-SOILMOISTURE-L3S-SSMS-ACTIVE-19910817000000-fv02.2.nc" name="ESACCI-SOILMOISTURE-L3S-SSMS-ACTIVE-19910817000000-fv02.2.nc" urlPath="esg_esacci/soil_moisture/data/daily_files/ACTIVE/v02.2/1991/ESACCI-SOILMOISTURE-L3S-SSMS-ACTIVE-19910817000000-fv02.2.nc" serviceName="HTTPServer">
+      <property name="file_id" value="esacci.SOILMOISTURE.day.L3S.SSMS.multi-sensor.multi-platform.ACTIVE.02-2.r1.ESACCI-SOILMOISTURE-L3S-SSMS-ACTIVE-19910817000000-fv02.2.nc"/>
+      <property name="file_version" value="1"/>
+      <property name="size" value="188472"/>
+      <property name="tracking_id" value="6a4d460b-35cd-45b6-bf23-6c6fcab9d801"/>
+      <property name="mod_time" value="2016-03-07 18:23:16"/>
+      <property name="checksum" value="eefaf012cafaa419433fb206a2b16325d969c23df6c32d801851db3bb687cc3f"/>
+      <property name="checksum_type" value="SHA256"/>
+      <dataSize units="bytes">188472</dataSize>
+      <access serviceName="GRIDFTP" urlPath="/esg_esacci/soil_moisture/data/daily_files/ACTIVE/v02.2/1991/ESACCI-SOILMOISTURE-L3S-SSMS-ACTIVE-19910817000000-fv02.2.nc"/>
+      <access serviceName="OpenDAPServer" urlPath="esg_esacci/soil_moisture/data/daily_files/ACTIVE/v02.2/1991/ESACCI-SOILMOISTURE-L3S-SSMS-ACTIVE-19910817000000-fv02.2.nc"/>
+    </dataset>
+    <dataset ID="esacci.SOILMOISTURE.day.L3S.SSMS.multi-sensor.multi-platform.ACTIVE.02-2.r1.v20160704.ESACCI-SOILMOISTURE-L3S-SSMS-ACTIVE-19910818000000-fv02.2.nc" name="ESACCI-SOILMOISTURE-L3S-SSMS-ACTIVE-19910818000000-fv02.2.nc" urlPath="esg_esacci/soil_moisture/data/daily_files/ACTIVE/v02.2/1991/ESACCI-SOILMOISTURE-L3S-SSMS-ACTIVE-19910818000000-fv02.2.nc" serviceName="HTTPServer">
+      <property name="file_id" value="esacci.SOILMOISTURE.day.L3S.SSMS.multi-sensor.multi-platform.ACTIVE.02-2.r1.ESACCI-SOILMOISTURE-L3S-SSMS-ACTIVE-19910818000000-fv02.2.nc"/>
+      <property name="file_version" value="1"/>
+      <property name="size" value="177982"/>
+      <property name="tracking_id" value="c5c625d6-cb47-4160-b667-a573ce6f0a71"/>
+      <property name="mod_time" value="2016-03-07 18:23:16"/>
+      <property name="checksum" value="3f7a49894cf89c66e38e76732d33f61590bf04b9f0f0edab04f39f90dbcc3a7b"/>
+      <property name="checksum_type" value="SHA256"/>
+      <dataSize units="bytes">177982</dataSize>
+      <access serviceName="GRIDFTP" urlPath="/esg_esacci/soil_moisture/data/daily_files/ACTIVE/v02.2/1991/ESACCI-SOILMOISTURE-L3S-SSMS-ACTIVE-19910818000000-fv02.2.nc"/>
+      <access serviceName="OpenDAPServer" urlPath="esg_esacci/soil_moisture/data/daily_files/ACTIVE/v02.2/1991/ESACCI-SOILMOISTURE-L3S-SSMS-ACTIVE-19910818000000-fv02.2.nc"/>
+    </dataset>
+    <dataset ID="esacci.SOILMOISTURE.day.L3S.SSMS.multi-sensor.multi-platform.ACTIVE.02-2.r1.v20160704.ESACCI-SOILMOISTURE-L3S-SSMS-ACTIVE-19910819000000-fv02.2.nc" name="ESACCI-SOILMOISTURE-L3S-SSMS-ACTIVE-19910819000000-fv02.2.nc" urlPath="esg_esacci/soil_moisture/data/daily_files/ACTIVE/v02.2/1991/ESACCI-SOILMOISTURE-L3S-SSMS-ACTIVE-19910819000000-fv02.2.nc" serviceName="HTTPServer">
+      <property name="file_id" value="esacci.SOILMOISTURE.day.L3S.SSMS.multi-sensor.multi-platform.ACTIVE.02-2.r1.ESACCI-SOILMOISTURE-L3S-SSMS-ACTIVE-19910819000000-fv02.2.nc"/>
+      <property name="file_version" value="1"/>
+      <property name="size" value="157965"/>
+      <property name="tracking_id" value="cbca915b-7223-4ec1-9d82-3884be014dda"/>
+      <property name="mod_time" value="2016-03-07 18:23:16"/>
+      <property name="checksum" value="880e2449a76dc36e267a508c6b25bb603ddfc7bba60607b7897b4e93eddce8de"/>
+      <property name="checksum_type" value="SHA256"/>
+      <dataSize units="bytes">157965</dataSize>
+      <access serviceName="GRIDFTP" urlPath="/esg_esacci/soil_moisture/data/daily_files/ACTIVE/v02.2/1991/ESACCI-SOILMOISTURE-L3S-SSMS-ACTIVE-19910819000000-fv02.2.nc"/>
+      <access serviceName="OpenDAPServer" urlPath="esg_esacci/soil_moisture/data/daily_files/ACTIVE/v02.2/1991/ESACCI-SOILMOISTURE-L3S-SSMS-ACTIVE-19910819000000-fv02.2.nc"/>
+    </dataset>
+    <dataset ID="esacci.SOILMOISTURE.day.L3S.SSMS.multi-sensor.multi-platform.ACTIVE.02-2.r1.v20160704.ESACCI-SOILMOISTURE-L3S-SSMS-ACTIVE-19910820000000-fv02.2.nc" name="ESACCI-SOILMOISTURE-L3S-SSMS-ACTIVE-19910820000000-fv02.2.nc" urlPath="esg_esacci/soil_moisture/data/daily_files/ACTIVE/v02.2/1991/ESACCI-SOILMOISTURE-L3S-SSMS-ACTIVE-19910820000000-fv02.2.nc" serviceName="HTTPServer">
+      <property name="file_id" value="esacci.SOILMOISTURE.day.L3S.SSMS.multi-sensor.multi-platform.ACTIVE.02-2.r1.ESACCI-SOILMOISTURE-L3S-SSMS-ACTIVE-19910820000000-fv02.2.nc"/>
+      <property name="file_version" value="1"/>
+      <property name="size" value="190281"/>
+      <property name="tracking_id" value="fa37728d-4929-466a-8c06-abe6f74ded3d"/>
+      <property name="mod_time" value="2016-03-07 18:23:16"/>
+      <property name="checksum" value="6209119074ecbcb9f3e16fd0f32678f1acd06596349a439743cd5876021d3a95"/>
+      <property name="checksum_type" value="SHA256"/>
+      <dataSize units="bytes">190281</dataSize>
+      <access serviceName="GRIDFTP" urlPath="/esg_esacci/soil_moisture/data/daily_files/ACTIVE/v02.2/1991/ESACCI-SOILMOISTURE-L3S-SSMS-ACTIVE-19910820000000-fv02.2.nc"/>
+      <access serviceName="OpenDAPServer" urlPath="esg_esacci/soil_moisture/data/daily_files/ACTIVE/v02.2/1991/ESACCI-SOILMOISTURE-L3S-SSMS-ACTIVE-19910820000000-fv02.2.nc"/>
+    </dataset>
+    <dataset ID="esacci.SOILMOISTURE.day.L3S.SSMS.multi-sensor.multi-platform.ACTIVE.02-2.r1.v20160704.ESACCI-SOILMOISTURE-L3S-SSMS-ACTIVE-19910821000000-fv02.2.nc" name="ESACCI-SOILMOISTURE-L3S-SSMS-ACTIVE-19910821000000-fv02.2.nc" urlPath="esg_esacci/soil_moisture/data/daily_files/ACTIVE/v02.2/1991/ESACCI-SOILMOISTURE-L3S-SSMS-ACTIVE-19910821000000-fv02.2.nc" serviceName="HTTPServer">
+      <property name="file_id" value="esacci.SOILMOISTURE.day.L3S.SSMS.multi-sensor.multi-platform.ACTIVE.02-2.r1.ESACCI-SOILMOISTURE-L3S-SSMS-ACTIVE-19910821000000-fv02.2.nc"/>
+      <property name="file_version" value="1"/>
+      <property name="size" value="170640"/>
+      <property name="tracking_id" value="70aa30ab-e62d-4f96-9c93-87d92d93a1d9"/>
+      <property name="mod_time" value="2016-03-07 18:23:16"/>
+      <property name="checksum" value="8395b791ccda3ccb0cb0aca5d7d93ebc28c795de6bec5257aa2b55de40529341"/>
+      <property name="checksum_type" value="SHA256"/>
+      <dataSize units="bytes">170640</dataSize>
+      <access serviceName="GRIDFTP" urlPath="/esg_esacci/soil_moisture/data/daily_files/ACTIVE/v02.2/1991/ESACCI-SOILMOISTURE-L3S-SSMS-ACTIVE-19910821000000-fv02.2.nc"/>
+      <access serviceName="OpenDAPServer" urlPath="esg_esacci/soil_moisture/data/daily_files/ACTIVE/v02.2/1991/ESACCI-SOILMOISTURE-L3S-SSMS-ACTIVE-19910821000000-fv02.2.nc"/>
+    </dataset>
+    <dataset ID="esacci.SOILMOISTURE.day.L3S.SSMS.multi-sensor.multi-platform.ACTIVE.02-2.r1.v20160704.ESACCI-SOILMOISTURE-L3S-SSMS-ACTIVE-19910822000000-fv02.2.nc" name="ESACCI-SOILMOISTURE-L3S-SSMS-ACTIVE-19910822000000-fv02.2.nc" urlPath="esg_esacci/soil_moisture/data/daily_files/ACTIVE/v02.2/1991/ESACCI-SOILMOISTURE-L3S-SSMS-ACTIVE-19910822000000-fv02.2.nc" serviceName="HTTPServer">
+      <property name="file_id" value="esacci.SOILMOISTURE.day.L3S.SSMS.multi-sensor.multi-platform.ACTIVE.02-2.r1.ESACCI-SOILMOISTURE-L3S-SSMS-ACTIVE-19910822000000-fv02.2.nc"/>
+      <property name="file_version" value="1"/>
+      <property name="size" value="316141"/>
+      <property name="tracking_id" value="dba90b1c-2c09-4d94-8d88-7a817b9b4e47"/>
+      <property name="mod_time" value="2016-03-07 18:23:16"/>
+      <property name="checksum" value="23cb6430aee3e4dfebe44ce58bfe9d1c807b02e0b657c1d54ab82c2f4916b073"/>
+      <property name="checksum_type" value="SHA256"/>
+      <dataSize units="bytes">316141</dataSize>
+      <access serviceName="GRIDFTP" urlPath="/esg_esacci/soil_moisture/data/daily_files/ACTIVE/v02.2/1991/ESACCI-SOILMOISTURE-L3S-SSMS-ACTIVE-19910822000000-fv02.2.nc"/>
+      <access serviceName="OpenDAPServer" urlPath="esg_esacci/soil_moisture/data/daily_files/ACTIVE/v02.2/1991/ESACCI-SOILMOISTURE-L3S-SSMS-ACTIVE-19910822000000-fv02.2.nc"/>
+    </dataset>
+    <dataset ID="esacci.SOILMOISTURE.day.L3S.SSMS.multi-sensor.multi-platform.ACTIVE.02-2.r1.v20160704.ESACCI-SOILMOISTURE-L3S-SSMS-ACTIVE-19910823000000-fv02.2.nc" name="ESACCI-SOILMOISTURE-L3S-SSMS-ACTIVE-19910823000000-fv02.2.nc" urlPath="esg_esacci/soil_moisture/data/daily_files/ACTIVE/v02.2/1991/ESACCI-SOILMOISTURE-L3S-SSMS-ACTIVE-19910823000000-fv02.2.nc" serviceName="HTTPServer">
+      <property name="file_id" value="esacci.SOILMOISTURE.day.L3S.SSMS.multi-sensor.multi-platform.ACTIVE.02-2.r1.ESACCI-SOILMOISTURE-L3S-SSMS-ACTIVE-19910823000000-fv02.2.nc"/>
+      <property name="file_version" value="1"/>
+      <property name="size" value="344149"/>
+      <property name="tracking_id" value="064aaeaf-4945-4242-907d-24bfc62fb0a7"/>
+      <property name="mod_time" value="2016-03-07 18:23:16"/>
+      <property name="checksum" value="ad32db623d4c96f2daac1d3d8dab87cd46c4eee72eb00f00638564a9605a0917"/>
+      <property name="checksum_type" value="SHA256"/>
+      <dataSize units="bytes">344149</dataSize>
+      <access serviceName="GRIDFTP" urlPath="/esg_esacci/soil_moisture/data/daily_files/ACTIVE/v02.2/1991/ESACCI-SOILMOISTURE-L3S-SSMS-ACTIVE-19910823000000-fv02.2.nc"/>
+      <access serviceName="OpenDAPServer" urlPath="esg_esacci/soil_moisture/data/daily_files/ACTIVE/v02.2/1991/ESACCI-SOILMOISTURE-L3S-SSMS-ACTIVE-19910823000000-fv02.2.nc"/>
+    </dataset>
+    <dataset ID="esacci.SOILMOISTURE.day.L3S.SSMS.multi-sensor.multi-platform.ACTIVE.02-2.r1.v20160704.ESACCI-SOILMOISTURE-L3S-SSMS-ACTIVE-19910824000000-fv02.2.nc" name="ESACCI-SOILMOISTURE-L3S-SSMS-ACTIVE-19910824000000-fv02.2.nc" urlPath="esg_esacci/soil_moisture/data/daily_files/ACTIVE/v02.2/1991/ESACCI-SOILMOISTURE-L3S-SSMS-ACTIVE-19910824000000-fv02.2.nc" serviceName="HTTPServer">
+      <property name="file_id" value="esacci.SOILMOISTURE.day.L3S.SSMS.multi-sensor.multi-platform.ACTIVE.02-2.r1.ESACCI-SOILMOISTURE-L3S-SSMS-ACTIVE-19910824000000-fv02.2.nc"/>
+      <property name="file_version" value="1"/>
+      <property name="size" value="416981"/>
+      <property name="tracking_id" value="ab9e2d09-2313-4365-8f69-837e4f601f06"/>
+      <property name="mod_time" value="2016-03-07 18:23:16"/>
+      <property name="checksum" value="877cd10c0ef6016fccad8f799143f7ec62c87575e6b578fc3c238b6a285052c7"/>
+      <property name="checksum_type" value="SHA256"/>
+      <dataSize units="bytes">416981</dataSize>
+      <access serviceName="GRIDFTP" urlPath="/esg_esacci/soil_moisture/data/daily_files/ACTIVE/v02.2/1991/ESACCI-SOILMOISTURE-L3S-SSMS-ACTIVE-19910824000000-fv02.2.nc"/>
+      <access serviceName="OpenDAPServer" urlPath="esg_esacci/soil_moisture/data/daily_files/ACTIVE/v02.2/1991/ESACCI-SOILMOISTURE-L3S-SSMS-ACTIVE-19910824000000-fv02.2.nc"/>
+    </dataset>
+    <dataset ID="esacci.SOILMOISTURE.day.L3S.SSMS.multi-sensor.multi-platform.ACTIVE.02-2.r1.v20160704.ESACCI-SOILMOISTURE-L3S-SSMS-ACTIVE-19910825000000-fv02.2.nc" name="ESACCI-SOILMOISTURE-L3S-SSMS-ACTIVE-19910825000000-fv02.2.nc" urlPath="esg_esacci/soil_moisture/data/daily_files/ACTIVE/v02.2/1991/ESACCI-SOILMOISTURE-L3S-SSMS-ACTIVE-19910825000000-fv02.2.nc" serviceName="HTTPServer">
+      <property name="file_id" value="esacci.SOILMOISTURE.day.L3S.SSMS.multi-sensor.multi-platform.ACTIVE.02-2.r1.ESACCI-SOILMOISTURE-L3S-SSMS-ACTIVE-19910825000000-fv02.2.nc"/>
+      <property name="file_version" value="1"/>
+      <property name="size" value="320954"/>
+      <property name="tracking_id" value="4bdd55bf-4704-449e-831e-d55378a5700f"/>
+      <property name="mod_time" value="2016-03-07 18:23:16"/>
+      <property name="checksum" value="6827f541a9fd0b1d1fc4eb4f75f95481b9aeb9aeb071293d8667e4cc966af8d1"/>
+      <property name="checksum_type" value="SHA256"/>
+      <dataSize units="bytes">320954</dataSize>
+      <access serviceName="GRIDFTP" urlPath="/esg_esacci/soil_moisture/data/daily_files/ACTIVE/v02.2/1991/ESACCI-SOILMOISTURE-L3S-SSMS-ACTIVE-19910825000000-fv02.2.nc"/>
+      <access serviceName="OpenDAPServer" urlPath="esg_esacci/soil_moisture/data/daily_files/ACTIVE/v02.2/1991/ESACCI-SOILMOISTURE-L3S-SSMS-ACTIVE-19910825000000-fv02.2.nc"/>
+    </dataset>
+    <dataset ID="esacci.SOILMOISTURE.day.L3S.SSMS.multi-sensor.multi-platform.ACTIVE.02-2.r1.v20160704.ESACCI-SOILMOISTURE-L3S-SSMS-ACTIVE-19910826000000-fv02.2.nc" name="ESACCI-SOILMOISTURE-L3S-SSMS-ACTIVE-19910826000000-fv02.2.nc" urlPath="esg_esacci/soil_moisture/data/daily_files/ACTIVE/v02.2/1991/ESACCI-SOILMOISTURE-L3S-SSMS-ACTIVE-19910826000000-fv02.2.nc" serviceName="HTTPServer">
+      <property name="file_id" value="esacci.SOILMOISTURE.day.L3S.SSMS.multi-sensor.multi-platform.ACTIVE.02-2.r1.ESACCI-SOILMOISTURE-L3S-SSMS-ACTIVE-19910826000000-fv02.2.nc"/>
+      <property name="file_version" value="1"/>
+      <property name="size" value="405231"/>
+      <property name="tracking_id" value="902492f8-1f5c-4e0e-aefc-43c1fb40913b"/>
+      <property name="mod_time" value="2016-03-07 18:23:16"/>
+      <property name="checksum" value="efb74dcd2e41ea20991c0747a8ec59f603ba530089bee83d3a013f129a3d6beb"/>
+      <property name="checksum_type" value="SHA256"/>
+      <dataSize units="bytes">405231</dataSize>
+      <access serviceName="GRIDFTP" urlPath="/esg_esacci/soil_moisture/data/daily_files/ACTIVE/v02.2/1991/ESACCI-SOILMOISTURE-L3S-SSMS-ACTIVE-19910826000000-fv02.2.nc"/>
+      <access serviceName="OpenDAPServer" urlPath="esg_esacci/soil_moisture/data/daily_files/ACTIVE/v02.2/1991/ESACCI-SOILMOISTURE-L3S-SSMS-ACTIVE-19910826000000-fv02.2.nc"/>
+    </dataset>
+    <dataset ID="esacci.SOILMOISTURE.day.L3S.SSMS.multi-sensor.multi-platform.ACTIVE.02-2.r1.v20160704.ESACCI-SOILMOISTURE-L3S-SSMS-ACTIVE-19910827000000-fv02.2.nc" name="ESACCI-SOILMOISTURE-L3S-SSMS-ACTIVE-19910827000000-fv02.2.nc" urlPath="esg_esacci/soil_moisture/data/daily_files/ACTIVE/v02.2/1991/ESACCI-SOILMOISTURE-L3S-SSMS-ACTIVE-19910827000000-fv02.2.nc" serviceName="HTTPServer">
+      <property name="file_id" value="esacci.SOILMOISTURE.day.L3S.SSMS.multi-sensor.multi-platform.ACTIVE.02-2.r1.ESACCI-SOILMOISTURE-L3S-SSMS-ACTIVE-19910827000000-fv02.2.nc"/>
+      <property name="file_version" value="1"/>
+      <property name="size" value="419857"/>
+      <property name="tracking_id" value="b9e440bf-4bf6-4b59-83b5-2498337465d2"/>
+      <property name="mod_time" value="2016-03-07 18:23:16"/>
+      <property name="checksum" value="f386a9ed2b34710e77cc979585dab24732ac2454b1d59f9330db4fa9633d22e9"/>
+      <property name="checksum_type" value="SHA256"/>
+      <dataSize units="bytes">419857</dataSize>
+      <access serviceName="GRIDFTP" urlPath="/esg_esacci/soil_moisture/data/daily_files/ACTIVE/v02.2/1991/ESACCI-SOILMOISTURE-L3S-SSMS-ACTIVE-19910827000000-fv02.2.nc"/>
+      <access serviceName="OpenDAPServer" urlPath="esg_esacci/soil_moisture/data/daily_files/ACTIVE/v02.2/1991/ESACCI-SOILMOISTURE-L3S-SSMS-ACTIVE-19910827000000-fv02.2.nc"/>
+    </dataset>
+    <dataset ID="esacci.SOILMOISTURE.day.L3S.SSMS.multi-sensor.multi-platform.ACTIVE.02-2.r1.v20160704.ESACCI-SOILMOISTURE-L3S-SSMS-ACTIVE-19910828000000-fv02.2.nc" name="ESACCI-SOILMOISTURE-L3S-SSMS-ACTIVE-19910828000000-fv02.2.nc" urlPath="esg_esacci/soil_moisture/data/daily_files/ACTIVE/v02.2/1991/ESACCI-SOILMOISTURE-L3S-SSMS-ACTIVE-19910828000000-fv02.2.nc" serviceName="HTTPServer">
+      <property name="file_id" value="esacci.SOILMOISTURE.day.L3S.SSMS.multi-sensor.multi-platform.ACTIVE.02-2.r1.ESACCI-SOILMOISTURE-L3S-SSMS-ACTIVE-19910828000000-fv02.2.nc"/>
+      <property name="file_version" value="1"/>
+      <property name="size" value="398441"/>
+      <property name="tracking_id" value="5f1bb2a8-2d8a-43ac-9cb6-ec3f4a087b3b"/>
+      <property name="mod_time" value="2016-03-07 18:23:16"/>
+      <property name="checksum" value="3833c3b77748aea90d526099d2df86e01ccc95970aa5112123df2748fb06b17c"/>
+      <property name="checksum_type" value="SHA256"/>
+      <dataSize units="bytes">398441</dataSize>
+      <access serviceName="GRIDFTP" urlPath="/esg_esacci/soil_moisture/data/daily_files/ACTIVE/v02.2/1991/ESACCI-SOILMOISTURE-L3S-SSMS-ACTIVE-19910828000000-fv02.2.nc"/>
+      <access serviceName="OpenDAPServer" urlPath="esg_esacci/soil_moisture/data/daily_files/ACTIVE/v02.2/1991/ESACCI-SOILMOISTURE-L3S-SSMS-ACTIVE-19910828000000-fv02.2.nc"/>
+    </dataset>
+    <dataset ID="esacci.SOILMOISTURE.day.L3S.SSMS.multi-sensor.multi-platform.ACTIVE.02-2.r1.v20160704.ESACCI-SOILMOISTURE-L3S-SSMS-ACTIVE-19910829000000-fv02.2.nc" name="ESACCI-SOILMOISTURE-L3S-SSMS-ACTIVE-19910829000000-fv02.2.nc" urlPath="esg_esacci/soil_moisture/data/daily_files/ACTIVE/v02.2/1991/ESACCI-SOILMOISTURE-L3S-SSMS-ACTIVE-19910829000000-fv02.2.nc" serviceName="HTTPServer">
+      <property name="file_id" value="esacci.SOILMOISTURE.day.L3S.SSMS.multi-sensor.multi-platform.ACTIVE.02-2.r1.ESACCI-SOILMOISTURE-L3S-SSMS-ACTIVE-19910829000000-fv02.2.nc"/>
+      <property name="file_version" value="1"/>
+      <property name="size" value="408446"/>
+      <property name="tracking_id" value="e7d8d9d2-4e7a-4f9e-b2d6-c4c82c6d2506"/>
+      <property name="mod_time" value="2016-03-07 18:23:17"/>
+      <property name="checksum" value="5c8ce116068256d3fff2b83cbaa4054b54b09b05649faef1fc563e6ac51bea6f"/>
+      <property name="checksum_type" value="SHA256"/>
+      <dataSize units="bytes">408446</dataSize>
+      <access serviceName="GRIDFTP" urlPath="/esg_esacci/soil_moisture/data/daily_files/ACTIVE/v02.2/1991/ESACCI-SOILMOISTURE-L3S-SSMS-ACTIVE-19910829000000-fv02.2.nc"/>
+      <access serviceName="OpenDAPServer" urlPath="esg_esacci/soil_moisture/data/daily_files/ACTIVE/v02.2/1991/ESACCI-SOILMOISTURE-L3S-SSMS-ACTIVE-19910829000000-fv02.2.nc"/>
+    </dataset>
+    <dataset ID="esacci.SOILMOISTURE.day.L3S.SSMS.multi-sensor.multi-platform.ACTIVE.02-2.r1.v20160704.ESACCI-SOILMOISTURE-L3S-SSMS-ACTIVE-19910830000000-fv02.2.nc" name="ESACCI-SOILMOISTURE-L3S-SSMS-ACTIVE-19910830000000-fv02.2.nc" urlPath="esg_esacci/soil_moisture/data/daily_files/ACTIVE/v02.2/1991/ESACCI-SOILMOISTURE-L3S-SSMS-ACTIVE-19910830000000-fv02.2.nc" serviceName="HTTPServer">
+      <property name="file_id" value="esacci.SOILMOISTURE.day.L3S.SSMS.multi-sensor.multi-platform.ACTIVE.02-2.r1.ESACCI-SOILMOISTURE-L3S-SSMS-ACTIVE-19910830000000-fv02.2.nc"/>
+      <property name="file_version" value="1"/>
+      <property name="size" value="437704"/>
+      <property name="tracking_id" value="02c70f80-d3b6-4a25-9f24-25f56d7cccf6"/>
+      <property name="mod_time" value="2016-03-07 18:23:17"/>
+      <property name="checksum" value="3fb52ef8ff85392c87436ae774f214197bfbc566d8c1d16b40cac203ee2b313e"/>
+      <property name="checksum_type" value="SHA256"/>
+      <dataSize units="bytes">437704</dataSize>
+      <access serviceName="GRIDFTP" urlPath="/esg_esacci/soil_moisture/data/daily_files/ACTIVE/v02.2/1991/ESACCI-SOILMOISTURE-L3S-SSMS-ACTIVE-19910830000000-fv02.2.nc"/>
+      <access serviceName="OpenDAPServer" urlPath="esg_esacci/soil_moisture/data/daily_files/ACTIVE/v02.2/1991/ESACCI-SOILMOISTURE-L3S-SSMS-ACTIVE-19910830000000-fv02.2.nc"/>
+    </dataset>
+    <dataset ID="esacci.SOILMOISTURE.day.L3S.SSMS.multi-sensor.multi-platform.ACTIVE.02-2.r1.v20160704.ESACCI-SOILMOISTURE-L3S-SSMS-ACTIVE-19910831000000-fv02.2.nc" name="ESACCI-SOILMOISTURE-L3S-SSMS-ACTIVE-19910831000000-fv02.2.nc" urlPath="esg_esacci/soil_moisture/data/daily_files/ACTIVE/v02.2/1991/ESACCI-SOILMOISTURE-L3S-SSMS-ACTIVE-19910831000000-fv02.2.nc" serviceName="HTTPServer">
+      <property name="file_id" value="esacci.SOILMOISTURE.day.L3S.SSMS.multi-sensor.multi-platform.ACTIVE.02-2.r1.ESACCI-SOILMOISTURE-L3S-SSMS-ACTIVE-19910831000000-fv02.2.nc"/>
+      <property name="file_version" value="1"/>
+      <property name="size" value="513499"/>
+      <property name="tracking_id" value="75a9a531-173e-4790-9e5d-9fa1c3bdc1f2"/>
+      <property name="mod_time" value="2016-03-07 18:23:17"/>
+      <property name="checksum" value="1a7c9d56ce6ffddf47eb5e140f41b6cc0b0f88e3c13877b9b86c2d3cc3770d23"/>
+      <property name="checksum_type" value="SHA256"/>
+      <dataSize units="bytes">513499</dataSize>
+      <access serviceName="GRIDFTP" urlPath="/esg_esacci/soil_moisture/data/daily_files/ACTIVE/v02.2/1991/ESACCI-SOILMOISTURE-L3S-SSMS-ACTIVE-19910831000000-fv02.2.nc"/>
+      <access serviceName="OpenDAPServer" urlPath="esg_esacci/soil_moisture/data/daily_files/ACTIVE/v02.2/1991/ESACCI-SOILMOISTURE-L3S-SSMS-ACTIVE-19910831000000-fv02.2.nc"/>
+    </dataset>
+    <dataset ID="esacci.SOILMOISTURE.day.L3S.SSMS.multi-sensor.multi-platform.ACTIVE.02-2.r1.v20160704.ESACCI-SOILMOISTURE-L3S-SSMS-ACTIVE-19910901000000-fv02.2.nc" name="ESACCI-SOILMOISTURE-L3S-SSMS-ACTIVE-19910901000000-fv02.2.nc" urlPath="esg_esacci/soil_moisture/data/daily_files/ACTIVE/v02.2/1991/ESACCI-SOILMOISTURE-L3S-SSMS-ACTIVE-19910901000000-fv02.2.nc" serviceName="HTTPServer">
+      <property name="file_id" value="esacci.SOILMOISTURE.day.L3S.SSMS.multi-sensor.multi-platform.ACTIVE.02-2.r1.ESACCI-SOILMOISTURE-L3S-SSMS-ACTIVE-19910901000000-fv02.2.nc"/>
+      <property name="file_version" value="1"/>
+      <property name="size" value="565350"/>
+      <property name="tracking_id" value="09ce52a7-c7c3-4066-86a3-22be13d5f5e1"/>
+      <property name="mod_time" value="2016-03-07 18:23:17"/>
+      <property name="checksum" value="e1bf38467eccfd73e5c67baef8a84b60b08edfa6dd514a77d0f59f1a6034b942"/>
+      <property name="checksum_type" value="SHA256"/>
+      <dataSize units="bytes">565350</dataSize>
+      <access serviceName="GRIDFTP" urlPath="/esg_esacci/soil_moisture/data/daily_files/ACTIVE/v02.2/1991/ESACCI-SOILMOISTURE-L3S-SSMS-ACTIVE-19910901000000-fv02.2.nc"/>
+      <access serviceName="OpenDAPServer" urlPath="esg_esacci/soil_moisture/data/daily_files/ACTIVE/v02.2/1991/ESACCI-SOILMOISTURE-L3S-SSMS-ACTIVE-19910901000000-fv02.2.nc"/>
+    </dataset>
+    <dataset ID="esacci.SOILMOISTURE.day.L3S.SSMS.multi-sensor.multi-platform.ACTIVE.02-2.r1.v20160704.ESACCI-SOILMOISTURE-L3S-SSMS-ACTIVE-19910902000000-fv02.2.nc" name="ESACCI-SOILMOISTURE-L3S-SSMS-ACTIVE-19910902000000-fv02.2.nc" urlPath="esg_esacci/soil_moisture/data/daily_files/ACTIVE/v02.2/1991/ESACCI-SOILMOISTURE-L3S-SSMS-ACTIVE-19910902000000-fv02.2.nc" serviceName="HTTPServer">
+      <property name="file_id" value="esacci.SOILMOISTURE.day.L3S.SSMS.multi-sensor.multi-platform.ACTIVE.02-2.r1.ESACCI-SOILMOISTURE-L3S-SSMS-ACTIVE-19910902000000-fv02.2.nc"/>
+      <property name="file_version" value="1"/>
+      <property name="size" value="491789"/>
+      <property name="tracking_id" value="47451a8c-aa5d-4c56-84de-9fce686d0717"/>
+      <property name="mod_time" value="2016-03-07 18:23:17"/>
+      <property name="checksum" value="4001a771bee1ea1d5525fbe88ba5f0b9e2ac0d254c4b8413a259fd4d17be4cbf"/>
+      <property name="checksum_type" value="SHA256"/>
+      <dataSize units="bytes">491789</dataSize>
+      <access serviceName="GRIDFTP" urlPath="/esg_esacci/soil_moisture/data/daily_files/ACTIVE/v02.2/1991/ESACCI-SOILMOISTURE-L3S-SSMS-ACTIVE-19910902000000-fv02.2.nc"/>
+      <access serviceName="OpenDAPServer" urlPath="esg_esacci/soil_moisture/data/daily_files/ACTIVE/v02.2/1991/ESACCI-SOILMOISTURE-L3S-SSMS-ACTIVE-19910902000000-fv02.2.nc"/>
+    </dataset>
+    <dataset ID="esacci.SOILMOISTURE.day.L3S.SSMS.multi-sensor.multi-platform.ACTIVE.02-2.r1.v20160704.ESACCI-SOILMOISTURE-L3S-SSMS-ACTIVE-19910903000000-fv02.2.nc" name="ESACCI-SOILMOISTURE-L3S-SSMS-ACTIVE-19910903000000-fv02.2.nc" urlPath="esg_esacci/soil_moisture/data/daily_files/ACTIVE/v02.2/1991/ESACCI-SOILMOISTURE-L3S-SSMS-ACTIVE-19910903000000-fv02.2.nc" serviceName="HTTPServer">
+      <property name="file_id" value="esacci.SOILMOISTURE.day.L3S.SSMS.multi-sensor.multi-platform.ACTIVE.02-2.r1.ESACCI-SOILMOISTURE-L3S-SSMS-ACTIVE-19910903000000-fv02.2.nc"/>
+      <property name="file_version" value="1"/>
+      <property name="size" value="448629"/>
+      <property name="tracking_id" value="84f2916d-1721-4aac-8ef1-9fdac0988366"/>
+      <property name="mod_time" value="2016-03-07 18:23:17"/>
+      <property name="checksum" value="d9e3ae7f23467e47bd14fbe42a1739d83ac81647168d5ed96491c864571da887"/>
+      <property name="checksum_type" value="SHA256"/>
+      <dataSize units="bytes">448629</dataSize>
+      <access serviceName="GRIDFTP" urlPath="/esg_esacci/soil_moisture/data/daily_files/ACTIVE/v02.2/1991/ESACCI-SOILMOISTURE-L3S-SSMS-ACTIVE-19910903000000-fv02.2.nc"/>
+      <access serviceName="OpenDAPServer" urlPath="esg_esacci/soil_moisture/data/daily_files/ACTIVE/v02.2/1991/ESACCI-SOILMOISTURE-L3S-SSMS-ACTIVE-19910903000000-fv02.2.nc"/>
+    </dataset>
+    <dataset ID="esacci.SOILMOISTURE.day.L3S.SSMS.multi-sensor.multi-platform.ACTIVE.02-2.r1.v20160704.ESACCI-SOILMOISTURE-L3S-SSMS-ACTIVE-19910904000000-fv02.2.nc" name="ESACCI-SOILMOISTURE-L3S-SSMS-ACTIVE-19910904000000-fv02.2.nc" urlPath="esg_esacci/soil_moisture/data/daily_files/ACTIVE/v02.2/1991/ESACCI-SOILMOISTURE-L3S-SSMS-ACTIVE-19910904000000-fv02.2.nc" serviceName="HTTPServer">
+      <property name="file_id" value="esacci.SOILMOISTURE.day.L3S.SSMS.multi-sensor.multi-platform.ACTIVE.02-2.r1.ESACCI-SOILMOISTURE-L3S-SSMS-ACTIVE-19910904000000-fv02.2.nc"/>
+      <property name="file_version" value="1"/>
+      <property name="size" value="422586"/>
+      <property name="tracking_id" value="1e351d71-76c2-4759-b632-e8177016d6f6"/>
+      <property name="mod_time" value="2016-03-07 18:23:17"/>
+      <property name="checksum" value="94a413687fdc8304b86527a0272799c07c430d8f13512269eedd617df4241649"/>
+      <property name="checksum_type" value="SHA256"/>
+      <dataSize units="bytes">422586</dataSize>
+      <access serviceName="GRIDFTP" urlPath="/esg_esacci/soil_moisture/data/daily_files/ACTIVE/v02.2/1991/ESACCI-SOILMOISTURE-L3S-SSMS-ACTIVE-19910904000000-fv02.2.nc"/>
+      <access serviceName="OpenDAPServer" urlPath="esg_esacci/soil_moisture/data/daily_files/ACTIVE/v02.2/1991/ESACCI-SOILMOISTURE-L3S-SSMS-ACTIVE-19910904000000-fv02.2.nc"/>
+    </dataset>
+    <dataset ID="esacci.SOILMOISTURE.day.L3S.SSMS.multi-sensor.multi-platform.ACTIVE.02-2.r1.v20160704.ESACCI-SOILMOISTURE-L3S-SSMS-ACTIVE-19910905000000-fv02.2.nc" name="ESACCI-SOILMOISTURE-L3S-SSMS-ACTIVE-19910905000000-fv02.2.nc" urlPath="esg_esacci/soil_moisture/data/daily_files/ACTIVE/v02.2/1991/ESACCI-SOILMOISTURE-L3S-SSMS-ACTIVE-19910905000000-fv02.2.nc" serviceName="HTTPServer">
+      <property name="file_id" value="esacci.SOILMOISTURE.day.L3S.SSMS.multi-sensor.multi-platform.ACTIVE.02-2.r1.ESACCI-SOILMOISTURE-L3S-SSMS-ACTIVE-19910905000000-fv02.2.nc"/>
+      <property name="file_version" value="1"/>
+      <property name="size" value="392111"/>
+      <property name="tracking_id" value="efbe2561-6572-456d-8152-b01b57ed3a91"/>
+      <property name="mod_time" value="2016-03-07 18:23:17"/>
+      <property name="checksum" value="ba9758e79e818312cffcb3567fc95a8ccb53c04e12f31e95b7a4c59d7e644396"/>
+      <property name="checksum_type" value="SHA256"/>
+      <dataSize units="bytes">392111</dataSize>
+      <access serviceName="GRIDFTP" urlPath="/esg_esacci/soil_moisture/data/daily_files/ACTIVE/v02.2/1991/ESACCI-SOILMOISTURE-L3S-SSMS-ACTIVE-19910905000000-fv02.2.nc"/>
+      <access serviceName="OpenDAPServer" urlPath="esg_esacci/soil_moisture/data/daily_files/ACTIVE/v02.2/1991/ESACCI-SOILMOISTURE-L3S-SSMS-ACTIVE-19910905000000-fv02.2.nc"/>
+    </dataset>
+    <dataset ID="esacci.SOILMOISTURE.day.L3S.SSMS.multi-sensor.multi-platform.ACTIVE.02-2.r1.v20160704.ESACCI-SOILMOISTURE-L3S-SSMS-ACTIVE-19910906000000-fv02.2.nc" name="ESACCI-SOILMOISTURE-L3S-SSMS-ACTIVE-19910906000000-fv02.2.nc" urlPath="esg_esacci/soil_moisture/data/daily_files/ACTIVE/v02.2/1991/ESACCI-SOILMOISTURE-L3S-SSMS-ACTIVE-19910906000000-fv02.2.nc" serviceName="HTTPServer">
+      <property name="file_id" value="esacci.SOILMOISTURE.day.L3S.SSMS.multi-sensor.multi-platform.ACTIVE.02-2.r1.ESACCI-SOILMOISTURE-L3S-SSMS-ACTIVE-19910906000000-fv02.2.nc"/>
+      <property name="file_version" value="1"/>
+      <property name="size" value="402277"/>
+      <property name="tracking_id" value="200ece9b-c79d-46cd-8e1c-e9299a18e1df"/>
+      <property name="mod_time" value="2016-03-07 18:23:17"/>
+      <property name="checksum" value="483634db237cf4597c2eedd7951907895d098da7cccc4d15efaaa6387ec98ab7"/>
+      <property name="checksum_type" value="SHA256"/>
+      <dataSize units="bytes">402277</dataSize>
+      <access serviceName="GRIDFTP" urlPath="/esg_esacci/soil_moisture/data/daily_files/ACTIVE/v02.2/1991/ESACCI-SOILMOISTURE-L3S-SSMS-ACTIVE-19910906000000-fv02.2.nc"/>
+      <access serviceName="OpenDAPServer" urlPath="esg_esacci/soil_moisture/data/daily_files/ACTIVE/v02.2/1991/ESACCI-SOILMOISTURE-L3S-SSMS-ACTIVE-19910906000000-fv02.2.nc"/>
+    </dataset>
+    <dataset ID="esacci.SOILMOISTURE.day.L3S.SSMS.multi-sensor.multi-platform.ACTIVE.02-2.r1.v20160704.ESACCI-SOILMOISTURE-L3S-SSMS-ACTIVE-19910907000000-fv02.2.nc" name="ESACCI-SOILMOISTURE-L3S-SSMS-ACTIVE-19910907000000-fv02.2.nc" urlPath="esg_esacci/soil_moisture/data/daily_files/ACTIVE/v02.2/1991/ESACCI-SOILMOISTURE-L3S-SSMS-ACTIVE-19910907000000-fv02.2.nc" serviceName="HTTPServer">
+      <property name="file_id" value="esacci.SOILMOISTURE.day.L3S.SSMS.multi-sensor.multi-platform.ACTIVE.02-2.r1.ESACCI-SOILMOISTURE-L3S-SSMS-ACTIVE-19910907000000-fv02.2.nc"/>
+      <property name="file_version" value="1"/>
+      <property name="size" value="425319"/>
+      <property name="tracking_id" value="7db6fdf5-4e41-4f40-bad2-333778d6f406"/>
+      <property name="mod_time" value="2016-03-07 18:23:17"/>
+      <property name="checksum" value="b7d1442d9ad82e87a145b6006090abdd6bd096ad2f3c5ea0e4f4fa5e4213e256"/>
+      <property name="checksum_type" value="SHA256"/>
+      <dataSize units="bytes">425319</dataSize>
+      <access serviceName="GRIDFTP" urlPath="/esg_esacci/soil_moisture/data/daily_files/ACTIVE/v02.2/1991/ESACCI-SOILMOISTURE-L3S-SSMS-ACTIVE-19910907000000-fv02.2.nc"/>
+      <access serviceName="OpenDAPServer" urlPath="esg_esacci/soil_moisture/data/daily_files/ACTIVE/v02.2/1991/ESACCI-SOILMOISTURE-L3S-SSMS-ACTIVE-19910907000000-fv02.2.nc"/>
+    </dataset>
+    <dataset ID="esacci.SOILMOISTURE.day.L3S.SSMS.multi-sensor.multi-platform.ACTIVE.02-2.r1.v20160704.ESACCI-SOILMOISTURE-L3S-SSMS-ACTIVE-19910908000000-fv02.2.nc" name="ESACCI-SOILMOISTURE-L3S-SSMS-ACTIVE-19910908000000-fv02.2.nc" urlPath="esg_esacci/soil_moisture/data/daily_files/ACTIVE/v02.2/1991/ESACCI-SOILMOISTURE-L3S-SSMS-ACTIVE-19910908000000-fv02.2.nc" serviceName="HTTPServer">
+      <property name="file_id" value="esacci.SOILMOISTURE.day.L3S.SSMS.multi-sensor.multi-platform.ACTIVE.02-2.r1.ESACCI-SOILMOISTURE-L3S-SSMS-ACTIVE-19910908000000-fv02.2.nc"/>
+      <property name="file_version" value="1"/>
+      <property name="size" value="393493"/>
+      <property name="tracking_id" value="55949e5b-5938-476a-a376-9fe60fc0a8df"/>
+      <property name="mod_time" value="2016-03-07 18:23:17"/>
+      <property name="checksum" value="42739b3ede71844848e3d26fabc2ac69cfb0a4271f3cfcf2dd225b58d3971320"/>
+      <property name="checksum_type" value="SHA256"/>
+      <dataSize units="bytes">393493</dataSize>
+      <access serviceName="GRIDFTP" urlPath="/esg_esacci/soil_moisture/data/daily_files/ACTIVE/v02.2/1991/ESACCI-SOILMOISTURE-L3S-SSMS-ACTIVE-19910908000000-fv02.2.nc"/>
+      <access serviceName="OpenDAPServer" urlPath="esg_esacci/soil_moisture/data/daily_files/ACTIVE/v02.2/1991/ESACCI-SOILMOISTURE-L3S-SSMS-ACTIVE-19910908000000-fv02.2.nc"/>
+    </dataset>
+    <dataset ID="esacci.SOILMOISTURE.day.L3S.SSMS.multi-sensor.multi-platform.ACTIVE.02-2.r1.v20160704.ESACCI-SOILMOISTURE-L3S-SSMS-ACTIVE-19910909000000-fv02.2.nc" name="ESACCI-SOILMOISTURE-L3S-SSMS-ACTIVE-19910909000000-fv02.2.nc" urlPath="esg_esacci/soil_moisture/data/daily_files/ACTIVE/v02.2/1991/ESACCI-SOILMOISTURE-L3S-SSMS-ACTIVE-19910909000000-fv02.2.nc" serviceName="HTTPServer">
+      <property name="file_id" value="esacci.SOILMOISTURE.day.L3S.SSMS.multi-sensor.multi-platform.ACTIVE.02-2.r1.ESACCI-SOILMOISTURE-L3S-SSMS-ACTIVE-19910909000000-fv02.2.nc"/>
+      <property name="file_version" value="1"/>
+      <property name="size" value="419638"/>
+      <property name="tracking_id" value="1bef6a7d-b18b-450d-ba2b-a46b2ad5efc8"/>
+      <property name="mod_time" value="2016-03-07 18:23:17"/>
+      <property name="checksum" value="66503c5cbe9301e1c6b50602b058177f13f3af28d07344f463ce2b8975263fee"/>
+      <property name="checksum_type" value="SHA256"/>
+      <dataSize units="bytes">419638</dataSize>
+      <access serviceName="GRIDFTP" urlPath="/esg_esacci/soil_moisture/data/daily_files/ACTIVE/v02.2/1991/ESACCI-SOILMOISTURE-L3S-SSMS-ACTIVE-19910909000000-fv02.2.nc"/>
+      <access serviceName="OpenDAPServer" urlPath="esg_esacci/soil_moisture/data/daily_files/ACTIVE/v02.2/1991/ESACCI-SOILMOISTURE-L3S-SSMS-ACTIVE-19910909000000-fv02.2.nc"/>
+    </dataset>
+    <dataset ID="esacci.SOILMOISTURE.day.L3S.SSMS.multi-sensor.multi-platform.ACTIVE.02-2.r1.v20160704.ESACCI-SOILMOISTURE-L3S-SSMS-ACTIVE-19910910000000-fv02.2.nc" name="ESACCI-SOILMOISTURE-L3S-SSMS-ACTIVE-19910910000000-fv02.2.nc" urlPath="esg_esacci/soil_moisture/data/daily_files/ACTIVE/v02.2/1991/ESACCI-SOILMOISTURE-L3S-SSMS-ACTIVE-19910910000000-fv02.2.nc" serviceName="HTTPServer">
+      <property name="file_id" value="esacci.SOILMOISTURE.day.L3S.SSMS.multi-sensor.multi-platform.ACTIVE.02-2.r1.ESACCI-SOILMOISTURE-L3S-SSMS-ACTIVE-19910910000000-fv02.2.nc"/>
+      <property name="file_version" value="1"/>
+      <property name="size" value="382904"/>
+      <property name="tracking_id" value="cd5eae3e-7896-44e1-bd74-9e897c6c7002"/>
+      <property name="mod_time" value="2016-03-07 18:23:17"/>
+      <property name="checksum" value="9021b1013e6a2e886491a46a9b28ca955c1c7daaabf214e3c1adf07b7aa85b20"/>
+      <property name="checksum_type" value="SHA256"/>
+      <dataSize units="bytes">382904</dataSize>
+      <access serviceName="GRIDFTP" urlPath="/esg_esacci/soil_moisture/data/daily_files/ACTIVE/v02.2/1991/ESACCI-SOILMOISTURE-L3S-SSMS-ACTIVE-19910910000000-fv02.2.nc"/>
+      <access serviceName="OpenDAPServer" urlPath="esg_esacci/soil_moisture/data/daily_files/ACTIVE/v02.2/1991/ESACCI-SOILMOISTURE-L3S-SSMS-ACTIVE-19910910000000-fv02.2.nc"/>
+    </dataset>
+    <dataset ID="esacci.SOILMOISTURE.day.L3S.SSMS.multi-sensor.multi-platform.ACTIVE.02-2.r1.v20160704.ESACCI-SOILMOISTURE-L3S-SSMS-ACTIVE-19910911000000-fv02.2.nc" name="ESACCI-SOILMOISTURE-L3S-SSMS-ACTIVE-19910911000000-fv02.2.nc" urlPath="esg_esacci/soil_moisture/data/daily_files/ACTIVE/v02.2/1991/ESACCI-SOILMOISTURE-L3S-SSMS-ACTIVE-19910911000000-fv02.2.nc" serviceName="HTTPServer">
+      <property name="file_id" value="esacci.SOILMOISTURE.day.L3S.SSMS.multi-sensor.multi-platform.ACTIVE.02-2.r1.ESACCI-SOILMOISTURE-L3S-SSMS-ACTIVE-19910911000000-fv02.2.nc"/>
+      <property name="file_version" value="1"/>
+      <property name="size" value="431875"/>
+      <property name="tracking_id" value="e58f5f13-9024-4e0b-a016-339a4d06aba3"/>
+      <property name="mod_time" value="2016-03-07 18:23:17"/>
+      <property name="checksum" value="7665c18e2d82a2d5faf3df44b44979784b6354f4ac13d9bfe1cbec9dd1d3aa25"/>
+      <property name="checksum_type" value="SHA256"/>
+      <dataSize units="bytes">431875</dataSize>
+      <access serviceName="GRIDFTP" urlPath="/esg_esacci/soil_moisture/data/daily_files/ACTIVE/v02.2/1991/ESACCI-SOILMOISTURE-L3S-SSMS-ACTIVE-19910911000000-fv02.2.nc"/>
+      <access serviceName="OpenDAPServer" urlPath="esg_esacci/soil_moisture/data/daily_files/ACTIVE/v02.2/1991/ESACCI-SOILMOISTURE-L3S-SSMS-ACTIVE-19910911000000-fv02.2.nc"/>
+    </dataset>
+    <dataset ID="esacci.SOILMOISTURE.day.L3S.SSMS.multi-sensor.multi-platform.ACTIVE.02-2.r1.v20160704.ESACCI-SOILMOISTURE-L3S-SSMS-ACTIVE-19910912000000-fv02.2.nc" name="ESACCI-SOILMOISTURE-L3S-SSMS-ACTIVE-19910912000000-fv02.2.nc" urlPath="esg_esacci/soil_moisture/data/daily_files/ACTIVE/v02.2/1991/ESACCI-SOILMOISTURE-L3S-SSMS-ACTIVE-19910912000000-fv02.2.nc" serviceName="HTTPServer">
+      <property name="file_id" value="esacci.SOILMOISTURE.day.L3S.SSMS.multi-sensor.multi-platform.ACTIVE.02-2.r1.ESACCI-SOILMOISTURE-L3S-SSMS-ACTIVE-19910912000000-fv02.2.nc"/>
+      <property name="file_version" value="1"/>
+      <property name="size" value="396885"/>
+      <property name="tracking_id" value="4ad4c9f6-40d0-42fb-b15a-f1d854ebacad"/>
+      <property name="mod_time" value="2016-03-07 18:23:17"/>
+      <property name="checksum" value="96b845333fc210b78531749ddce62ca0bd3422aaeec3caeb0e2cfaa403a81b4e"/>
+      <property name="checksum_type" value="SHA256"/>
+      <dataSize units="bytes">396885</dataSize>
+      <access serviceName="GRIDFTP" urlPath="/esg_esacci/soil_moisture/data/daily_files/ACTIVE/v02.2/1991/ESACCI-SOILMOISTURE-L3S-SSMS-ACTIVE-19910912000000-fv02.2.nc"/>
+      <access serviceName="OpenDAPServer" urlPath="esg_esacci/soil_moisture/data/daily_files/ACTIVE/v02.2/1991/ESACCI-SOILMOISTURE-L3S-SSMS-ACTIVE-19910912000000-fv02.2.nc"/>
+    </dataset>
+    <dataset ID="esacci.SOILMOISTURE.day.L3S.SSMS.multi-sensor.multi-platform.ACTIVE.02-2.r1.v20160704.ESACCI-SOILMOISTURE-L3S-SSMS-ACTIVE-19910913000000-fv02.2.nc" name="ESACCI-SOILMOISTURE-L3S-SSMS-ACTIVE-19910913000000-fv02.2.nc" urlPath="esg_esacci/soil_moisture/data/daily_files/ACTIVE/v02.2/1991/ESACCI-SOILMOISTURE-L3S-SSMS-ACTIVE-19910913000000-fv02.2.nc" serviceName="HTTPServer">
+      <property name="file_id" value="esacci.SOILMOISTURE.day.L3S.SSMS.multi-sensor.multi-platform.ACTIVE.02-2.r1.ESACCI-SOILMOISTURE-L3S-SSMS-ACTIVE-19910913000000-fv02.2.nc"/>
+      <property name="file_version" value="1"/>
+      <property name="size" value="480282"/>
+      <property name="tracking_id" value="9afe30ac-8c9f-46a7-beab-933ef715ff92"/>
+      <property name="mod_time" value="2016-03-07 18:23:17"/>
+      <property name="checksum" value="ba66c8bf96a3bc39bfe41ec1323d2b5f25df3da200adf90c44cfcc0fbb6036a3"/>
+      <property name="checksum_type" value="SHA256"/>
+      <dataSize units="bytes">480282</dataSize>
+      <access serviceName="GRIDFTP" urlPath="/esg_esacci/soil_moisture/data/daily_files/ACTIVE/v02.2/1991/ESACCI-SOILMOISTURE-L3S-SSMS-ACTIVE-19910913000000-fv02.2.nc"/>
+      <access serviceName="OpenDAPServer" urlPath="esg_esacci/soil_moisture/data/daily_files/ACTIVE/v02.2/1991/ESACCI-SOILMOISTURE-L3S-SSMS-ACTIVE-19910913000000-fv02.2.nc"/>
+    </dataset>
+    <dataset ID="esacci.SOILMOISTURE.day.L3S.SSMS.multi-sensor.multi-platform.ACTIVE.02-2.r1.v20160704.ESACCI-SOILMOISTURE-L3S-SSMS-ACTIVE-19910914000000-fv02.2.nc" name="ESACCI-SOILMOISTURE-L3S-SSMS-ACTIVE-19910914000000-fv02.2.nc" urlPath="esg_esacci/soil_moisture/data/daily_files/ACTIVE/v02.2/1991/ESACCI-SOILMOISTURE-L3S-SSMS-ACTIVE-19910914000000-fv02.2.nc" serviceName="HTTPServer">
+      <property name="file_id" value="esacci.SOILMOISTURE.day.L3S.SSMS.multi-sensor.multi-platform.ACTIVE.02-2.r1.ESACCI-SOILMOISTURE-L3S-SSMS-ACTIVE-19910914000000-fv02.2.nc"/>
+      <property name="file_version" value="1"/>
+      <property name="size" value="317673"/>
+      <property name="tracking_id" value="8386bdb3-81fe-4f82-bd1e-3f93390e2a90"/>
+      <property name="mod_time" value="2016-03-07 18:23:17"/>
+      <property name="checksum" value="8e0d541fb269e90ca8a201bd830e1a3b8907288355e7c5b5f168a8cf60eb4b90"/>
+      <property name="checksum_type" value="SHA256"/>
+      <dataSize units="bytes">317673</dataSize>
+      <access serviceName="GRIDFTP" urlPath="/esg_esacci/soil_moisture/data/daily_files/ACTIVE/v02.2/1991/ESACCI-SOILMOISTURE-L3S-SSMS-ACTIVE-19910914000000-fv02.2.nc"/>
+      <access serviceName="OpenDAPServer" urlPath="esg_esacci/soil_moisture/data/daily_files/ACTIVE/v02.2/1991/ESACCI-SOILMOISTURE-L3S-SSMS-ACTIVE-19910914000000-fv02.2.nc"/>
+    </dataset>
+    <dataset ID="esacci.SOILMOISTURE.day.L3S.SSMS.multi-sensor.multi-platform.ACTIVE.02-2.r1.v20160704.ESACCI-SOILMOISTURE-L3S-SSMS-ACTIVE-19910915000000-fv02.2.nc" name="ESACCI-SOILMOISTURE-L3S-SSMS-ACTIVE-19910915000000-fv02.2.nc" urlPath="esg_esacci/soil_moisture/data/daily_files/ACTIVE/v02.2/1991/ESACCI-SOILMOISTURE-L3S-SSMS-ACTIVE-19910915000000-fv02.2.nc" serviceName="HTTPServer">
+      <property name="file_id" value="esacci.SOILMOISTURE.day.L3S.SSMS.multi-sensor.multi-platform.ACTIVE.02-2.r1.ESACCI-SOILMOISTURE-L3S-SSMS-ACTIVE-19910915000000-fv02.2.nc"/>
+      <property name="file_version" value="1"/>
+      <property name="size" value="436567"/>
+      <property name="tracking_id" value="d1d7c341-c51a-4df7-bcb7-8d704ede47ce"/>
+      <property name="mod_time" value="2016-03-07 18:23:17"/>
+      <property name="checksum" value="4a2b671322981999b4d6dd4a2482c8146d880b2c2e67bd59efeae9d860d00fba"/>
+      <property name="checksum_type" value="SHA256"/>
+      <dataSize units="bytes">436567</dataSize>
+      <access serviceName="GRIDFTP" urlPath="/esg_esacci/soil_moisture/data/daily_files/ACTIVE/v02.2/1991/ESACCI-SOILMOISTURE-L3S-SSMS-ACTIVE-19910915000000-fv02.2.nc"/>
+      <access serviceName="OpenDAPServer" urlPath="esg_esacci/soil_moisture/data/daily_files/ACTIVE/v02.2/1991/ESACCI-SOILMOISTURE-L3S-SSMS-ACTIVE-19910915000000-fv02.2.nc"/>
+    </dataset>
+    <dataset ID="esacci.SOILMOISTURE.day.L3S.SSMS.multi-sensor.multi-platform.ACTIVE.02-2.r1.v20160704.ESACCI-SOILMOISTURE-L3S-SSMS-ACTIVE-19910916000000-fv02.2.nc" name="ESACCI-SOILMOISTURE-L3S-SSMS-ACTIVE-19910916000000-fv02.2.nc" urlPath="esg_esacci/soil_moisture/data/daily_files/ACTIVE/v02.2/1991/ESACCI-SOILMOISTURE-L3S-SSMS-ACTIVE-19910916000000-fv02.2.nc" serviceName="HTTPServer">
+      <property name="file_id" value="esacci.SOILMOISTURE.day.L3S.SSMS.multi-sensor.multi-platform.ACTIVE.02-2.r1.ESACCI-SOILMOISTURE-L3S-SSMS-ACTIVE-19910916000000-fv02.2.nc"/>
+      <property name="file_version" value="1"/>
+      <property name="size" value="413030"/>
+      <property name="tracking_id" value="ca30f1e8-02e7-495a-a5e9-054bf9206bfd"/>
+      <property name="mod_time" value="2016-03-07 18:23:17"/>
+      <property name="checksum" value="026f1fbf77b5b3b4ed5565a63f825c4f6e239e6203c878b8e68b06de056fa7de"/>
+      <property name="checksum_type" value="SHA256"/>
+      <dataSize units="bytes">413030</dataSize>
+      <access serviceName="GRIDFTP" urlPath="/esg_esacci/soil_moisture/data/daily_files/ACTIVE/v02.2/1991/ESACCI-SOILMOISTURE-L3S-SSMS-ACTIVE-19910916000000-fv02.2.nc"/>
+      <access serviceName="OpenDAPServer" urlPath="esg_esacci/soil_moisture/data/daily_files/ACTIVE/v02.2/1991/ESACCI-SOILMOISTURE-L3S-SSMS-ACTIVE-19910916000000-fv02.2.nc"/>
+    </dataset>
+    <dataset ID="esacci.SOILMOISTURE.day.L3S.SSMS.multi-sensor.multi-platform.ACTIVE.02-2.r1.v20160704.ESACCI-SOILMOISTURE-L3S-SSMS-ACTIVE-19910917000000-fv02.2.nc" name="ESACCI-SOILMOISTURE-L3S-SSMS-ACTIVE-19910917000000-fv02.2.nc" urlPath="esg_esacci/soil_moisture/data/daily_files/ACTIVE/v02.2/1991/ESACCI-SOILMOISTURE-L3S-SSMS-ACTIVE-19910917000000-fv02.2.nc" serviceName="HTTPServer">
+      <property name="file_id" value="esacci.SOILMOISTURE.day.L3S.SSMS.multi-sensor.multi-platform.ACTIVE.02-2.r1.ESACCI-SOILMOISTURE-L3S-SSMS-ACTIVE-19910917000000-fv02.2.nc"/>
+      <property name="file_version" value="1"/>
+      <property name="size" value="428644"/>
+      <property name="tracking_id" value="e6625c0c-9f1b-4a2c-82f3-12254987d7fc"/>
+      <property name="mod_time" value="2016-03-07 18:23:17"/>
+      <property name="checksum" value="c0b24f5ca7a93c90e834af505160ebb8cb17c2ed3f8706266f6bab7bf683a030"/>
+      <property name="checksum_type" value="SHA256"/>
+      <dataSize units="bytes">428644</dataSize>
+      <access serviceName="GRIDFTP" urlPath="/esg_esacci/soil_moisture/data/daily_files/ACTIVE/v02.2/1991/ESACCI-SOILMOISTURE-L3S-SSMS-ACTIVE-19910917000000-fv02.2.nc"/>
+      <access serviceName="OpenDAPServer" urlPath="esg_esacci/soil_moisture/data/daily_files/ACTIVE/v02.2/1991/ESACCI-SOILMOISTURE-L3S-SSMS-ACTIVE-19910917000000-fv02.2.nc"/>
+    </dataset>
+    <dataset ID="esacci.SOILMOISTURE.day.L3S.SSMS.multi-sensor.multi-platform.ACTIVE.02-2.r1.v20160704.ESACCI-SOILMOISTURE-L3S-SSMS-ACTIVE-19910918000000-fv02.2.nc" name="ESACCI-SOILMOISTURE-L3S-SSMS-ACTIVE-19910918000000-fv02.2.nc" urlPath="esg_esacci/soil_moisture/data/daily_files/ACTIVE/v02.2/1991/ESACCI-SOILMOISTURE-L3S-SSMS-ACTIVE-19910918000000-fv02.2.nc" serviceName="HTTPServer">
+      <property name="file_id" value="esacci.SOILMOISTURE.day.L3S.SSMS.multi-sensor.multi-platform.ACTIVE.02-2.r1.ESACCI-SOILMOISTURE-L3S-SSMS-ACTIVE-19910918000000-fv02.2.nc"/>
+      <property name="file_version" value="1"/>
+      <property name="size" value="400220"/>
+      <property name="tracking_id" value="051a7125-b020-427d-a8c3-342802cbcdbc"/>
+      <property name="mod_time" value="2016-03-07 18:23:17"/>
+      <property name="checksum" value="cbf1c0b7b5c71adf6798730735c325fd6b7315b25cc8b7abb8227ff81c2c7942"/>
+      <property name="checksum_type" value="SHA256"/>
+      <dataSize units="bytes">400220</dataSize>
+      <access serviceName="GRIDFTP" urlPath="/esg_esacci/soil_moisture/data/daily_files/ACTIVE/v02.2/1991/ESACCI-SOILMOISTURE-L3S-SSMS-ACTIVE-19910918000000-fv02.2.nc"/>
+      <access serviceName="OpenDAPServer" urlPath="esg_esacci/soil_moisture/data/daily_files/ACTIVE/v02.2/1991/ESACCI-SOILMOISTURE-L3S-SSMS-ACTIVE-19910918000000-fv02.2.nc"/>
+    </dataset>
+    <dataset ID="esacci.SOILMOISTURE.day.L3S.SSMS.multi-sensor.multi-platform.ACTIVE.02-2.r1.v20160704.ESACCI-SOILMOISTURE-L3S-SSMS-ACTIVE-19910919000000-fv02.2.nc" name="ESACCI-SOILMOISTURE-L3S-SSMS-ACTIVE-19910919000000-fv02.2.nc" urlPath="esg_esacci/soil_moisture/data/daily_files/ACTIVE/v02.2/1991/ESACCI-SOILMOISTURE-L3S-SSMS-ACTIVE-19910919000000-fv02.2.nc" serviceName="HTTPServer">
+      <property name="file_id" value="esacci.SOILMOISTURE.day.L3S.SSMS.multi-sensor.multi-platform.ACTIVE.02-2.r1.ESACCI-SOILMOISTURE-L3S-SSMS-ACTIVE-19910919000000-fv02.2.nc"/>
+      <property name="file_version" value="1"/>
+      <property name="size" value="419190"/>
+      <property name="tracking_id" value="2affdabc-46e8-4d0c-9629-4fa2229596f9"/>
+      <property name="mod_time" value="2016-03-07 18:23:17"/>
+      <property name="checksum" value="d9811e8f8ba56d478473bb6e47f23c08a3200029254a65a30032d2eea1fb93a8"/>
+      <property name="checksum_type" value="SHA256"/>
+      <dataSize units="bytes">419190</dataSize>
+      <access serviceName="GRIDFTP" urlPath="/esg_esacci/soil_moisture/data/daily_files/ACTIVE/v02.2/1991/ESACCI-SOILMOISTURE-L3S-SSMS-ACTIVE-19910919000000-fv02.2.nc"/>
+      <access serviceName="OpenDAPServer" urlPath="esg_esacci/soil_moisture/data/daily_files/ACTIVE/v02.2/1991/ESACCI-SOILMOISTURE-L3S-SSMS-ACTIVE-19910919000000-fv02.2.nc"/>
+    </dataset>
+    <dataset ID="esacci.SOILMOISTURE.day.L3S.SSMS.multi-sensor.multi-platform.ACTIVE.02-2.r1.v20160704.ESACCI-SOILMOISTURE-L3S-SSMS-ACTIVE-19910920000000-fv02.2.nc" name="ESACCI-SOILMOISTURE-L3S-SSMS-ACTIVE-19910920000000-fv02.2.nc" urlPath="esg_esacci/soil_moisture/data/daily_files/ACTIVE/v02.2/1991/ESACCI-SOILMOISTURE-L3S-SSMS-ACTIVE-19910920000000-fv02.2.nc" serviceName="HTTPServer">
+      <property name="file_id" value="esacci.SOILMOISTURE.day.L3S.SSMS.multi-sensor.multi-platform.ACTIVE.02-2.r1.ESACCI-SOILMOISTURE-L3S-SSMS-ACTIVE-19910920000000-fv02.2.nc"/>
+      <property name="file_version" value="1"/>
+      <property name="size" value="417383"/>
+      <property name="tracking_id" value="92fd37e5-5093-44ac-876f-554bd3974643"/>
+      <property name="mod_time" value="2016-03-07 18:23:17"/>
+      <property name="checksum" value="6769be2c25d92559b78e50427978625b9abb209abadeea123e08a917862d52e0"/>
+      <property name="checksum_type" value="SHA256"/>
+      <dataSize units="bytes">417383</dataSize>
+      <access serviceName="GRIDFTP" urlPath="/esg_esacci/soil_moisture/data/daily_files/ACTIVE/v02.2/1991/ESACCI-SOILMOISTURE-L3S-SSMS-ACTIVE-19910920000000-fv02.2.nc"/>
+      <access serviceName="OpenDAPServer" urlPath="esg_esacci/soil_moisture/data/daily_files/ACTIVE/v02.2/1991/ESACCI-SOILMOISTURE-L3S-SSMS-ACTIVE-19910920000000-fv02.2.nc"/>
+    </dataset>
+    <dataset ID="esacci.SOILMOISTURE.day.L3S.SSMS.multi-sensor.multi-platform.ACTIVE.02-2.r1.v20160704.ESACCI-SOILMOISTURE-L3S-SSMS-ACTIVE-19910921000000-fv02.2.nc" name="ESACCI-SOILMOISTURE-L3S-SSMS-ACTIVE-19910921000000-fv02.2.nc" urlPath="esg_esacci/soil_moisture/data/daily_files/ACTIVE/v02.2/1991/ESACCI-SOILMOISTURE-L3S-SSMS-ACTIVE-19910921000000-fv02.2.nc" serviceName="HTTPServer">
+      <property name="file_id" value="esacci.SOILMOISTURE.day.L3S.SSMS.multi-sensor.multi-platform.ACTIVE.02-2.r1.ESACCI-SOILMOISTURE-L3S-SSMS-ACTIVE-19910921000000-fv02.2.nc"/>
+      <property name="file_version" value="1"/>
+      <property name="size" value="391422"/>
+      <property name="tracking_id" value="2718e474-08ba-4d8e-88c2-9cc60a8f077b"/>
+      <property name="mod_time" value="2016-03-07 18:23:17"/>
+      <property name="checksum" value="9fa3f76fcd7fc72e742f9f1a2fe5c74bde51374e5bab2d603ed92b8e4f824c54"/>
+      <property name="checksum_type" value="SHA256"/>
+      <dataSize units="bytes">391422</dataSize>
+      <access serviceName="GRIDFTP" urlPath="/esg_esacci/soil_moisture/data/daily_files/ACTIVE/v02.2/1991/ESACCI-SOILMOISTURE-L3S-SSMS-ACTIVE-19910921000000-fv02.2.nc"/>
+      <access serviceName="OpenDAPServer" urlPath="esg_esacci/soil_moisture/data/daily_files/ACTIVE/v02.2/1991/ESACCI-SOILMOISTURE-L3S-SSMS-ACTIVE-19910921000000-fv02.2.nc"/>
+    </dataset>
+    <dataset ID="esacci.SOILMOISTURE.day.L3S.SSMS.multi-sensor.multi-platform.ACTIVE.02-2.r1.v20160704.ESACCI-SOILMOISTURE-L3S-SSMS-ACTIVE-19910922000000-fv02.2.nc" name="ESACCI-SOILMOISTURE-L3S-SSMS-ACTIVE-19910922000000-fv02.2.nc" urlPath="esg_esacci/soil_moisture/data/daily_files/ACTIVE/v02.2/1991/ESACCI-SOILMOISTURE-L3S-SSMS-ACTIVE-19910922000000-fv02.2.nc" serviceName="HTTPServer">
+      <property name="file_id" value="esacci.SOILMOISTURE.day.L3S.SSMS.multi-sensor.multi-platform.ACTIVE.02-2.r1.ESACCI-SOILMOISTURE-L3S-SSMS-ACTIVE-19910922000000-fv02.2.nc"/>
+      <property name="file_version" value="1"/>
+      <property name="size" value="411069"/>
+      <property name="tracking_id" value="f9d65d27-d31b-47bd-803e-ce65cf00bf7c"/>
+      <property name="mod_time" value="2016-03-07 18:23:17"/>
+      <property name="checksum" value="bd19d2cdad16552b2867f7f621509b1d7fae9b6231c173f1258fd117b15a2d58"/>
+      <property name="checksum_type" value="SHA256"/>
+      <dataSize units="bytes">411069</dataSize>
+      <access serviceName="GRIDFTP" urlPath="/esg_esacci/soil_moisture/data/daily_files/ACTIVE/v02.2/1991/ESACCI-SOILMOISTURE-L3S-SSMS-ACTIVE-19910922000000-fv02.2.nc"/>
+      <access serviceName="OpenDAPServer" urlPath="esg_esacci/soil_moisture/data/daily_files/ACTIVE/v02.2/1991/ESACCI-SOILMOISTURE-L3S-SSMS-ACTIVE-19910922000000-fv02.2.nc"/>
+    </dataset>
+    <dataset ID="esacci.SOILMOISTURE.day.L3S.SSMS.multi-sensor.multi-platform.ACTIVE.02-2.r1.v20160704.ESACCI-SOILMOISTURE-L3S-SSMS-ACTIVE-19910923000000-fv02.2.nc" name="ESACCI-SOILMOISTURE-L3S-SSMS-ACTIVE-19910923000000-fv02.2.nc" urlPath="esg_esacci/soil_moisture/data/daily_files/ACTIVE/v02.2/1991/ESACCI-SOILMOISTURE-L3S-SSMS-ACTIVE-19910923000000-fv02.2.nc" serviceName="HTTPServer">
+      <property name="file_id" value="esacci.SOILMOISTURE.day.L3S.SSMS.multi-sensor.multi-platform.ACTIVE.02-2.r1.ESACCI-SOILMOISTURE-L3S-SSMS-ACTIVE-19910923000000-fv02.2.nc"/>
+      <property name="file_version" value="1"/>
+      <property name="size" value="404174"/>
+      <property name="tracking_id" value="3a9e8de0-d718-464e-b162-3ce2d445b58d"/>
+      <property name="mod_time" value="2016-03-07 18:23:17"/>
+      <property name="checksum" value="ab49f16149978ef27164e387adae920e25d33e7cf747f942901ca3cffa6c177c"/>
+      <property name="checksum_type" value="SHA256"/>
+      <dataSize units="bytes">404174</dataSize>
+      <access serviceName="GRIDFTP" urlPath="/esg_esacci/soil_moisture/data/daily_files/ACTIVE/v02.2/1991/ESACCI-SOILMOISTURE-L3S-SSMS-ACTIVE-19910923000000-fv02.2.nc"/>
+      <access serviceName="OpenDAPServer" urlPath="esg_esacci/soil_moisture/data/daily_files/ACTIVE/v02.2/1991/ESACCI-SOILMOISTURE-L3S-SSMS-ACTIVE-19910923000000-fv02.2.nc"/>
+    </dataset>
+  </dataset>
+</catalog>
