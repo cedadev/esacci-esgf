@@ -53,10 +53,6 @@ class ThreddsXMLDatasetOnWMSServer(ThreddsXMLDatasetBase):
     Otherwise it will only scan the first file for variable names.
     """
 
-    # Path to the base directory under which NcML aggregation files will be
-    # located on the thredds server
-    AGGREGATIONS_BASE_DIRECTORY = "/esg/content/thredds/esgcet/aggregations"
-
     def __init__(self, 
                  thredds_roots = {},
                  check_filenames_similar = False,
@@ -73,7 +69,7 @@ class ThreddsXMLDatasetOnWMSServer(ThreddsXMLDatasetBase):
 
         # For each NcML file for an aggregation of datasets, map
         # (file basename, subdir) -> ThreddsXMLBase, where subdir is the subdirectory
-        # in AGGREGATIONS_BASE_DIRECTORY where the file will live
+        # of 'aggregations' in the THREDDS content directory in which the file will live
         self.aggregations = {}
 
         # options related to quirks in the data
@@ -243,7 +239,7 @@ class ThreddsXMLDatasetOnWMSServer(ThreddsXMLDatasetBase):
 
         # Create a 'netcdf' element in the catalog that points to the file containing the
         # aggregation
-        agg_full_path = os.path.join(self.AGGREGATIONS_BASE_DIRECTORY, sub_dir, agg_basename)
+        agg_full_path = os.path.join("content", "aggregations", sub_dir, agg_basename)
         catalog_ncml = self.new_child(ds, "netcdf", location=agg_full_path,
                                       xmlns="http://www.unidata.ucar.edu/namespaces/netcdf/ncml-2.2")
         self.top_level_dataset.append(ds)            
