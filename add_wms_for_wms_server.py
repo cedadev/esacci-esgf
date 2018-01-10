@@ -207,9 +207,13 @@ class ThreddsXMLDatasetOnWMSServer(ThreddsXMLDatasetBase):
     def add_wms_ds(self):
         dsid = self.dataset_id
         ds = self.new_element("dataset", name=dsid, ID=dsid, urlPath=dsid)
-        self.new_child(ds, "access", serviceName="wms", urlPath=dsid)
+
+        services = ["wms", "OpenDAPServer"]
         if self.do_wcs:
-            self.new_child(ds, "access", serviceName="wcs", urlPath=dsid)
+            services.append("wcs")
+
+        for service_name in services:
+            self.new_child(ds, "access", serviceName=service_name, urlPath=dsid)
 
         # Create new XML document to store NcML aggregation
         agg_xml = ThreddsXMLBase(ns="http://www.unidata.ucar.edu/namespaces/netcdf/ncml-2.2")
@@ -250,7 +254,6 @@ class ThreddsXMLDatasetOnWMSServer(ThreddsXMLDatasetBase):
         self.strip_restrictAccess()
 
         # remove all services and just add the WMS one
-        self.delete_all_children_called(self.root, "service")
         self.insert_wms_service()
         if self.do_wcs:
             self.insert_wcs_service()            
