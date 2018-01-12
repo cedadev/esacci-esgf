@@ -28,7 +28,7 @@ def solr_update_doc(s, doc, func):
 
 def query_all(s, query="*.*", chunk=1000):
     """
-    Get a list of documents from Solr all into memory, querying in 
+    Get a list of documents from Solr all into memory, querying in
     chunks of 1000.  Each one will be a dictionary.
     """
     results = []
@@ -43,10 +43,10 @@ def query_all(s, query="*.*", chunk=1000):
         results.extend(these_results)
         start += chunk
 
-  
+
 def update_wms_and_wcs_urls(doc):
     """
-    Update the WMS and/or WCS URLs in the "url" list in the document so as to add the 
+    Update the WMS and/or WCS URLs in the "url" list in the document so as to add the
     query parameters needed for GetCapabilities if they are not already there.
     Works equally with a dataset document and a file document.
 
@@ -66,14 +66,9 @@ def update_wms_and_wcs_urls(doc):
             urls[i] = string.join(bits, '|')
             changed = True
     return changed
-    
+
 if __name__ == '__main__':
     s = pysolr.Solr('http://esgf-index1.ceda.ac.uk:8984/solr/datasets')
     dsets = query_all(s, query='esacci')
     for ds in dsets:
         solr_update_doc(s, ds, update_wms_and_wcs_urls)
-
-    s = pysolr.Solr('http://esgf-index1.ceda.ac.uk:8984/solr/files')
-    files = query_all(s, query='esacci')
-    for f in files:
-        solr_update_doc(s, f, update_wms_and_wcs_urls)
