@@ -14,7 +14,6 @@ import sys
 import os
 import traceback
 import netCDF4
-from itertools import takewhile
 from cached_property import cached_property
 
 from addwms_base import ThreddsXMLBase, ThreddsXMLDatasetBase, ProcessBatchBase
@@ -167,13 +166,6 @@ class ThreddsXMLDatasetOnWMSServer(ThreddsXMLDatasetBase):
         aslist.sort()
         return aslist
 
-    # https://www.rosettacode.org/wiki/Find_common_directory_path#Python
-    def allnamesequal(self, name):
-	return all(n==name[0] for n in name[1:]) 
-    def commonprefix(self, paths, sep='/'):
-	bydirectorylevels = zip(*[p.split(sep) for p in paths])
-	return sep.join(x[0] for x in takewhile(self.allnamesequal, bydirectorylevels))
-
     re_prefix = "(.*?[^0-9]|)"
     re_yyyy = "[12][0-9]{3}"
     re_mm = "(0[1-9]|1[0-2])"
@@ -220,9 +212,8 @@ class ThreddsXMLDatasetOnWMSServer(ThreddsXMLDatasetBase):
         for varname in self.netcdf_variables:
             agg_xml.new_child(agg, "variableAgg", name=varname)
 
-        common_dir = self.commonprefix(map(os.path.dirname, self.netcdf_files))
-        agg_xml.new_child(agg, "scan", location=common_dir,
-                          suffix=".nc")
+        for nc_file in self.netcdf_files:
+            agg_xml.new_child(agg, "netcdf", location=nc_file)
 
         # Get directory to store aggregation in by splitting dataset ID into
         # its facets and having a subdirectory for each component.
