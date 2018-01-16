@@ -50,6 +50,9 @@ class ThreddsXMLDatasetOnWMSServer(ThreddsXMLDatasetBase):
     add tags for variables that appear in any file (as any variables encountered on 
     scanning but not formally listed will be served with wrong time information).
     Otherwise it will only scan the first file for variable names.
+
+    aggregations_dir is the directory in which NcML files will be placed on the
+    server (used to reference aggregations from the THREDDS catalog)
     """
 
     def __init__(self, 
@@ -58,6 +61,7 @@ class ThreddsXMLDatasetOnWMSServer(ThreddsXMLDatasetBase):
                  valid_file_pattern = None,
                  check_vars_in_all_files = False,
                  do_wcs = False,
+                 aggregations_dir = "/usr/local/aggregations",
                  **kwargs):
 
         ThreddsXMLDatasetBase.__init__(self, **kwargs)
@@ -65,10 +69,11 @@ class ThreddsXMLDatasetOnWMSServer(ThreddsXMLDatasetBase):
         self.thredds_roots = thredds_roots
         self.thredds_roots.setdefault("esg_esacci", "/neodc/esacci")
         self.do_wcs = do_wcs
+        self.aggregations_dir = aggregations_dir
 
         # For each NcML file for an aggregation of datasets, map
         # (file basename, subdir) -> ThreddsXMLBase, where subdir is the subdirectory
-        # of 'aggregations' in the THREDDS content directory in which the file will live
+        # of self.aggregations_dir in which the file will live
         self.aggregations = {}
 
         # options related to quirks in the data
@@ -230,7 +235,7 @@ class ThreddsXMLDatasetOnWMSServer(ThreddsXMLDatasetBase):
 
         # Create a 'netcdf' element in the catalog that points to the file containing the
         # aggregation
-        agg_full_path = os.path.join("content", "aggregations", sub_dir, agg_basename)
+        agg_full_path = os.path.join(self.aggregations_dir, sub_dir, agg_basename)
         catalog_ncml = self.new_child(ds, "netcdf", location=agg_full_path,
                                       xmlns="http://www.unidata.ucar.edu/namespaces/netcdf/ncml-2.2")
         self.top_level_dataset.append(ds)            

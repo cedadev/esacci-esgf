@@ -14,7 +14,7 @@ Create directories `input_catalogs`, `output_catalogs`, `output_catalogs_for_dat
 * Run `python add_wms_for_data_node.py -a` to read the catalogs in `input_catalogs` and write the modified catalogs to `output_catalogs_for_data_node`.
 * Similarly, run `python add_wms_for_wms_server.py -a` to write catalogs and aggregations to `output_catalogs` and `aggregations` respectively.
 
-The code assumes that the files and directories created in `aggregations` will be placed under `{thredds_root}/content/public/aggregations` on the live WMS server (e.g. `/esg/content/thredds/public/aggregations` for the ESGF installation).
+By defalt the code assumes that the files and directories created in `aggregations` will be placed under `/usr/local/aggregations` on the live WMS server.
 
 ## Tests
 
