@@ -1,8 +1,8 @@
-#!/usr/bin/env python2.7
+#!/usr/bin/env python3
 
 """
 Script to create THREDDS xml files for use on the WMS server
-based on XML files copied from the data node, and also to produce 
+based on XML files copied from the data node, and also to produce
 a top-level THREDDS catalog for the WMS server based on a template
 file with the addition of the links to per-dataset catalog files.
 
@@ -24,7 +24,7 @@ class NcFile(object):
         self.ds = netCDF4.Dataset(filename)
 
     def multidim_vars(self):
-        return [name for name, var in self.ds.variables.iteritems()
+        return [name for name, var in self.ds.variables.items()
                 if len(var.shape) >= 2]
 
 class ThreddsXMLTopLevel(ThreddsXMLBase):
@@ -47,7 +47,7 @@ class ThreddsXMLDatasetOnWMSServer(ThreddsXMLDatasetBase):
     A class for processing THREDDS XML files and tweaking them to add WMS tags.
 
     Instantiate with check_vars_in_all_files=True to open all the netCDF files and
-    add tags for variables that appear in any file (as any variables encountered on 
+    add tags for variables that appear in any file (as any variables encountered on
     scanning but not formally listed will be served with wrong time information).
     Otherwise it will only scan the first file for variable names.
 
@@ -55,7 +55,7 @@ class ThreddsXMLDatasetOnWMSServer(ThreddsXMLDatasetBase):
     server (used to reference aggregations from the THREDDS catalog)
     """
 
-    def __init__(self, 
+    def __init__(self,
                  thredds_roots = {},
                  check_filenames_similar = False,
                  valid_file_pattern = None,
@@ -105,7 +105,7 @@ class ThreddsXMLDatasetOnWMSServer(ThreddsXMLDatasetBase):
 
     def path_on_disk(self, fileserver_url):
         """
-        translate the urlPath property of the dataset element into a 
+        translate the urlPath property of the dataset element into a
         path on disk, by translating the relevant THREDDS root.
         """
         pos = fileserver_url.index("/")
@@ -123,8 +123,8 @@ class ThreddsXMLDatasetOnWMSServer(ThreddsXMLDatasetBase):
 
         if self.valid_file_pattern:
             files = self.apply_filter_verbose(self.filter_files_by_pattern,
-                                              files, 
-                                              self.valid_file_pattern)            
+                                              files,
+                                              self.valid_file_pattern)
         if self.check_filenames_similar:
             files = self.apply_filter_verbose(self.filter_files_by_similarity,
                                               files)
@@ -133,20 +133,20 @@ class ThreddsXMLDatasetOnWMSServer(ThreddsXMLDatasetBase):
     def apply_filter_verbose(self, func, orig_list, *args):
         filtered_list = func(orig_list, *args)
         if len(filtered_list) != len(orig_list):
-            print "After calling %s" % func.__name__
-            print "%s out of %s files used" % (len(filtered_list), len(orig_list))
+            print("After calling %s" % func.__name__)
+            print("%s out of %s files used" % (len(filtered_list), len(orig_list)))
             if filtered_list:
-                print "Example file used:     %s" % filtered_list[0]
-            print "Example file not used: %s" % (set(orig_list) - set(filtered_list)).pop()
+                print("Example file used:     %s" % filtered_list[0])
+            print("Example file not used: %s" % (set(orig_list) - set(filtered_list)).pop())
         return filtered_list
 
     def filter_files_by_pattern(self, files, pattern):
-        print "applying filtering pattern: %s" % pattern
-        return filter(re.compile(pattern).search, files)
+        print("applying filtering pattern: %s" % pattern)
+        return list(filter(re.compile(pattern).search, files))
 
     def filter_files_by_similarity(self, files):
         """
-        Subset a file list to be only the ones whose pathnames differ from the first filename 
+        Subset a file list to be only the ones whose pathnames differ from the first filename
         only by the substitution of digits.
         """
         recomp = re.compile("[0-9]")
@@ -154,7 +154,7 @@ class ThreddsXMLDatasetOnWMSServer(ThreddsXMLDatasetBase):
         example_path = files[0]
         substituted_example = do_subs(example_path)
         matches = lambda path: (do_subs(path) == substituted_example)
-        return filter(matches, files)
+        return list(filter(matches, files))
 
     def netcdf_variables_for_file(self, path):
         return set(NcFile(path).multidim_vars())
@@ -166,7 +166,7 @@ class ThreddsXMLDatasetOnWMSServer(ThreddsXMLDatasetBase):
         if self.check_vars_in_all_files:
             for path in files[1:]:
                 varnames = varnames.union(self.netcdf_variables_for_file(path))
-                #print len(varnames)
+                #print(len(varnames))
         aslist = list(varnames)
         aslist.sort()
         return aslist
@@ -238,8 +238,8 @@ class ThreddsXMLDatasetOnWMSServer(ThreddsXMLDatasetBase):
         agg_full_path = os.path.join(self.aggregations_dir, sub_dir, agg_basename)
         catalog_ncml = self.new_child(ds, "netcdf", location=agg_full_path,
                                       xmlns="http://www.unidata.ucar.edu/namespaces/netcdf/ncml-2.2")
-        self.top_level_dataset.append(ds)            
-    
+        self.top_level_dataset.append(ds)
+
     def all_changes(self):
 
         self.insert_viewer_metadata()
@@ -248,13 +248,13 @@ class ThreddsXMLDatasetOnWMSServer(ThreddsXMLDatasetBase):
         # remove all services and just add the WMS one
         self.insert_wms_service()
         if self.do_wcs:
-            self.insert_wcs_service()            
+            self.insert_wcs_service()
 
         # ensure some cached_properties get evaluated before we delete elements
         self.netcdf_files
         self.netcdf_variables
-        #print self.netcdf_files
-        
+        #print(self.netcdf_files)
+
         # remove all (2nd level) datasets and just add the WMS one
         self.delete_all_children_called(self.top_level_dataset, "dataset")
         self.add_wms_ds()
@@ -274,14 +274,14 @@ class ProcessBatch(ProcessBatchBase):
     def do_all(self):
         for fn in self.basenames:
             try:
-                print fn
+                print(fn)
                 self.process_file(fn)
-                print
+                print("")
             except:
-                print "WARNING: %s failed, exception follows\n" % fn
-                print "=============="
+                print("WARNING: %s failed, exception follows\n" % fn)
+                print("==============")
                 traceback.print_exc()
-                print "=============="
+                print("==============")
         tx_cat = ThreddsXMLTopLevel()
         tx_cat.read(self.cat_in)
         for fn in self.get_all_basenames(self.outdir):
@@ -315,13 +315,13 @@ class ProcessBatch(ProcessBatchBase):
 
         kwargs = self.get_kwargs(basename)
 
-        tx = ThreddsXMLDatasetOnWMSServer(check_filenames_similar = True, 
+        tx = ThreddsXMLDatasetOnWMSServer(check_filenames_similar = True,
                                           do_wcs = True,
                                           **kwargs)
         tx.read(in_file)
         tx.all_changes()
         tx.write(out_file, agg_dir=self.agg_outdir)
-    
+
 if __name__ == '__main__':
     pb = ProcessBatch(sys.argv[1:])
     pb.do_all()

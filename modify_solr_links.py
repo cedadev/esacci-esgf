@@ -1,4 +1,4 @@
-#!/usr/bin/env python
+#!/usr/bin/env python3
 import sys
 import os
 
@@ -25,10 +25,10 @@ def solr_update_doc(s, doc, func):
     # if it is actually any different from before, then
     # update it in Solr
     if updated:
-        print 'updating:', id
+        print('updating:', id)
         s.add([doc])
     else:
-        print 'unchanged:', id
+        print('unchanged:', id)
 
 def query_all(s, query="*.*", chunk=1000):
     """
@@ -38,11 +38,11 @@ def query_all(s, query="*.*", chunk=1000):
     results = []
     start = 0
     while True:
-        print "querying from %s" % start
+        print("querying from %s" % start)
         resp = s.search(query, start=start, rows=chunk)
         these_results = resp.docs
         if not these_results:
-            print "%s results found" % len(results)
+            print("%s results found" % len(results))
             return results
         results.extend(these_results)
         start += chunk
@@ -73,7 +73,7 @@ def update_urls(doc):
             bits[0] = bits[0][:-5]
             changed = True
 
-        urls[i] = string.join(bits, '|')
+        urls[i] = '|'.join(bits)
 
     return changed
 

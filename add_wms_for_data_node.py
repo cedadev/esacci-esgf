@@ -1,8 +1,8 @@
-#!/usr/bin/env python2.7
+#!/usr/bin/env python3
 
 """
 Script to create THREDDS xml files for use on the data node
-based on XML files copied from the data node, with the 
+based on XML files copied from the data node, with the
 addition of external links for the WMS service.
 
 For default filenames used, see default args to ProcessBatch.__init__()
@@ -24,7 +24,7 @@ class ThreddsXMLDatasetOnDataNode(ThreddsXMLDatasetBase):
     # WMS server - needs to not clash with local OpenDAP service.
     REMOTE_OPENDAP_SERVICE_NAME = "OpenDAP-remote"
 
-    def __init__(self, 
+    def __init__(self,
                  wms_url_base = 'https://cci-odp-data.cems.rl.ac.uk/thredds/wms/',
                  wcs_url_base = 'https://cci-odp-data.cems.rl.ac.uk/thredds/wcs/',
                  remote_opendap_base = 'https://cci-odp-data.cems.rl.ac.uk/thredds/dodsC/',
@@ -38,7 +38,7 @@ class ThreddsXMLDatasetOnDataNode(ThreddsXMLDatasetBase):
         self.do_wcs = do_wcs
         self.do_per_file_links = do_per_file_links
 
-    def insert_access_links(self):        
+    def insert_access_links(self):
         dsid = self.dataset_id
         dsets = [self.top_level_dataset]
         if self.do_per_file_links:
@@ -71,7 +71,7 @@ class ThreddsXMLDatasetOnDataNode(ThreddsXMLDatasetBase):
             self.insert_wcs_service(base = self.wcs_url_base)
         self.insert_access_links()
 
-    
+
 class ProcessBatch(ProcessBatchBase):
     def __init__(self, args, indir='input_catalogs', outdir='output_catalogs_for_data_node'):
         self.indir = indir
@@ -80,9 +80,9 @@ class ProcessBatch(ProcessBatchBase):
 
     def do_all(self):
         for fn in self.basenames:
-            print fn
+            print(fn)
             self.process_file(fn)
-            print
+            print("")
 
     def process_file(self, basename):
         in_file = os.path.join(self.indir, basename)
@@ -91,7 +91,7 @@ class ProcessBatch(ProcessBatchBase):
         tx.read(in_file)
         tx.all_changes()
         tx.write(out_file)
-    
+
 if __name__ == '__main__':
     pb = ProcessBatch(sys.argv[1:])
     pb.do_all()

@@ -11,7 +11,7 @@ class ThreddsXMLBase(object):
     def __init__(self,
                   ns = "http://www.unidata.ucar.edu/namespaces/thredds/InvCatalog/v1.0",
                   encoding = 'UTF-8',
-                  xlink = "http://www.w3.org/1999/xlink"):        
+                  xlink = "http://www.w3.org/1999/xlink"):
         self.ns = ns
         self.encoding = encoding
         self.xlink = xlink
@@ -31,7 +31,7 @@ class ThreddsXMLBase(object):
 
     def write(self, filename):
         tmpfile = filename + ".tmp"
-        self.tree.write(tmpfile, encoding=self.encoding)
+        self.tree.write(tmpfile, encoding=self.encoding, xml_declaration=True)
         os.system("xmllint --format %s > %s" % (tmpfile, filename))
         os.remove(tmpfile)
 
@@ -56,7 +56,7 @@ class ThreddsXMLBase(object):
 
     def new_element(self, tag_base_name, *args, **attributes):
         """
-        Create a new element. Arguments are the tag name, a single optional positional argument 
+        Create a new element. Arguments are the tag name, a single optional positional argument
         which is the element text, and then the attributes.
         """
         el = ET.Element(self.tag_full_name(tag_base_name), **attributes)
@@ -78,8 +78,8 @@ class ThreddsXMLBase(object):
 
 class ThreddsXMLDatasetBase(ThreddsXMLBase):
     """
-    An intermediate class re THREDDS catalogs that describe datasets - 
-    methods in common to what we want to do on the data node 
+    An intermediate class re THREDDS catalogs that describe datasets -
+    methods in common to what we want to do on the data node
     and on the WMS server
     """
 
@@ -106,10 +106,10 @@ class ThreddsXMLDatasetBase(ThreddsXMLBase):
         self.new_child(mt, "serviceName", "all")
         self.new_child(mt, "authority", "pml.ac.uk:")
         self.new_child(mt, "dataType", "Grid")
-        self.new_child(mt, "property", name="viewer", 
+        self.new_child(mt, "property", name="viewer",
                        value="http://jasmin.eofrom.space/?wms_url={WMS},GISportal Viewer")
         self.insert_element_before_similar(self.top_level_dataset, mt)
-        
+
     def insert_wms_service(self,
                            base="/thredds/wms/"):
         "Add a new 'service' element."
@@ -118,7 +118,7 @@ class ThreddsXMLDatasetBase(ThreddsXMLBase):
                               serviceType="WMS",
                               base=base)
         #self.insert_element_before_similar(self.root, sv)
-        self.root.insert(0, sv)        
+        self.root.insert(0, sv)
 
     def insert_wcs_service(self,
                            base="/thredds/wcs/"):
@@ -128,26 +128,26 @@ class ThreddsXMLDatasetBase(ThreddsXMLBase):
                               serviceType="WCS",
                               base=base)
         #self.insert_element_before_similar(self.root, sv)
-        self.root.insert(0, sv)        
+        self.root.insert(0, sv)
 
 
 class ProcessBatchBase(object):
 
     def usage(self):
         prog = sys.argv[0]
-        print """Usage:
+        print("""Usage:
 
    %s -a    - add WMS tags to all files found in %s
 
-   %s file1 [file2...]  - add WMS tags to specific files (base name only; files are assumed to be 
+   %s file1 [file2...]  - add WMS tags to specific files (base name only; files are assumed to be
                          in %s and any directory part will be ignored
-""" % (prog, self.indir, prog, self.indir)
-    
+""" % (prog, self.indir, prog, self.indir))
+
     def parse_args(self, args):
         if not args:
             self.usage()
             raise ValueError("bad command line arguments")
-            
+
         if args == ['-a']:
             self.basenames = self.get_all_basenames()
         else:
@@ -159,6 +159,6 @@ class ProcessBatchBase(object):
     def get_all_basenames(self, dn=None):
         if dn == None:
             dn = self.indir
-        return [fn for fn in os.listdir(dn) if 
+        return [fn for fn in os.listdir(dn) if
                 fn.startswith("esacci") and fn.endswith(".xml")]
 
