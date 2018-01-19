@@ -43,7 +43,7 @@ def element_to_string(element, indentation=0):
     if children:
         elem_str += ">"
         elem_str += os.linesep + children
-        elem_str += "</{tag}>".format(tag=element.tag)
+        elem_str += "{ind}</{tag}>".format(ind=indentation_str, tag=element.tag)
     else:
         elem_str += "/>"
 
