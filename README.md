@@ -16,6 +16,13 @@ Create directories `input_catalogs`, `output_catalogs`, `output_catalogs_for_dat
 
 By defalt the code assumes that the files and directories created in `aggregations` will be placed under `/usr/local/aggregations` on the live WMS server.
 
+There are also standalone scripts to create NcML aggregations (not currently used in `add_wms_for_wms_node.py`):
+
+* `aggregate.py` reads file paths from standard input (one per line) and writes an NcML aggregation of those files to standard output.
+* `partition_files.py <outdir>` reads file paths from standard input and partitions them into groups of files that can likely be aggregated. These groups are written to files `<outdir>/1`, `<outdir>/2` etc...
+
+A convenience script `agg_wrapper.sh <dir>` finds NetCDF files in `<dir>` and runs `partition_files.py` on the list and `aggregate.py` on each output.
+
 ## Tests
 
 `tests.py` contains some *very simple* tests - to run use `pytest tests.py`.
