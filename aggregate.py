@@ -1,7 +1,6 @@
 #!/usr/bin/env python
-
+import os
 import sys
-from getopt import getopt, GetoptError
 
 import xml.etree.cElementTree as ET
 
@@ -10,25 +9,14 @@ def usage(exit_code):
     """
     Print usage and exit with the given exit code
     """
-    usage = """Usage: {} [OPTION] [FILE_LIST]
+    usage = """Usage: {}
 
-Read filenames of datasets from FILE_LIST and print an NcML aggregation to
-standard output. If FILE_LIST is not specified then read filenames from
-standard input.
+Read filenames of datasets from standard input and print an NcML aggregation to
+standard output.
 
-  -s, --split    Split input files into groups of files with similar names to
-                 create several aggregations (for when the input file list is
-                 heterogeneous)
   -h, --help     Display help and exit"""
     print(usage.format(sys.argv[0]))
     sys.exit(exit_code)
-
-
-def get_file_list(stream):
-    """
-    Return a list of non-empty lines from a stream.
-    """
-    return [line for line in stream.read().split("\n") if line]
 
 
 def element_to_string(element, indentation=0):
@@ -42,7 +30,7 @@ def element_to_string(element, indentation=0):
     children = ""
     for child in element:
         children += element_to_string(child, indentation=indentation + 1)
-        children += "\n"
+        children += os.linesep
 
     indentation_str = " " * (2 * indentation)
     elem_str = "{ind}<{tag}".format(ind=indentation_str, tag=element.tag)
@@ -53,58 +41,39 @@ def element_to_string(element, indentation=0):
 
     if children:
         elem_str += ">"
-        elem_str += "\n" + children
+        elem_str += os.linesep + children
         elem_str += "</{tag}>".format(tag=element.tag)
     else:
         elem_str += "/>"
 
-    # If this is the top level then include <xml> root
+    # If this is the top level then include <?xml?> element
     if indentation == 0:
-        elem_str = '<?xml version="1.0" encoding="UTF-8"?>\n' + elem_str
+        prolog = '<?xml version="1.0" encoding="UTF-8"?>'
+        elem_str = prolog + os.linesep + elem_str
     return elem_str
 
 
-def write_aggregation(file_list, output_stream):
+def create_aggregation(file_list):
     """
-    Create an NcML aggregation for the filenames in `file_list` and write the
-    output to `output_stream`.
+    Create an NcML aggregation for the filenames in `file_list` and return the
+    root element as an instance of ET.Element
     """
     root = ET.Element("netcdf", xmlns="http://www.unidata.ucar.edu/namespaces/netcdf/ncml-2.2")
     aggregation = ET.SubElement(root, "aggregation", dimName="time", type="joinExisting")
-
     ET.SubElement(aggregation, "variableAgg", name="time")
-
     for filename in file_list:
         ET.SubElement(aggregation, "netcdf", location=filename)
-
-    output_stream.write(element_to_string(root))
+    return root
 
 
 def main(args):
-    try:
-        opts, args = getopt(args, "hs", longopts=["help", "split"])
-    except GetoptError:
-        usage(1)
-
-    split = False
-
-    for opt, value in opts:
-        if opt in ("-h", "--help"):
+    for arg in args:
+        if arg in ("-h", "--help"):
             usage(0)
-        elif opt in ("-s", "--split"):
-            split = True
 
-    if split:
-        raise NotImplementedError("split is not implemented yet")
-
-    input_files = None
-    if not args or args[0] == "-":
-        input_files = get_file_list(sys.stdin)
-    else:
-        with open(args[0]) as f:
-            input_files = get_file_list(f)
-
-    write_aggregation(input_files, sys.stdout)
+    path_list = [line for line in sys.stdin.read().split(os.linesep) if line]
+    ncml_el = create_aggregation(path_list)
+    print(element_to_string(ncml_el))
 
 
 if __name__ == "__main__":
