@@ -11,8 +11,16 @@ def partition_files(file_list):
     d = {}
 
     for path in file_list:
+        # Create a key for each file by replacing date parts of path with 0s.
+        # Paths with the same key will then be in the same partition
+
+        # Discard basename (it is assumed that all files in the same directory
+        # can be aggregated)
         components = path.split(os.path.sep)[:-1]
         for i, comp in enumerate(components):
+            # Another assumption is that all dates take up a whole component
+            # of the hierarchy, and conversely that any components consisting
+            # of only digits is a date.
             if comp.isnumeric():
                 components[i] = "0" * len(comp)
 

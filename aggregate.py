@@ -9,13 +9,14 @@ def usage(exit_code):
     """
     Print usage and exit with the given exit code
     """
+    prog = os.path.basename(sys.argv[0])
     usage = """Usage: {}
 
 Read filenames of datasets from standard input and print an NcML aggregation to
 standard output.
 
   -h, --help     Display help and exit"""
-    print(usage.format(sys.argv[0]))
+    print(usage.format(prog))
     sys.exit(exit_code)
 
 

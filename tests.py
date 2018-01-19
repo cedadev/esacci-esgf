@@ -6,6 +6,8 @@ import xml.etree.cElementTree as ET
 from add_wms_for_wms_server import ProcessBatch as ProcessWmsBatch
 from add_wms_for_data_node import (ProcessBatch as ProcessDataNodeBatch,
                                    ThreddsXMLDatasetOnDataNode)
+from aggregate import create_aggregation, element_to_string
+from partition_files import partition_files
 
 
 def get_full_tag(tag):
@@ -17,7 +19,7 @@ def get_base_tag(full_tag):
     return full_tag.split("}")[1:]
 
 
-class BaseTest(object):
+class CatalogBaseTest(object):
     def get_catalog(self, pb_class, tmpdir_factory):
         """
         Return root element of a processed catalog using the process batch
@@ -45,7 +47,7 @@ class BaseTest(object):
                 return True
         return False
 
-class TestCommon(BaseTest):
+class TestCommon(CatalogBaseTest):
     """
     Tests common to data node and WMS server
     """
@@ -65,7 +67,7 @@ class TestCommon(BaseTest):
             assert len(wcs) > 0
 
 
-class TestDataNode(BaseTest):
+class TestDataNode(CatalogBaseTest):
     def test_access_methods(self, data_node_catalog):
         """
         Test that WMS, WCS and OpenDAP are listed as access methods in the top
@@ -78,7 +80,7 @@ class TestDataNode(BaseTest):
             assert self.has_access_method(ds, ThreddsXMLDatasetOnDataNode.REMOTE_OPENDAP_SERVICE_NAME)
 
 
-class TestWmsServer(BaseTest):
+class TestWmsServer(CatalogBaseTest):
     def test_access_methods(self, wms_server_catalog):
         """
         Test that WMS, WCS and OpenDAP are listed as access methods in the
@@ -89,3 +91,72 @@ class TestWmsServer(BaseTest):
         assert self.has_access_method(agg_ds, "wms")
         assert self.has_access_method(agg_ds, "wcs")
         assert self.has_access_method(agg_ds, "OpenDAPServer")
+
+
+class TestAggregationCreation(object):
+    def test_xml_to_string(self):
+        """
+        Test that the method to convert an ET.Element instance to a string
+        produces valid XML with correct indentation
+        """
+        el = ET.Element("parent", myattr="myval")
+        ET.SubElement(el, "child", childattr="childval")
+        ET.SubElement(el, "child")
+        xml = element_to_string(el)
+
+        try:
+            parsed_el = ET.fromstring(xml)
+        except ET.ParseError:
+            assert False, "element_to_string() returned malformed XML"
+
+        lines = [
+            '<?xml version="1.0" encoding="UTF-8"?>',
+            '<parent myattr="myval">',
+            '  <child childattr="childval"/>',
+            '  <child/>',
+            '</parent>'
+        ]
+        assert xml == os.linesep.join(lines)
+
+    def test_aggregation(self):
+        """
+        Test that the method to create an NcML aggregation includes references
+        to the input files
+        """
+        files = ["/path/to/one", "/path/to/two"]
+        agg = create_aggregation(files)
+        xml = element_to_string(agg)
+        for f in files:
+            assert 'location="{}"'.format(f) in xml
+
+
+class TestPartitioning(object):
+    def test_partition(self):
+        """
+        Test the algorithm to detect dates in file paths and partition a list
+        into groups
+        """
+        expected_part = [
+            ["/path/one/2018/01/01/f1.nc",
+             "/path/one/2018/01/02/f2.nc"],
+            ["/path/two/2019/01/01/f3.nc"],
+            # Paths only differ by digits but one of the changes is version
+            # number - check they get split into two
+            ["/path/three/v1/2009/01/01/f4.nc",
+             "/path/three/v1/2008/01/01/f5.nc"],
+            ["/path/three/v2/2009/01/01/f6.nc"],
+            # Same as above but with no alphabetic characters in version
+            ["/path/four/1.0/2007/01/01/f7.nc",
+             "/path/four/1.0/2003/01/01/f8.nc"],
+            ["/path/four/2.0/2007/01/01/f9.nc"]
+        ]
+        flattened = sum((group for group in expected_part), [])
+        part = list(partition_files(flattened))
+
+        assert len(part) == len(expected_part)
+
+        # Order does not matter so convert expected and actual results to sets
+        part = set([tuple(l) for l in part])
+        expected_part = set([tuple(l) for l in expected_part])
+
+        assert part == expected_part
