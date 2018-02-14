@@ -8,8 +8,7 @@ from aggregate import create_aggregation, element_to_string
 from partition_files import partition_files
 
 
-def get_full_tag(tag):
-    ns = "http://www.unidata.ucar.edu/namespaces/thredds/InvCatalog/v1.0"
+def get_full_tag(tag, ns="http://www.unidata.ucar.edu/namespaces/thredds/InvCatalog/v1.0"):
     return "{%s}%s" % (ns, tag)
 
 
@@ -23,7 +22,7 @@ class TestCatalogUpdates(object):
     """
 
     @pytest.fixture
-    def wms_server_catalog(self, tmpdir_factory):
+    def thredds_catalog(self, tmpdir_factory):
         """
         Test fixture to return the root element of a processed catalog.
         """
@@ -41,11 +40,11 @@ class TestCatalogUpdates(object):
                 return True
         return False
 
-    def test_wms_wcs_services(self, wms_server_catalog):
+    def test_wms_wcs_services(self, thredds_catalog):
         """
         Check WMS and WCS services are present
         """
-        services = wms_server_catalog.findall(get_full_tag("service"))
+        services = thredds_catalog.findall(get_full_tag("service"))
         assert len(services) > 0
         wms = [s for s in services if s.get("name") == "wms"]
         wcs = [s for s in services if s.get("name") == "wcs"]
@@ -55,15 +54,22 @@ class TestCatalogUpdates(object):
         assert len(wms) > 0
         assert len(wcs) > 0
 
-    def test_access_methods(self, wms_server_catalog):
+    def test_aggregate_ds(self, thredds_catalog):
         """
-        Test that WMS, WCS and OpenDAP are listed as access methods in the
-        aggregate dataset
+        Test that the aggregate dataset is present and that is has WMS, WCS and
+        OpenDAP as access methods
         """
-        top_level_ds = [el for el in wms_server_catalog if el.tag == get_full_tag("dataset")]
-        # Note: This relies of the aggregate dataset being the last child
-        # <dataset> element
-        agg_ds = top_level_ds[0].findall(get_full_tag("dataset"))[-1]
+        top_level_ds = [el for el in thredds_catalog if el.tag == get_full_tag("dataset")]
+        agg_ds = None
+        for el in top_level_ds[0]:
+            if el.tag == get_full_tag("dataset"):
+                for subel in el:
+                    if subel.tag == get_full_tag("netcdf",
+                                                 ns="http://www.unidata.ucar.edu/namespaces/netcdf/ncml-2.2"):
+                        agg_ds = el
+                        break
+
+        assert agg_ds is not None, "Aggregation dataset not found"
         assert self.has_access_method(agg_ds, "wms")
         assert self.has_access_method(agg_ds, "wcs")
         assert self.has_access_method(agg_ds, "OpenDAPServer")
