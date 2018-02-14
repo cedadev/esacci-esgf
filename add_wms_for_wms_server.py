@@ -1,36 +1,103 @@
 #!/usr/bin/env python3
 
 """
-Script to create THREDDS xml files for use on the WMS server
-based on XML files copied from the data node, and also to produce
-a top-level THREDDS catalog for the WMS server based on a template
-file with the addition of the links to per-dataset catalog files.
+Script to modify THREDDS xml files to create NcML aggregations and
+make these accessible through WMS/WCS.
 
 For default filenames used, see default args to ProcessBatch.__init__()
 """
 
-import re
 import sys
 import os
 import traceback
-import netCDF4
+import xml.etree.cElementTree as ET
+
 from cached_property import cached_property
 
-from addwms_base import ThreddsXMLBase, ThreddsXMLDatasetBase, ProcessBatchBase
+from partition_files import partition_files
+from aggregate import create_aggregation
 
-class NcFile(object):
 
-    def __init__(self, filename):
-        self.ds = netCDF4.Dataset(filename)
+class ThreddsXMLBase(object):
+    """
+    Base class re generic stuff we want to do to THREDDS XML files
+    """
+    def __init__(self,
+                  ns = "http://www.unidata.ucar.edu/namespaces/thredds/InvCatalog/v1.0",
+                  encoding = 'UTF-8',
+                  xlink = "http://www.w3.org/1999/xlink"):
+        self.ns = ns
+        self.encoding = encoding
+        self.xlink = xlink
 
-    def multidim_vars(self):
-        return [name for name, var in self.ds.variables.items()
-                if len(var.shape) >= 2]
+    def set_root(self, root):
+        self.tree = ET.ElementTree(root)
+        self.root = root
+        self.root.set("xmlns:xlink", self.xlink)
+
+    def read(self, filename):
+        self.in_filename = filename
+        ET.register_namespace("", self.ns)
+        self.tree = ET.ElementTree()
+        self.tree.parse(filename)
+        self.root = self.tree.getroot()
+        self.root.set("xmlns:xlink", self.xlink)
+
+    def write(self, filename):
+        tmpfile = filename + ".tmp"
+        self.tree.write(tmpfile, encoding=self.encoding, xml_declaration=True)
+        os.system("xmllint --format %s > %s" % (tmpfile, filename))
+        os.remove(tmpfile)
+
+    def tag_full_name(self, tag_base_name):
+        return "{%s}%s" % (self.ns, tag_base_name)
+
+    def tag_base_name(self, tag_full_name):
+        return tag_full_name[tag_full_name.index("}") + 1 :]
+
+    def tag_base_name_is(self, element, tag_name):
+        return self.tag_base_name(element.tag) == tag_name
+
+    def insert_element_before_similar(self, parent, new_child):
+        """
+        Add a child element, if possible putting it before another child with the same tag
+        """
+        new_tag = self.tag_base_name(new_child.tag)
+        for i, child in enumerate(parent.getchildren()):
+            if not self.tag_base_name_is(child, new_tag):
+                parent.insert(i, new_child)
+                break
+        else:
+            element.append(new_child)
+
+    def new_element(self, tag_base_name, *args, **attributes):
+        """
+        Create a new element. Arguments are the tag name, a single optional positional argument
+        which is the element text, and then the attributes.
+        """
+        el = ET.Element(self.tag_full_name(tag_base_name), **attributes)
+        if args:
+            (text,) = args
+            el.text = text
+        return el
+
+    def new_child(self, parent, *args, **kwargs):
+        """
+        As new_element, but add result as child of specified parent element
+        """
+        child = self.new_element(*args, **kwargs)
+        parent.append(child)
+        return child
+
+    def delete_all_children_called(self, parent, tagname):
+        for child in parent.getchildren():
+            if self.tag_base_name_is(child, tagname):
+                parent.remove(child)
+
 
 class ThreddsXMLTopLevel(ThreddsXMLBase):
     """
     A class for manipulating the top-level THREDDS catalog
-    (on the WMS server)
     """
 
     def add_ref(self, href, name, title=None):
@@ -42,17 +109,16 @@ class ThreddsXMLTopLevel(ThreddsXMLBase):
         self.new_child(self.root, "catalogRef", **atts)
 
 
-class ThreddsXMLDatasetOnWMSServer(ThreddsXMLDatasetBase):
+class ThreddsXMLDataset(ThreddsXMLBase):
     """
+    An intermediate class re THREDDS catalogs that describe datasets -
+    methods in common to what we want to do on the data node
+    and on the WMS server
+
+       AND
+
     A class for processing THREDDS XML files and tweaking them to add WMS tags.
 
-    Instantiate with check_vars_in_all_files=True to open all the netCDF files and
-    add tags for variables that appear in any file (as any variables encountered on
-    scanning but not formally listed will be served with wrong time information).
-    Otherwise it will only scan the first file for variable names.
-
-    aggregations_dir is the directory in which NcML files will be placed on the
-    server (used to reference aggregations from the THREDDS catalog)
     """
 
     def __init__(self,
@@ -63,8 +129,12 @@ class ThreddsXMLDatasetOnWMSServer(ThreddsXMLDatasetBase):
                  do_wcs = False,
                  aggregations_dir = "/usr/local/aggregations",
                  **kwargs):
+        """
+        aggregations_dir is the directory in which NcML files will be placed on the
+        server (used to reference aggregations from the THREDDS catalog)
+        """
 
-        ThreddsXMLDatasetBase.__init__(self, **kwargs)
+        super().__init__(**kwargs)
 
         self.thredds_roots = thredds_roots
         self.thredds_roots.setdefault("esg_esacci", "/neodc/esacci")
@@ -81,11 +151,60 @@ class ThreddsXMLDatasetOnWMSServer(ThreddsXMLDatasetBase):
         self.check_vars_in_all_files = check_vars_in_all_files
         self.valid_file_pattern = valid_file_pattern
 
+
+    @cached_property
+    def top_level_dataset(self):
+        for child in self.root.getchildren():
+            if self.tag_base_name_is(child, "dataset"):
+                return child
+
+    @cached_property
+    def second_level_datasets(self):
+        return [child for child in self.top_level_dataset.getchildren()
+                if self.tag_base_name_is(child, "dataset")]
+
+    @cached_property
+    def dataset_id(self):
+        return self.top_level_dataset.attrib["ID"]
+
+    def insert_viewer_metadata(self):
+        mt = self.new_element("metadata", inherited="true")
+        self.new_child(mt, "serviceName", "all")
+        self.new_child(mt, "authority", "pml.ac.uk:")
+        self.new_child(mt, "dataType", "Grid")
+        self.new_child(mt, "property", name="viewer",
+                       value="http://jasmin.eofrom.space/?wms_url={WMS},GISportal Viewer")
+        self.insert_element_before_similar(self.top_level_dataset, mt)
+
+    def insert_wms_service(self,
+                           base="/thredds/wms/"):
+        """
+        Add a new 'service' element.
+        """
+        sv = self.new_element("service",
+                              name = "wms",
+                              serviceType="WMS",
+                              base=base)
+        #self.insert_element_before_similar(self.root, sv)
+        self.root.insert(0, sv)
+
+    def insert_wcs_service(self,
+                           base="/thredds/wcs/"):
+        """
+        Add a new 'service' element.
+        """
+        sv = self.new_element("service",
+                              name = "wcs",
+                              serviceType="WCS",
+                              base=base)
+        #self.insert_element_before_similar(self.root, sv)
+        self.root.insert(0, sv)
+
     def write(self, filename, agg_dir):
         """
         Write this catalog to 'filename', and save aggregations in 'agg_dir'
         """
-        ThreddsXMLDatasetBase.write(self, filename)
+        super().write(filename)
 
         for (filename, subdir), agg in self.aggregations.items():
             abs_subdir = os.path.join(agg_dir, subdir)
@@ -115,89 +234,17 @@ class ThreddsXMLDatasetOnWMSServer(ThreddsXMLDatasetBase):
         path = os.path.normpath(path)
         return path
 
-    @cached_property
     def netcdf_files(self):
-        files = [self.path_on_disk(element.attrib['urlPath'])
-                 for element in self.second_level_datasets
-                 if element.attrib["serviceName"] == "HTTPServer"]
+        return [self.path_on_disk(element.attrib['urlPath'])
+                for element in self.second_level_datasets
+                if element.attrib["serviceName"] == "HTTPServer"]
 
-        if self.valid_file_pattern:
-            files = self.apply_filter_verbose(self.filter_files_by_pattern,
-                                              files,
-                                              self.valid_file_pattern)
-        if self.check_filenames_similar:
-            files = self.apply_filter_verbose(self.filter_files_by_similarity,
-                                              files)
-        return files
+    def add_aggregations(self):
+        groups = partition_files(self.netcdf_files())
+        if len(groups) > 1:
+            raise NotImplementedError("Multiple aggregations per dataset not yet supported")
+        filenames = groups[0]
 
-    def apply_filter_verbose(self, func, orig_list, *args):
-        filtered_list = func(orig_list, *args)
-        if len(filtered_list) != len(orig_list):
-            print("After calling %s" % func.__name__)
-            print("%s out of %s files used" % (len(filtered_list), len(orig_list)))
-            if filtered_list:
-                print("Example file used:     %s" % filtered_list[0])
-            print("Example file not used: %s" % (set(orig_list) - set(filtered_list)).pop())
-        return filtered_list
-
-    def filter_files_by_pattern(self, files, pattern):
-        print("applying filtering pattern: %s" % pattern)
-        return list(filter(re.compile(pattern).search, files))
-
-    def filter_files_by_similarity(self, files):
-        """
-        Subset a file list to be only the ones whose pathnames differ from the first filename
-        only by the substitution of digits.
-        """
-        recomp = re.compile("[0-9]")
-        do_subs = lambda path: recomp.sub("0", path)
-        example_path = files[0]
-        substituted_example = do_subs(example_path)
-        matches = lambda path: (do_subs(path) == substituted_example)
-        return list(filter(matches, files))
-
-    def netcdf_variables_for_file(self, path):
-        return set(NcFile(path).multidim_vars())
-
-    @cached_property
-    def netcdf_variables(self):
-        files = self.netcdf_files
-        varnames = self.netcdf_variables_for_file(files[0])
-        if self.check_vars_in_all_files:
-            for path in files[1:]:
-                varnames = varnames.union(self.netcdf_variables_for_file(path))
-                #print(len(varnames))
-        aslist = list(varnames)
-        aslist.sort()
-        return aslist
-
-    re_prefix = "(.*?[^0-9]|)"
-    re_yyyy = "[12][0-9]{3}"
-    re_mm = "(0[1-9]|1[0-2])"
-    re_dd = "(0[1-9]|[12][0-9]|3[01])"
-    recomp_date_ymd = re.compile(re_prefix + re_yyyy + re_mm + re_dd)
-    recomp_date_ym = re.compile(re_prefix + re_yyyy + re_mm)
-    recomp_date_y = re.compile(re_prefix + re_yyyy)
-
-    def get_date_format_mark_1(self, file_path):
-        base = os.path.basename(file_path)
-        m = self.recomp_date_ymd.match(base)
-        if m:
-            return m.group(1) + "#yyyyMMdd"
-        m = self.recomp_date_ym.match(base)
-        if m:
-            return m.group(1) + "#yyyyMM"
-        m = self.recomp_date_y.match(base)
-        if m:
-            return m.group(1) + "#yyyy"
-        raise Exception("filename %s doesn't seem to contain a date" % file_path)
-
-    def get_date_format_mark(self, paths):
-        all_date_formats = map(self.get_date_format_mark_1, paths)
-        assert len(set(all_date_formats)) == 1  # if don't all give same string, need to refine
-        return all_date_formats[0]
-
-    def add_wms_ds(self):
         dsid = self.dataset_id
         ds = self.new_element("dataset", name=dsid, ID=dsid, urlPath=dsid)
 
@@ -208,17 +255,8 @@ class ThreddsXMLDatasetOnWMSServer(ThreddsXMLDatasetBase):
         for service_name in services:
             self.new_child(ds, "access", serviceName=service_name, urlPath=dsid)
 
-        # Create new XML document to store NcML aggregation
-        agg_xml = ThreddsXMLBase(ns="http://www.unidata.ucar.edu/namespaces/netcdf/ncml-2.2")
-        ncml = agg_xml.new_element("netcdf")
-        agg_xml.set_root(ncml)
-
-        agg = agg_xml.new_child(ncml, "aggregation", dimName="time", type="joinExisting")
-        for varname in self.netcdf_variables:
-            agg_xml.new_child(agg, "variableAgg", name=varname)
-
-        for nc_file in self.netcdf_files:
-            agg_xml.new_child(agg, "netcdf", location=nc_file)
+        agg_xml = ThreddsXMLBase()
+        agg_xml.set_root(create_aggregation(filenames))
 
         # Get directory to store aggregation in by splitting dataset ID into
         # its facets and having a subdirectory for each component.
@@ -241,25 +279,17 @@ class ThreddsXMLDatasetOnWMSServer(ThreddsXMLDatasetBase):
         self.top_level_dataset.append(ds)
 
     def all_changes(self):
-
         self.insert_viewer_metadata()
         self.strip_restrictAccess()
 
-        # remove all services and just add the WMS one
+        # Add WMS/WCS services
         self.insert_wms_service()
         if self.do_wcs:
             self.insert_wcs_service()
 
-        # ensure some cached_properties get evaluated before we delete elements
-        self.netcdf_files
-        self.netcdf_variables
-        #print(self.netcdf_files)
+        self.add_aggregations()
 
-        # remove all (2nd level) datasets and just add the WMS one
-        self.delete_all_children_called(self.top_level_dataset, "dataset")
-        self.add_wms_ds()
-
-class ProcessBatch(ProcessBatchBase):
+class ProcessBatch(object):
     def __init__(self, args, indir='input_catalogs', outdir='output_catalogs',
                  agg_outdir='aggregations',
                  cat_in = 'catalog_in.xml',
@@ -288,11 +318,13 @@ class ProcessBatch(ProcessBatchBase):
             title = fn
             assert fn.endswith(".xml")
             name = fn[:-4]
-            tx_cat.add_ref(title, name)
+            tx_cat.add_ref(os.path.join("1", title), name)
         tx_cat.write(self.cat_out)
 
     def get_kwargs(self, basename):
-        "return argument dictionary to deal with special cases where files are heterogeneous"
+        """
+        return argument dictionary to deal with special cases where files are heterogeneous
+        """
         if basename.startswith("esacci.OC."):
             dirs = {'day': 'daily',
                     'mon': 'monthly',
@@ -315,12 +347,42 @@ class ProcessBatch(ProcessBatchBase):
 
         kwargs = self.get_kwargs(basename)
 
-        tx = ThreddsXMLDatasetOnWMSServer(check_filenames_similar = True,
-                                          do_wcs = True,
-                                          **kwargs)
+        tx = ThreddsXMLDataset(check_filenames_similar = True,
+                               do_wcs = True,
+                               **kwargs)
         tx.read(in_file)
         tx.all_changes()
         tx.write(out_file, agg_dir=self.agg_outdir)
+
+    def usage(self):
+        prog = sys.argv[0]
+        print("""Usage:
+
+   %s -a    - add WMS tags to all files found in %s
+
+   %s file1 [file2...]  - add WMS tags to specific files (base name only; files are assumed to be
+                         in %s and any directory part will be ignored
+""" % (prog, self.indir, prog, self.indir))
+
+    def parse_args(self, args):
+        if not args:
+            self.usage()
+            raise ValueError("bad command line arguments")
+
+        if args == ['-a']:
+            self.basenames = self.get_all_basenames()
+        else:
+            self.basenames = map(os.path.basename, args)
+
+    def get_basenames(self):
+        return self.basenames
+
+    def get_all_basenames(self, dn=None):
+        if dn == None:
+            dn = self.indir
+        return [fn for fn in os.listdir(dn) if
+                fn.startswith("esacci") and fn.endswith(".xml")]
+
 
 if __name__ == '__main__':
     pb = ProcessBatch(sys.argv[1:])

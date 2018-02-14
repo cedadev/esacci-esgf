@@ -29,7 +29,7 @@ def partition_files(file_list):
             d[replaced_path] = []
         d[replaced_path].append(path)
 
-    return d.values()
+    return list(d.values())
 
 
 def usage(exit_code):
