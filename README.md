@@ -1,6 +1,6 @@
 # esgf_wms
 
-### add_wms_for_wms_server.py
+### modify_catalogs.py
 
 This script modifies THREDDS XML catalogs to add aggregate datasets with
 WMS/WCS/OpenDAP access.
@@ -9,7 +9,7 @@ Install requirements with `pip install -r requirements.txt` (create and activate
 virtualenv first).
 
 To run, first create directories `input_catalogs`, `output_catalogs` and `aggregations`.
-Running `./add_wms_for_wms_server.py -a` will read the catalogs in `input_catalogs`, make the
+Running `./modify_catalogs.py -a` will read the catalogs in `input_catalogs`, make the
 necessary changes, and write the modified catalogs to `output_catalogs`.
 
 NcML files for the aggregate datasets will be saved in `aggregations`.

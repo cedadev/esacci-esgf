@@ -4,8 +4,6 @@ import os
 
 import pysolr
 
-import string
-
 """
 Script that modifies the WMS, WCS and OpenDAP links in Solr.
 """

@@ -3,7 +3,7 @@ import os
 import pytest
 import xml.etree.cElementTree as ET
 
-from add_wms_for_wms_server import ProcessBatch
+from modify_catalogs import ProcessBatch
 from aggregate import create_aggregation, element_to_string
 from partition_files import partition_files
 
