@@ -23,9 +23,9 @@ class ThreddsXMLBase(object):
     Base class re generic stuff we want to do to THREDDS XML files
     """
     def __init__(self,
-                  ns = "http://www.unidata.ucar.edu/namespaces/thredds/InvCatalog/v1.0",
-                  encoding = 'UTF-8',
-                  xlink = "http://www.w3.org/1999/xlink"):
+                 ns="http://www.unidata.ucar.edu/namespaces/thredds/InvCatalog/v1.0",
+                 encoding='UTF-8',
+                 xlink="http://www.w3.org/1999/xlink"):
         self.ns = ns
         self.encoding = encoding
         self.xlink = xlink
@@ -53,7 +53,7 @@ class ThreddsXMLBase(object):
         return "{%s}%s" % (self.ns, tag_base_name)
 
     def tag_base_name(self, tag_full_name):
-        return tag_full_name[tag_full_name.index("}") + 1 :]
+        return tag_full_name[tag_full_name.index("}") + 1:]
 
     def tag_base_name_is(self, element, tag_name):
         return self.tag_base_name(element.tag) == tag_name
@@ -98,9 +98,9 @@ class ThreddsXMLTopLevel(ThreddsXMLBase):
     def add_ref(self, href, name, title=None):
         if not title:
             title = name
-        atts = {'xlink:title' : title,
-                'xlink:href' : href,
-                'name' : name}
+        atts = {'xlink:title': title,
+                'xlink:href': href,
+                'name': name}
         self.new_child(self.root, "catalogRef", **atts)
 
 
@@ -117,9 +117,9 @@ class ThreddsXMLDataset(ThreddsXMLBase):
     """
 
     def __init__(self,
-                 thredds_roots = {},
-                 do_wcs = False,
-                 aggregations_dir = "/usr/local/aggregations",
+                 thredds_roots={},
+                 do_wcs=False,
+                 aggregations_dir="/usr/local/aggregations",
                  **kwargs):
         """
         aggregations_dir is the directory in which NcML files will be placed on the
@@ -168,7 +168,7 @@ class ThreddsXMLDataset(ThreddsXMLBase):
         Add a new 'service' element.
         """
         sv = self.new_element("service",
-                              name = "wms",
+                              name="wms",
                               serviceType="WMS",
                               base=base)
         self.root.insert(0, sv)
@@ -179,7 +179,7 @@ class ThreddsXMLDataset(ThreddsXMLBase):
         Add a new 'service' element.
         """
         sv = self.new_element("service",
-                              name = "wcs",
+                              name="wcs",
                               serviceType="WCS",
                               base=base)
         self.root.insert(0, sv)
@@ -214,7 +214,7 @@ class ThreddsXMLDataset(ThreddsXMLBase):
         pos = fileserver_url.index("/")
         ds_root = fileserver_url[:pos]
         path = os.path.join(self.thredds_roots[ds_root],
-                            fileserver_url[pos + 1 :])
+                            fileserver_url[pos + 1:])
         path = os.path.normpath(path)
         return path
 
@@ -273,11 +273,12 @@ class ThreddsXMLDataset(ThreddsXMLBase):
 
         self.add_aggregations()
 
+
 class ProcessBatch(object):
     def __init__(self, args, indir='input_catalogs', outdir='output_catalogs',
                  agg_outdir='aggregations',
-                 cat_in = 'catalog_in.xml',
-                 cat_out = 'catalog.xml'):
+                 cat_in='catalog_in.xml',
+                 cat_out='catalog.xml'):
         self.indir = indir
         self.outdir = outdir
         self.agg_outdir = agg_outdir
@@ -309,7 +310,7 @@ class ProcessBatch(object):
         in_file = os.path.join(self.indir, basename)
         out_file = os.path.join(self.outdir, basename)
 
-        tx = ThreddsXMLDataset(do_wcs = True)
+        tx = ThreddsXMLDataset(do_wcs=True)
         tx.read(in_file)
         tx.all_changes()
         tx.write(out_file, agg_dir=self.agg_outdir)
@@ -335,7 +336,7 @@ class ProcessBatch(object):
             self.basenames = map(os.path.basename, args)
 
     def get_all_basenames(self, dn=None):
-        if dn == None:
+        if dn is None:
             dn = self.indir
         return [fn for fn in os.listdir(dn) if
                 fn.startswith("esacci") and fn.endswith(".xml")]

@@ -36,7 +36,7 @@ class TestCatalogUpdates(object):
 
     def has_access_method(self, element, name):
         for access in element.findall(get_full_tag("access")):
-             if access.get("serviceName") == name:
+            if access.get("serviceName") == name:
                 return True
         return False
 
@@ -59,13 +59,14 @@ class TestCatalogUpdates(object):
         Test that the aggregate dataset is present and that is has WMS, WCS and
         OpenDAP as access methods
         """
+        nmcl_ns = "http://www.unidata.ucar.edu/namespaces/netcdf/ncml-2.2"
+
         top_level_ds = [el for el in thredds_catalog if el.tag == get_full_tag("dataset")]
         agg_ds = None
         for el in top_level_ds[0]:
             if el.tag == get_full_tag("dataset"):
                 for subel in el:
-                    if subel.tag == get_full_tag("netcdf",
-                                                 ns="http://www.unidata.ucar.edu/namespaces/netcdf/ncml-2.2"):
+                    if subel.tag == get_full_tag("netcdf", ns=ncml_ns):
                         agg_ds = el
                         break
 

@@ -10,6 +10,7 @@ Script that modifies the WMS, WCS and OpenDAP links in Solr.
 
 DEFAULT_SOLR_NODE = 'http://esgf-index1.ceda.ac.uk:8984'
 
+
 def solr_update_doc(s, doc, func):
     """
     Given a document from Solr, call the specified function
@@ -28,6 +29,7 @@ def solr_update_doc(s, doc, func):
     else:
         print('unchanged:', id)
 
+
 def query_all(s, query="*.*", chunk=1000):
     """
     Get a list of documents from Solr all into memory, querying in
@@ -44,6 +46,7 @@ def query_all(s, query="*.*", chunk=1000):
             return results
         results.extend(these_results)
         start += chunk
+
 
 def update_urls(doc):
     """
@@ -75,6 +78,7 @@ def update_urls(doc):
 
     return changed
 
+
 def usage():
     prog = os.path.basename(sys.argv[0])
     print("""Usage: %s [SOLR NODE]
@@ -83,6 +87,7 @@ Modify Solr documents to correct WMS, WCS and OpenDAP endpoints for
 aggregate datasets
 
 SOLR NODE defaults to %s""" % (prog, DEFAULT_SOLR_NODE))
+
 
 if __name__ == '__main__':
 
