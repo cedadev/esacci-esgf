@@ -59,7 +59,7 @@ class TestCatalogUpdates(object):
         Test that the aggregate dataset is present and that is has WMS, WCS and
         OpenDAP as access methods
         """
-        nmcl_ns = "http://www.unidata.ucar.edu/namespaces/netcdf/ncml-2.2"
+        ncml_ns = "http://www.unidata.ucar.edu/namespaces/netcdf/ncml-2.2"
 
         top_level_ds = [el for el in thredds_catalog if el.tag == get_full_tag("dataset")]
         agg_ds = None
@@ -119,27 +119,40 @@ class TestPartitioning(object):
         Test the algorithm to detect dates in file paths and partition a list
         into groups
         """
-        expected_part = [
-            ["/path/one/2018/01/01/f1.nc",
-             "/path/one/2018/01/02/f2.nc"],
-            ["/path/two/2019/01/01/f3.nc"],
+        all_files = [
+            "/path/one/2018/01/01/f1.nc",
+            "/path/one/2018/01/02/f2.nc",
+            "/path/two/2019/01/01/f3.nc",
             # Paths only differ by digits but one of the changes is version
             # number - check they get split into two
-            ["/path/three/v1/2009/01/01/f4.nc",
-             "/path/three/v1/2008/01/01/f5.nc"],
-            ["/path/three/v2/2009/01/01/f6.nc"],
+            "/path/three/v1/2009/01/01/f4.nc",
+            "/path/three/v1/2008/01/01/f5.nc",
+            "/path/three/v2/2009/01/01/f6.nc",
             # Same as above but with no alphabetic characters in version
-            ["/path/four/1.0/2007/01/01/f7.nc",
-             "/path/four/1.0/2003/01/01/f8.nc"],
-            ["/path/four/2.0/2007/01/01/f9.nc"]
+            "/path/four/1.0/2007/01/01/f7.nc",
+            "/path/four/1.0/2003/01/01/f8.nc",
+            "/path/four/2.0/2007/01/01/f9.nc"
         ]
-        flattened = sum((group for group in expected_part), [])
-        part = list(partition_files(flattened))
 
-        assert len(part) == len(expected_part)
+        expected_part = {
+            "/path/one/xxxx/xx/xx": [
+                "/path/one/2018/01/01/f1.nc",
+                "/path/one/2018/01/02/f2.nc"
+            ],
+            "/path/two/xxxx/xx/xx": ["/path/two/2019/01/01/f3.nc"],
 
-        # Order does not matter so convert expected and actual results to sets
-        part = set([tuple(l) for l in part])
-        expected_part = set([tuple(l) for l in expected_part])
+            "/path/three/v1/xxxx/xx/xx": [
+                "/path/three/v1/2009/01/01/f4.nc",
+                "/path/three/v1/2008/01/01/f5.nc"
+            ],
 
-        assert part == expected_part
+            "/path/three/v2/xxxx/xx/xx": ["/path/three/v2/2009/01/01/f6.nc"],
+
+            "/path/four/1.0/xxxx/xx/xx": [
+                "/path/four/1.0/2007/01/01/f7.nc",
+                "/path/four/1.0/2003/01/01/f8.nc"
+            ],
+
+            "/path/four/2.0/xxxx/xx/xx": ["/path/four/2.0/2007/01/01/f9.nc"]
+        }
+        assert partition_files(all_files) == expected_part

@@ -9,6 +9,7 @@ For default filenames used, see default args to ProcessBatch.__init__()
 
 import sys
 import os
+import re
 import traceback
 import xml.etree.cElementTree as ET
 
@@ -224,25 +225,7 @@ class ThreddsXMLDataset(ThreddsXMLBase):
                 if element.attrib["serviceName"] == "HTTPServer"]
 
     def add_aggregations(self):
-        groups = partition_files(self.netcdf_files())
-        if len(groups) > 1:
-            raise NotImplementedError("Multiple aggregations per dataset not yet supported")
-        filenames = groups[0]
-
-        dsid = self.dataset_id
-        ds = self.new_element("dataset", name=dsid, ID=dsid, urlPath=dsid)
-
-        services = ["wms", "OpenDAPServer"]
-        if self.do_wcs:
-            services.append("wcs")
-
-        for service_name in services:
-            self.new_child(ds, "access", serviceName=service_name, urlPath=dsid)
-
-        agg_xml = ThreddsXMLBase()
-        agg_xml.set_root(create_aggregation(filenames))
-
-        # Get directory to store aggregation in by splitting dataset ID into
+        # Get directory to store aggregation in by splitting file name into
         # its facets and having a subdirectory for each component.
         components = os.path.basename(self.in_filename).split(".")
         if len(components) > 0:
@@ -250,17 +233,43 @@ class ThreddsXMLDataset(ThreddsXMLBase):
                 components.pop(0)
             if components[-1] == "xml":
                 components.pop(-1)
-
         sub_dir = os.path.join(*components)
-        agg_basename = "%s.ncml" % dsid
-        self.aggregations[(agg_basename, sub_dir)] = agg_xml
 
-        # Create a 'netcdf' element in the catalog that points to the file containing the
-        # aggregation
-        agg_full_path = os.path.join(self.aggregations_dir, sub_dir, agg_basename)
-        catalog_ncml = self.new_child(ds, "netcdf", location=agg_full_path,
-                                      xmlns="http://www.unidata.ucar.edu/namespaces/netcdf/ncml-2.2")
-        self.top_level_dataset.append(ds)
+        services = ["wms", "OpenDAPServer"]
+        if self.do_wcs:
+            services.append("wcs")
+
+        # Partition file list into groups that can be aggregated
+        groups = partition_files(self.netcdf_files())
+        for common_name, filenames in groups.items():
+            dsid = None
+            if len(groups) > 1:
+                # common_name is path on disk of files in aggregation, with
+                # differences (i.e. dates) replaced with 'x'. Remove prefix
+                # and replace '/' to create an ID
+                dsid = common_name.replace("/neodc/esacci/", "").replace("/", ".")
+            else:
+                dsid = self.dataset_id
+
+            print("Creating aggregation '{}'".format(dsid))
+
+            ds = self.new_element("dataset", name=dsid, ID=dsid, urlPath=dsid)
+
+            for service_name in services:
+                self.new_child(ds, "access", serviceName=service_name, urlPath=dsid)
+
+            agg_xml = ThreddsXMLBase()
+            agg_xml.set_root(create_aggregation(filenames))
+
+            agg_basename = "{}.ncml".format(dsid)
+            self.aggregations[(agg_basename, sub_dir)] = agg_xml
+
+            # Create a 'netcdf' element in the catalog that points to the file containing the
+            # aggregation
+            agg_full_path = os.path.join(self.aggregations_dir, sub_dir, agg_basename)
+            catalog_ncml = self.new_child(ds, "netcdf", location=agg_full_path,
+                                          xmlns="http://www.unidata.ucar.edu/namespaces/netcdf/ncml-2.2")
+            self.top_level_dataset.append(ds)
 
     def all_changes(self):
         self.insert_viewer_metadata()
