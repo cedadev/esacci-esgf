@@ -89,11 +89,6 @@ class ThreddsXMLBase(object):
         parent.append(child)
         return child
 
-    def delete_all_children_called(self, parent, tagname):
-        for child in parent.getchildren():
-            if self.tag_base_name_is(child, tagname):
-                parent.remove(child)
-
 
 class ThreddsXMLTopLevel(ThreddsXMLBase):
     """
@@ -123,9 +118,6 @@ class ThreddsXMLDataset(ThreddsXMLBase):
 
     def __init__(self,
                  thredds_roots = {},
-                 check_filenames_similar = False,
-                 valid_file_pattern = None,
-                 check_vars_in_all_files = False,
                  do_wcs = False,
                  aggregations_dir = "/usr/local/aggregations",
                  **kwargs):
@@ -145,12 +137,6 @@ class ThreddsXMLDataset(ThreddsXMLBase):
         # (file basename, subdir) -> ThreddsXMLBase, where subdir is the subdirectory
         # of self.aggregations_dir in which the file will live
         self.aggregations = {}
-
-        # options related to quirks in the data
-        self.check_filenames_similar = check_filenames_similar
-        self.check_vars_in_all_files = check_vars_in_all_files
-        self.valid_file_pattern = valid_file_pattern
-
 
     @cached_property
     def top_level_dataset(self):
@@ -185,7 +171,6 @@ class ThreddsXMLDataset(ThreddsXMLBase):
                               name = "wms",
                               serviceType="WMS",
                               base=base)
-        #self.insert_element_before_similar(self.root, sv)
         self.root.insert(0, sv)
 
     def insert_wcs_service(self,
@@ -197,7 +182,6 @@ class ThreddsXMLDataset(ThreddsXMLBase):
                               name = "wcs",
                               serviceType="WCS",
                               base=base)
-        #self.insert_element_before_similar(self.root, sv)
         self.root.insert(0, sv)
 
     def write(self, filename, agg_dir):
@@ -321,35 +305,11 @@ class ProcessBatch(object):
             tx_cat.add_ref(os.path.join("1", title), name)
         tx_cat.write(self.cat_out)
 
-    def get_kwargs(self, basename):
-        """
-        return argument dictionary to deal with special cases where files are heterogeneous
-        """
-        if basename.startswith("esacci.OC."):
-            dirs = {'day': 'daily',
-                    'mon': 'monthly',
-                    'yr': 'annual',
-                    '8-days': '8day',
-                    '5-days': '5day'}
-            freq = basename.split(".")[2]
-            pattern = 'geographic.*' + dirs[freq]
-            return {'valid_file_pattern' : pattern}
-        elif basename == 'esacci.GHG.day.L2.CH4.TANSO-FTS.GOSAT.GOSAT.v2-3-6.r1.v20160427.xml':
-            return {'valid_file_pattern' : 'SRPR'}
-        elif basename.startswith("esacci.SEAICE.") and not (".NH." in basename or ".SH." in basename):
-            return {'valid_file_pattern' : 'NorthernHemisphere'}
-        else:
-            return {}
-
     def process_file(self, basename):
         in_file = os.path.join(self.indir, basename)
         out_file = os.path.join(self.outdir, basename)
 
-        kwargs = self.get_kwargs(basename)
-
-        tx = ThreddsXMLDataset(check_filenames_similar = True,
-                               do_wcs = True,
-                               **kwargs)
+        tx = ThreddsXMLDataset(do_wcs = True)
         tx.read(in_file)
         tx.all_changes()
         tx.write(out_file, agg_dir=self.agg_outdir)
@@ -373,9 +333,6 @@ class ProcessBatch(object):
             self.basenames = self.get_all_basenames()
         else:
             self.basenames = map(os.path.basename, args)
-
-    def get_basenames(self):
-        return self.basenames
 
     def get_all_basenames(self, dn=None):
         if dn == None:
