@@ -1,6 +1,8 @@
 import os
 
 import pytest
+from netCDF4 import Dataset
+import numpy as np
 import xml.etree.cElementTree as ET
 
 from modify_catalogs import ProcessBatch
@@ -77,6 +79,20 @@ class TestCatalogUpdates(object):
 
 
 class TestAggregationCreation(object):
+
+    def netcdf_file(self, tmpdir, filename):
+        """
+        Create a NetCDF file containing just a time dimension with a single
+        value. Return the path at which the dataset is saved.
+        """
+        path = str(tmpdir.join(filename))
+        ds = Dataset(path, "w")
+        ds.createDimension("time", None)
+        time_var = ds.createVariable("time", np.float32, ("time",))
+        time_var[:] = [1234]
+        ds.close()
+        return path
+
     def test_xml_to_string(self):
         """
         Test that the method to convert an ET.Element instance to a string
@@ -101,16 +117,58 @@ class TestAggregationCreation(object):
         ]
         assert xml == os.linesep.join(lines)
 
-    def test_aggregation(self):
+    def test_aggregation(self, tmpdir):
         """
         Test that the method to create an NcML aggregation includes references
-        to the input files
+        to the all the input files and the expected attributes are present
+        with correct values
         """
-        files = ["/path/to/one", "/path/to/two"]
+        n = 5
+        filenames = list(map(lambda i: "ds_{}.nc".format(i), range(n)))
+        files = [self.netcdf_file(tmpdir, filename) for filename in filenames]
+
         agg = create_aggregation(files)
-        xml = element_to_string(agg)
-        for f in files:
-            assert 'location="{}"'.format(f) in xml
+        agg_el = list(agg)[0]
+        netcdf_els = agg_el.findall("netcdf")
+
+        assert len(netcdf_els) == n
+
+        for i, el in enumerate(netcdf_els):
+            assert el.attrib["location"].endswith(filenames[i])
+            assert el.attrib["ncoords"] == 1
+            assert el.attrib["coordValue"] == "1234.0"
+
+    def test_file_order(self, tmpdir):
+        """
+        Test that the file list in the NcML aggregation is in chronological
+        order with respect to the time coordinate values in each file
+        """
+        f1 = self.netcdf_file(tmpdir, "ds_1.nc")
+        f2 = self.netcdf_file(tmpdir, "ds_2.nc")
+        ds1 = Dataset(f1, "a")
+        ds2 = Dataset(f2, "a")
+
+        ds1.variables["time"][:] = 300
+        ds2.variables["time"][:] = 10
+
+        ds1.close()
+        ds2.close()
+
+        # Give file list in reverse order
+        agg = create_aggregation([f1, f2])
+        found_files = [el.attrib["location"] for el in list(agg)[0].findall("netcdf")]
+        assert found_files == [f2, f1]
+
+    def test_error_when_multiple_time_values(self, tmpdir):
+        """
+        Check that an error is raised when trying to process a file that
+        contains more than one time coordinate value
+        """
+        f = self.netcdf_file(tmpdir, "ds.nc")
+        ds = Dataset(f, "a")
+        ds.variables["time"][:] = [1, 2, 3, 4, 5]
+        ds.close()
+        assert pytest.raises(AssertionError, create_aggregation, [f])
 
 
 class TestPartitioning(object):
