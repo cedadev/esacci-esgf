@@ -80,7 +80,6 @@ def create_aggregation(file_list):
 
     root = ET.Element("netcdf", xmlns="http://www.unidata.ucar.edu/namespaces/netcdf/ncml-2.2")
     aggregation = ET.SubElement(root, "aggregation", dimName=agg_dimension, type="joinExisting")
-    ET.SubElement(aggregation, "variableAgg", name=agg_dimension)
 
     # Get coordinate values for each file and sort
     coord_values = [(filename, get_coord_value(filename, agg_dimension)) for filename in file_list]
