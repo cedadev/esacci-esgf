@@ -134,8 +134,9 @@ class TestAggregationCreation(object):
         assert len(netcdf_els) == n
 
         for i, el in enumerate(netcdf_els):
+            assert "location" in el.attrib
+            assert "coordValue" in el.attrib
             assert el.attrib["location"].endswith(filenames[i])
-            assert el.attrib["ncoords"] == 1
             assert el.attrib["coordValue"] == "1234.0"
 
     def test_file_order(self, tmpdir):

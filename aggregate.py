@@ -86,7 +86,7 @@ def create_aggregation(file_list):
     coord_values.sort(key=operator.itemgetter(1))
 
     for filename, coord_value in coord_values:
-        ET.SubElement(aggregation, "netcdf", location=filename, ncoords=1, coordValue=str(coord_value))
+        ET.SubElement(aggregation, "netcdf", location=filename, coordValue=str(coord_value))
     return root
 
 
