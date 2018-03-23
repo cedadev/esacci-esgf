@@ -93,6 +93,49 @@ class TestAggregationCreation(object):
         ds.close()
         return path
 
+    def test_different_time_units(self, tmpdir):
+        """
+        Check that the 'timeUnitsChange' attribute is present on the
+        aggregation when files have different time units
+        """
+        diff_files = [
+            ("diff_units_1.nc", "days since 1970-01-01 00:00:00 UTC"),
+            ("diff_units_2.nc", "days since 1970-01-02 00:00:00 UTC"),
+            ("diff_units_3.nc", "days since 1970-01-03 00:00:00 UTC")
+        ]
+        same_files = [
+            ("same_units_1.nc", "days since 1973-01-03 00:00:00 UTC"),
+            ("same_units_2.nc", "days since 1973-01-03 00:00:00 UTC"),
+            ("same_units_3.nc", "days since 1973-01-03 00:00:00 UTC")
+        ]
+
+        for filename, units in diff_files + same_files:
+            path = tmpdir.join(filename)
+            ds = Dataset(path, "w")
+            ds.createDimension("time", None)
+            time_var = ds.createVariable("time", np.float32, ("time",))
+            time_var.units = units
+            time_var[:] = [0]
+            ds.close()
+
+        # timeUnitsChange should be present in the aggregation with different
+        # time units...
+        diff_agg = create_aggregation([tmpdir.join(fname) for fname, _ in diff_files])
+        diff_agg_el = list(diff_agg)[0]
+        assert "timeUnitsChange" in diff_agg_el.attrib
+        assert diff_agg_el.attrib["timeUnitsChange"] == "true"
+
+        # ...but not present otherwise
+        same_agg = create_aggregation([tmpdir.join(fname) for fname, _ in same_files])
+        same_agg_el = list(same_agg)[0]
+        assert "timeUnitsChange" not in same_agg_el.attrib
+
+        # Check coordValue is not present for the different units aggregation
+        netcdf_els = diff_agg_el.findall("netcdf")
+        assert len(netcdf_els) > 1
+        for el in netcdf_els:
+            assert "coordValue" not in el.attrib
+
     def test_xml_to_string(self):
         """
         Test that the method to convert an ET.Element instance to a string
@@ -124,7 +167,7 @@ class TestAggregationCreation(object):
         with correct values
         """
         n = 5
-        filenames = list(map(lambda i: "ds_{}.nc".format(i), range(n)))
+        filenames = ["ds_{}.nc".format(i) for i in range(n)]
         files = [self.netcdf_file(tmpdir, filename) for filename in filenames]
 
         agg = create_aggregation(files)

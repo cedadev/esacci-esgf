@@ -2,6 +2,7 @@
 import os
 import sys
 import operator
+import bisect
 import xml.etree.cElementTree as ET
 
 from netCDF4 import Dataset
@@ -58,8 +59,8 @@ def element_to_string(element, indentation=0):
 
 def get_coord_value(filename, dimension):
     """
-    Return the value of the coordinate variable for the given dimension in a
-    NetCDF file.
+    Return (units, value) of the coordinate variable for the given dimension
+    in a NetCDF file.
 
     Raises AssertionError if the coordinate contains multiple values
     """
@@ -67,8 +68,12 @@ def get_coord_value(filename, dimension):
     var = ds.variables[dimension]
     assert var.shape == (1,)
     val = var[0]
+    try:
+        units = var.units
+    except AttributeError:
+        units = None
     ds.close()
-    return val
+    return (units, val)
 
 
 def create_aggregation(file_list):
@@ -81,12 +86,32 @@ def create_aggregation(file_list):
     root = ET.Element("netcdf", xmlns="http://www.unidata.ucar.edu/namespaces/netcdf/ncml-2.2")
     aggregation = ET.SubElement(root, "aggregation", dimName=agg_dimension, type="joinExisting")
 
-    # Get coordinate values for each file and sort
-    coord_values = [(filename, get_coord_value(filename, agg_dimension)) for filename in file_list]
-    coord_values.sort(key=operator.itemgetter(1))
+    coord_values = []
+    # Keep track of whether the files seen have the same units
+    found_units = set([])
+    multiple_units = False
 
-    for filename, coord_value in coord_values:
-        ET.SubElement(aggregation, "netcdf", location=filename, coordValue=str(coord_value))
+    for filename in file_list:
+        units, value = get_coord_value(filename, agg_dimension)
+
+        # Insert whilst preserving sort order (sorted by value)
+        bisect.insort(coord_values, (value, filename))
+
+        if not multiple_units:
+            found_units.add(units)
+            if len(found_units) > 1:
+                multiple_units = True
+
+    for coord_value, filename in coord_values:
+        kwargs = {"location": filename}
+        if not multiple_units:
+            kwargs["coordValue"] = str(coord_value)
+
+        ET.SubElement(aggregation, "netcdf", **kwargs)
+
+    if multiple_units:
+        aggregation.attrib["timeUnitsChange"] = "true"
+
     return root
 
 
