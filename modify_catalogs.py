@@ -337,16 +337,6 @@ class ProcessBatch(object):
         tx.all_changes(**kwargs)
         tx.write(out_file, agg_dir=self.agg_outdir)
 
-    def usage(self):
-        prog = sys.argv[0]
-        print("""Usage:
-
-   %s -a    - add WMS tags to all files found in %s
-
-   %s file1 [file2...]  - add WMS tags to specific files (base name only; files are assumed to be
-                         in %s and any directory part will be ignored
-""" % (prog, self.indir, prog, self.indir))
-
     def parse_args(self, arg_list):
         parser = argparse.ArgumentParser(description=__doc__)
 
