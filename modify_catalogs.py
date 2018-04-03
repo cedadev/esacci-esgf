@@ -260,8 +260,8 @@ class ThreddsXMLDataset(ThreddsXMLBase):
             print("Creating aggregation '{}'".format(dsid))
             try:
                 agg_element = create_aggregation(filenames)
-            except AggregationError as ex:
-                print("WARNING: Failed to create aggregation: {}".format(ex), file=sys.stderr)
+            except AggregationError:
+                print("WARNING: Failed to create aggregation", file=sys.stderr)
                 return
 
             ds = self.new_element("dataset", name=dsid, ID=dsid, urlPath=dsid)

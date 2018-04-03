@@ -100,7 +100,11 @@ def create_aggregation(file_list):
     multiple_units = False
 
     for filename in file_list:
-        units, value = get_coord_value(filename, agg_dimension)
+        try:
+            units, value = get_coord_value(filename, agg_dimension)
+        except AggregationError as ex:
+            print("WARNING: {}".format(ex), file=sys.stderr)
+            continue
 
         # Insert whilst preserving sort order (sorted by value)
         bisect.insort(coord_values, (value, filename))
@@ -109,6 +113,9 @@ def create_aggregation(file_list):
             found_units.add(units)
             if len(found_units) > 1:
                 multiple_units = True
+
+    if not coord_values:
+        raise AggregationError("No aggregation could be created")
 
     for coord_value, filename in coord_values:
         kwargs = {"location": filename}
