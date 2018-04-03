@@ -1,10 +1,13 @@
 #!/usr/bin/env python3
 
 """
-Script to modify THREDDS xml files to create NcML aggregations and
-make these accessible through WMS/WCS.
+Script to modify THREDDS xml files to remove ESGF-specific markup. Optionally
+create NcML aggregations and make these accessible through OPeNDAP/WMS/WCS.
 
-For default filenames used, see default args to ProcessBatch.__init__()
+Reads input catalogs in 'input_catalogs' and top-level catalog 'catalog_in.xml'
+and writes modified catalogs to 'output_catalogs'.
+
+If aggregations are created they are written to 'aggregations'.
 """
 
 import sys
@@ -12,6 +15,7 @@ import os
 import re
 import traceback
 import xml.etree.cElementTree as ET
+import argparse
 
 from cached_property import cached_property
 
@@ -224,7 +228,7 @@ class ThreddsXMLDataset(ThreddsXMLBase):
                 for element in self.second_level_datasets
                 if element.attrib["serviceName"] == "HTTPServer"]
 
-    def add_aggregations(self):
+    def add_aggregations(self, add_wms=False):
         # Get directory to store aggregation in by splitting file name into
         # its facets and having a subdirectory for each component.
         components = os.path.basename(self.in_filename).split(".")
@@ -235,9 +239,11 @@ class ThreddsXMLDataset(ThreddsXMLBase):
                 components.pop(-1)
         sub_dir = os.path.join(*components)
 
-        services = ["wms", "OpenDAPServer"]
-        if self.do_wcs:
-            services.append("wcs")
+        services = ["OpenDAPServer"]
+        if add_wms:
+            services.append("wms")
+            if self.do_wcs:
+                services.append("wcs")
 
         # Partition file list into groups that can be aggregated
         groups = partition_files(self.netcdf_files())
@@ -271,16 +277,18 @@ class ThreddsXMLDataset(ThreddsXMLBase):
                                           xmlns="http://www.unidata.ucar.edu/namespaces/netcdf/ncml-2.2")
             self.top_level_dataset.append(ds)
 
-    def all_changes(self):
+    def all_changes(self, create_aggs=False, add_wms=False):
         self.insert_viewer_metadata()
         self.strip_restrictAccess()
 
-        # Add WMS/WCS services
-        self.insert_wms_service()
-        if self.do_wcs:
-            self.insert_wcs_service()
+        if create_aggs:
+            self.add_aggregations(add_wms=add_wms)
 
-        self.add_aggregations()
+        # Add WMS/WCS services
+        if add_wms:
+            self.insert_wms_service()
+            if self.do_wcs:
+                self.insert_wcs_service()
 
 
 class ProcessBatch(object):
@@ -299,7 +307,7 @@ class ProcessBatch(object):
         for fn in self.basenames:
             try:
                 print(fn)
-                self.process_file(fn)
+                self.process_file(fn, create_aggs=self.args.aggregate, add_wms=self.args.wms)
                 print("")
             except:
                 print("WARNING: %s failed, exception follows\n" % fn)
@@ -315,13 +323,13 @@ class ProcessBatch(object):
             tx_cat.add_ref(os.path.join("1", title), name)
         tx_cat.write(self.cat_out)
 
-    def process_file(self, basename):
+    def process_file(self, basename, **kwargs):
         in_file = os.path.join(self.indir, basename)
         out_file = os.path.join(self.outdir, basename)
 
         tx = ThreddsXMLDataset(do_wcs=True)
         tx.read(in_file)
-        tx.all_changes()
+        tx.all_changes(**kwargs)
         tx.write(out_file, agg_dir=self.agg_outdir)
 
     def usage(self):
@@ -334,15 +342,46 @@ class ProcessBatch(object):
                          in %s and any directory part will be ignored
 """ % (prog, self.indir, prog, self.indir))
 
-    def parse_args(self, args):
-        if not args:
-            self.usage()
-            raise ValueError("bad command line arguments")
+    def parse_args(self, arg_list):
+        parser = argparse.ArgumentParser(description=__doc__)
 
-        if args == ['-a']:
+        parser.add_argument(
+            "catalog",
+            nargs="*",
+            help="Name of input catalog relative to '{}'".format(self.indir)
+        )
+
+        parser.add_argument(
+            "-a", "--all",
+            dest="all_cats",
+            action="store_true",
+            help="Process all catalogs in '{}'".format(self.indir)
+        )
+        parser.add_argument(
+            "-g", "--aggregate",
+            dest="aggregate",
+            action="store_true",
+            help="Produce NcML aggregations and add OPeNDAP endpoints"
+        )
+        parser.add_argument(
+            "-w", "--wms",
+            dest="wms",
+            action="store_true",
+            help="Add WMS and WCS endpoint for aggregations"
+        )
+
+        self.args = parser.parse_args(arg_list)
+
+        if not self.args.catalog and not self.args.all_cats:
+            parser.error("Must explicitly specify catalog filenames or use --all")
+
+        if self.args.wms and not self.args.aggregate:
+            parser.error("Cannot add WMS/WCS aggregations without --aggregate")
+
+        if self.args.all_cats:
             self.basenames = self.get_all_basenames()
         else:
-            self.basenames = map(os.path.basename, args)
+            self.basenames = map(os.path.basename, self.args.catalog)
 
     def get_all_basenames(self, dn=None):
         if dn is None:
