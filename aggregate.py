@@ -65,8 +65,16 @@ def get_coord_value(filename, dimension):
     Raises AssertionError if the coordinate contains multiple values
     """
     ds = Dataset(filename)
-    var = ds.variables[dimension]
-    assert var.shape == (1,)
+    try:
+        var = ds.variables[dimension]
+    except KeyError:
+        raise AggregationError("Variable '{}' not found in file '{}'".format(dimension, filename))
+
+    expected_shape = (1,)
+    if var.shape != expected_shape:
+        raise AggregationError("Shape of time variable in file '{}' is {} - should be {}"
+                               .format(filename, var.shape, expected_shape))
+
     val = var[0]
     try:
         units = var.units
@@ -113,6 +121,12 @@ def create_aggregation(file_list):
         aggregation.attrib["timeUnitsChange"] = "true"
 
     return root
+
+
+class AggregationError(Exception):
+    """
+    Custom exception to indicate that aggregation creation has failed
+    """
 
 
 def main(args):

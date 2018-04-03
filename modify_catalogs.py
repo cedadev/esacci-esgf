@@ -20,7 +20,7 @@ import argparse
 from cached_property import cached_property
 
 from partition_files import partition_files
-from aggregate import create_aggregation
+from aggregate import create_aggregation, AggregationError
 
 
 class ThreddsXMLBase(object):
@@ -258,6 +258,11 @@ class ThreddsXMLDataset(ThreddsXMLBase):
                 dsid = self.dataset_id
 
             print("Creating aggregation '{}'".format(dsid))
+            try:
+                agg_element = create_aggregation(filenames)
+            except AggregationError as ex:
+                print("WARNING: Failed to create aggregation: {}".format(ex), file=sys.stderr)
+                return
 
             ds = self.new_element("dataset", name=dsid, ID=dsid, urlPath=dsid)
 
@@ -265,7 +270,7 @@ class ThreddsXMLDataset(ThreddsXMLBase):
                 self.new_child(ds, "access", serviceName=service_name, urlPath=dsid)
 
             agg_xml = ThreddsXMLBase()
-            agg_xml.set_root(create_aggregation(filenames))
+            agg_xml.set_root(agg_element)
 
             agg_basename = "{}.ncml".format(dsid)
             self.aggregations[(agg_basename, sub_dir)] = agg_xml
