@@ -29,26 +29,43 @@ Use `--wms` to additionally create WMS/WCS endpoints.
 By defalt the code assumes that the files and directories created in `aggregations` will be placed
 under `/usr/local/aggregations` on the live server.
 
-## make_mapfiles.py
+### make_mapfiles.py
 
 This script generates ESGF mapfiles from a JSON file of the form
 
 ```json
 {
-    "<unversioned_dataset_name>": [
-        {
-            "file": "<path>",
-            "sha256": "<checksum>",
-            "mtime": "<mtime>",
-            "size": "<size in bytes>"
-        },
-        ...
-    ],
+    "<unversioned_dataset_name>": {
+        "generate_aggregation": <boolean>,
+        "include_in_wms": <boolean>,
+        "tech_note_url": "<url>",
+        "tech_note_title": "<title>",
+        "files": [
+            {
+                "path": "<path>",
+                "sha256": "<checksum>",
+                "mtime": "<mtime>",
+                "size": "<size in bytes>"
+            },
+            ...
+        ]
+    },
     ...
 }
 ```
 
 See `./make_mapfiles.py --help` for more info.
+
+### merge_csv_json.py
+
+This script is located in `publication_utils`.
+
+Usage:  `./merge_csv_json.py <input CSV>`.
+
+Read a CSV file containing information about datasets to be published and
+print JSON in the format required by `make_mapfiles.py` to stdout.
+
+See `./merge_csv_json.py --help` for the required format of the CSV.
 
 ## Aggregation helper scripts
 

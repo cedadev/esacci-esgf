@@ -2,15 +2,21 @@
 """
 Create mapfiles for use with the ESGF publisher from a JSON file of the form
 {
-    "<unversioned_dataset_name>": [
-        {
-            "file": "<path>",
-            "sha256": "<checksum>",
-            "mtime": "<mtime>",
-            "size": "<size in bytes>"
-        },
-        ...
-    ],
+    "<unversioned_dataset_name>": {
+        "generate_aggregation": <boolean>,
+        "include_in_wms": <boolean>,
+        "tech_note_url": "<url>",
+        "tech_note_title": "<title>",
+        "files": [
+            {
+                "path": "<path>",
+                "sha256": "<checksum>",
+                "mtime": "<mtime>",
+                "size": "<size in bytes>"
+            },
+            ...
+        ]
+    },
     ...
 }
 
@@ -59,7 +65,7 @@ class MakeMapfile(object):
     def get_mapfile_root(self, file_dicts):
         roots = set()
         for d in file_dicts:
-            roots.add(self.get_mapfile_root_one_file(d["file"]))
+            roots.add(self.get_mapfile_root_one_file(d["path"]))
         assert len(roots) == 1  # all files in dset must be under same data dir
         return list(roots)[0]
 
@@ -75,7 +81,7 @@ class MakeMapfile(object):
         return path
 
     def get_mapfile_line(self, unversioned_dsid, file_dict):
-        line = ("{ds_id} | {file} | {size} | mod_time={mtime:.5f} | "
+        line = ("{ds_id} | {path} | {size} | mod_time={mtime:.5f} | "
                 "checksum={sha256} | checksum_type=SHA256\n")
         return line.format(ds_id=unversioned_dsid, **file_dict)
 
@@ -99,7 +105,7 @@ class MakeMapfile(object):
 
     def make_mapfiles(self, filename):
         j = self.parse_json(filename)
-        for dsid_from_json, file_dicts in j.items():
+        for dsid_from_json, ds_dict in j.items():
             m = self.dset_matcher(dsid_from_json)
             if m:
                 dsid = dsid_from_json
@@ -107,7 +113,7 @@ class MakeMapfile(object):
             else:
                 unversioned_dsid = dsid_from_json
                 dsid = "{}.v{}".format(unversioned_dsid, self.version)
-            self.make_mapfile(unversioned_dsid, dsid, file_dicts)
+            self.make_mapfile(unversioned_dsid, dsid, ds_dict["files"])
 
 
 def main(arg_list):
