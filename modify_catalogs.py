@@ -340,6 +340,8 @@ class ProcessBatch(object):
 
         if not self.args.catalog and not self.args.all_cats:
             parser.error("Must explicitly specify catalog filenames or use --all")
+        if self.args.catalog and self.args.all_cats:
+            parser.error("Cannot use --all when explicitly listing catalogs")
 
         if self.args.wms and not self.args.aggregate:
             parser.error("Cannot add WMS/WCS aggregations without --aggregate")
