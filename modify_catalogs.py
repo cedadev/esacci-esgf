@@ -4,8 +4,8 @@
 Script to modify THREDDS xml files to remove ESGF-specific markup. Optionally
 create NcML aggregations and make these accessible through OPeNDAP/WMS/WCS.
 
-Reads input catalogs in 'input_catalogs' and top-level catalog 'catalog_in.xml'
-and writes modified catalogs to 'output_catalogs'.
+Reads input catalogs in 'input_catalogs' and and writes modified catalogs to
+'output_catalogs'.
 
 If aggregations are created they are written to 'aggregations'.
 """
@@ -93,20 +93,6 @@ class ThreddsXMLBase(object):
         child = self.new_element(*args, **kwargs)
         parent.append(child)
         return child
-
-
-class ThreddsXMLTopLevel(ThreddsXMLBase):
-    """
-    A class for manipulating the top-level THREDDS catalog
-    """
-
-    def add_ref(self, href, name, title=None):
-        if not title:
-            title = name
-        atts = {'xlink:title': title,
-                'xlink:href': href,
-                'name': name}
-        self.new_child(self.root, "catalogRef", **atts)
 
 
 class ThreddsXMLDataset(ThreddsXMLBase):
@@ -298,14 +284,10 @@ class ThreddsXMLDataset(ThreddsXMLBase):
 
 class ProcessBatch(object):
     def __init__(self, args, indir='input_catalogs', outdir='output_catalogs',
-                 agg_outdir='aggregations',
-                 cat_in='catalog_in.xml',
-                 cat_out='catalog.xml'):
+                 agg_outdir='aggregations'):
         self.indir = indir
         self.outdir = outdir
         self.agg_outdir = agg_outdir
-        self.cat_in = cat_in
-        self.cat_out = os.path.join(outdir, cat_out)
         self.parse_args(args)
 
     def do_all(self):
@@ -319,14 +301,6 @@ class ProcessBatch(object):
                 print("==============")
                 traceback.print_exc()
                 print("==============")
-        tx_cat = ThreddsXMLTopLevel()
-        tx_cat.read(self.cat_in)
-        for fn in self.get_all_basenames(self.outdir):
-            title = fn
-            assert fn.endswith(".xml")
-            name = fn[:-4]
-            tx_cat.add_ref(os.path.join("1", title), name)
-        tx_cat.write(self.cat_out)
 
     def process_file(self, basename, **kwargs):
         in_file = os.path.join(self.indir, basename)
