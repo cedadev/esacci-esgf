@@ -1,9 +1,9 @@
 import os
+import xml.etree.cElementTree as ET
 
 import pytest
 from netCDF4 import Dataset
 import numpy as np
-import xml.etree.cElementTree as ET
 
 from modify_catalogs import ProcessBatch
 from aggregate import create_aggregation, element_to_string, AggregationError
@@ -148,7 +148,7 @@ class TestAggregationCreation(object):
         xml = element_to_string(el)
 
         try:
-            parsed_el = ET.fromstring(xml)
+            _parsed_el = ET.fromstring(xml)
         except ET.ParseError:
             assert False, "element_to_string() returned malformed XML"
 

@@ -1,14 +1,13 @@
 #!/usr/bin/env python3
+"""
+Script that modifies the WMS, WCS and OpenDAP links in Solr.
+"""
 import sys
 import os
 
 import pysolr
 
-"""
-Script that modifies the WMS, WCS and OpenDAP links in Solr.
-"""
-
-DEFAULT_SOLR_NODE = 'http://esgf-index1.ceda.ac.uk:8984'
+DEFAULT_SOLR_NODE = "http://esgf-index1.ceda.ac.uk:8984"
 
 
 def solr_update_doc(s, doc, func):
@@ -17,17 +16,17 @@ def solr_update_doc(s, doc, func):
     (which should return a dictionary of field updates), and then update
     Solr if the dictionary is not empty.
     """
-    id = doc['id']
+    doc_id = doc["id"]
 
     updated = func(doc)
 
     # if it is actually any different from before, then
     # update it in Solr
     if updated:
-        print('updating:', id)
+        print("updating:", doc_id)
         s.add([doc])
     else:
-        print('unchanged:', id)
+        print("unchanged:", doc_id)
 
 
 def query_all(s, query="*.*", chunk=1000):
@@ -58,23 +57,23 @@ def update_urls(doc):
 
     Returns boolean to say if updated
     """
-    urls = doc['url']
+    urls = doc["url"]
     changed = False
     for i, url_with_svc in enumerate(urls):
-        bits = url_with_svc.split('|')
-        if bits[2] == 'WMS' and '?' not in bits[0]:
-            bits[0] += '?service=WMS&version=1.3.0&request=GetCapabilities'
+        bits = url_with_svc.split("|")
+        if bits[2] == "WMS" and "?" not in bits[0]:
+            bits[0] += "?service=WMS&version=1.3.0&request=GetCapabilities"
             changed = True
         # WCS similar but note different version
-        if bits[2] == 'WCS' and '?' not in bits[0]:
-            bits[0] += '?service=WCS&version=1.0.0&request=GetCapabilities'
+        if bits[2] == "WCS" and "?" not in bits[0]:
+            bits[0] += "?service=WCS&version=1.0.0&request=GetCapabilities"
             changed = True
         # If OpenDAP then remove .html suffix
-        if bits[2] == 'OPENDAP' and bits[0].endswith('.html'):
+        if bits[2] == "OPENDAP" and bits[0].endswith(".html"):
             bits[0] = bits[0][:-5]
             changed = True
 
-        urls[i] = '|'.join(bits)
+        urls[i] = "|".join(bits)
 
     return changed
 
@@ -89,7 +88,7 @@ aggregate datasets
 SOLR NODE defaults to %s""" % (prog, DEFAULT_SOLR_NODE))
 
 
-if __name__ == '__main__':
+if __name__ == "__main__":
 
     solr_node = DEFAULT_SOLR_NODE
     if len(sys.argv) > 1:
@@ -100,6 +99,6 @@ if __name__ == '__main__':
             solr_node = sys.argv[1]
 
     s = pysolr.Solr("%s/solr/datasets" % solr_node)
-    dsets = query_all(s, query='esacci')
+    dsets = query_all(s, query="esacci")
     for ds in dsets:
         solr_update_doc(s, ds, update_urls)

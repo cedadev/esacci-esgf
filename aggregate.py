@@ -1,7 +1,9 @@
 #!/usr/bin/env python3
+"""
+Script to produce an NcML aggregation given a list of filenames
+"""
 import os
 import sys
-import operator
 import bisect
 import xml.etree.cElementTree as ET
 
@@ -13,13 +15,13 @@ def usage(exit_code):
     Print usage and exit with the given exit code
     """
     prog = os.path.basename(sys.argv[0])
-    usage = """Usage: {}
+    usage_str = """Usage: {}
 
 Read filenames of datasets from standard input and print an NcML aggregation to
 standard output.
 
   -h, --help     Display help and exit"""
-    print(usage.format(prog))
+    print(usage_str.format(prog))
     sys.exit(exit_code)
 
 

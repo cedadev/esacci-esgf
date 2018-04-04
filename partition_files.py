@@ -1,4 +1,8 @@
 #!/usr/bin/env python3
+"""
+Script to partition a list of files into groups that can likely be aggregated,
+based on their filenames
+"""
 import os
 import sys
 
@@ -40,7 +44,7 @@ def usage(exit_code):
     Print usage and exit with the given exit code
     """
     prog = os.path.basename(sys.argv[0])
-    usage = """Usage: {} DIR
+    usage_str = """Usage: {} DIR
 
 Read file paths from standard input and partition into sets such that paths
 in each set only differ by having a different date in the path.
@@ -48,7 +52,7 @@ in each set only differ by having a different date in the path.
 Write partitioned file lists to DIR/1, DIR/2 etc...
 
   -h, --help    Display help and exit"""
-    print(usage.format(prog))
+    print(usage_str.format(prog))
     sys.exit(exit_code)
 
 

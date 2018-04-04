@@ -1,5 +1,4 @@
 #!/usr/bin/env python3
-
 """
 Script to modify THREDDS xml files to remove ESGF-specific markup. Optionally
 create NcML aggregations and make these accessible through OPeNDAP/WMS/WCS.
@@ -12,7 +11,6 @@ If aggregations are created they are written to 'aggregations'.
 
 import sys
 import os
-import re
 import traceback
 import xml.etree.cElementTree as ET
 import argparse
@@ -29,11 +27,14 @@ class ThreddsXMLBase(object):
     """
     def __init__(self,
                  ns="http://www.unidata.ucar.edu/namespaces/thredds/InvCatalog/v1.0",
-                 encoding='UTF-8',
+                 encoding="UTF-8",
                  xlink="http://www.w3.org/1999/xlink"):
         self.ns = ns
         self.encoding = encoding
         self.xlink = xlink
+        self.in_filename = None
+        self.tree = None
+        self.root = None
 
     def set_root(self, root):
         self.tree = ET.ElementTree(root)
@@ -73,7 +74,7 @@ class ThreddsXMLBase(object):
                 parent.insert(i, new_child)
                 break
         else:
-            element.append(new_child)
+            parent.append(new_child)
 
     def new_element(self, tag_base_name, *args, **attributes):
         """
@@ -108,7 +109,7 @@ class ThreddsXMLDataset(ThreddsXMLBase):
     """
 
     def __init__(self,
-                 thredds_roots={},
+                 thredds_roots=None,
                  do_wcs=False,
                  aggregations_dir="/usr/local/aggregations",
                  **kwargs):
@@ -119,7 +120,7 @@ class ThreddsXMLDataset(ThreddsXMLBase):
 
         super().__init__(**kwargs)
 
-        self.thredds_roots = thredds_roots
+        self.thredds_roots = thredds_roots or {}
         self.thredds_roots.setdefault("esg_esacci", "/neodc/esacci")
         self.do_wcs = do_wcs
         self.aggregations_dir = aggregations_dir
@@ -181,21 +182,21 @@ class ThreddsXMLDataset(ThreddsXMLBase):
         """
         super().write(filename)
 
-        for (filename, subdir), agg in self.aggregations.items():
+        for (fn, subdir), agg in self.aggregations.items():
             abs_subdir = os.path.join(agg_dir, subdir)
             if not os.path.isdir(abs_subdir):
                 os.makedirs(abs_subdir)
 
-            agg.write(os.path.join(abs_subdir, filename))
+            agg.write(os.path.join(abs_subdir, fn))
 
-    def strip_restrictAccess(self):
+    def strip_restrict_access(self):
         """
         remove restrictAccess from the top-level dataset tag
         """
         att_name = "restrictAccess"
         att_dict = self.top_level_dataset.attrib
         if att_name in att_dict:
-            del(att_dict[att_name])
+            del att_dict[att_name]
 
     def path_on_disk(self, fileserver_url):
         """
@@ -210,15 +211,21 @@ class ThreddsXMLDataset(ThreddsXMLBase):
         return path
 
     def netcdf_files(self):
-        return [self.path_on_disk(element.attrib['urlPath'])
+        return [self.path_on_disk(element.attrib["urlPath"])
                 for element in self.second_level_datasets
                 if element.attrib["serviceName"] == "HTTPServer"]
 
     def add_aggregations(self, add_wms=False):
+        """
+        Create one or more NcML aggregations from netCDF files in this dataset,
+        and link to them in the catalog.
+
+        The NcML documents are saved in self.aggregations
+        """
         # Get directory to store aggregation in by splitting file name into
         # its facets and having a subdirectory for each component.
         components = os.path.basename(self.in_filename).split(".")
-        if len(components) > 0:
+        if components:
             if components[0] == "esacci":
                 components.pop(0)
             if components[-1] == "xml":
@@ -264,13 +271,13 @@ class ThreddsXMLDataset(ThreddsXMLBase):
             # Create a 'netcdf' element in the catalog that points to the file containing the
             # aggregation
             agg_full_path = os.path.join(self.aggregations_dir, sub_dir, agg_basename)
-            catalog_ncml = self.new_child(ds, "netcdf", location=agg_full_path,
-                                          xmlns="http://www.unidata.ucar.edu/namespaces/netcdf/ncml-2.2")
+            self.new_child(ds, "netcdf", location=agg_full_path,
+                           xmlns="http://www.unidata.ucar.edu/namespaces/netcdf/ncml-2.2")
             self.top_level_dataset.append(ds)
 
     def all_changes(self, create_aggs=False, add_wms=False):
         self.insert_viewer_metadata()
-        self.strip_restrictAccess()
+        self.strip_restrict_access()
 
         if create_aggs:
             self.add_aggregations(add_wms=add_wms)
@@ -283,8 +290,8 @@ class ThreddsXMLDataset(ThreddsXMLBase):
 
 
 class ProcessBatch(object):
-    def __init__(self, args, indir='input_catalogs', outdir='output_catalogs',
-                 agg_outdir='aggregations'):
+    def __init__(self, args, indir="input_catalogs", outdir="output_catalogs",
+                 agg_outdir="aggregations"):
         self.indir = indir
         self.outdir = outdir
         self.agg_outdir = agg_outdir
@@ -359,6 +366,6 @@ class ProcessBatch(object):
                 fn.startswith("esacci") and fn.endswith(".xml")]
 
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     pb = ProcessBatch(sys.argv[1:])
     pb.do_all()
