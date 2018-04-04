@@ -6,7 +6,7 @@ import numpy as np
 import xml.etree.cElementTree as ET
 
 from modify_catalogs import ProcessBatch
-from aggregate import create_aggregation, element_to_string
+from aggregate import create_aggregation, element_to_string, AggregationError
 from partition_files import partition_files
 
 
@@ -30,7 +30,8 @@ class TestCatalogUpdates(object):
         """
         input_dir = "test_input_catalogs"
         outdir = str(tmpdir_factory.mktemp("output", numbered=True))
-        pb = ProcessBatch(["-a"], indir=input_dir, outdir=outdir)
+        # Process all catalogs in input dir and create aggregations with WMS
+        pb = ProcessBatch(["-agw"], indir=input_dir, outdir=outdir)
         pb.do_all()
         tree = ET.ElementTree()
         tree.parse(os.path.join(outdir, os.listdir(input_dir)[0]))
@@ -212,7 +213,7 @@ class TestAggregationCreation(object):
         ds = Dataset(f, "a")
         ds.variables["time"][:] = [1, 2, 3, 4, 5]
         ds.close()
-        assert pytest.raises(AssertionError, create_aggregation, [f])
+        assert pytest.raises(AggregationError, create_aggregation, [f])
 
 
 class TestPartitioning(object):
