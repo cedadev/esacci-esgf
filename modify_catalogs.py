@@ -12,8 +12,8 @@ import argparse
 
 from cached_property import cached_property
 
-from partition_files import partition_files
-from aggregate import create_aggregation, AggregationError
+from aggregation_utils.partition_files import partition_files
+from aggregation_utils.aggregate import create_aggregation, AggregationError
 
 
 class ThreddsXMLBase(object):

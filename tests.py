@@ -6,8 +6,8 @@ from netCDF4 import Dataset
 import numpy as np
 
 from modify_catalogs import ProcessBatch
-from aggregate import create_aggregation, element_to_string, AggregationError
-from partition_files import partition_files
+from aggregation_utils.aggregate import create_aggregation, element_to_string, AggregationError
+from aggregation_utils.partition_files import partition_files
 
 
 def get_full_tag(tag, ns="http://www.unidata.ucar.edu/namespaces/thredds/InvCatalog/v1.0"):
