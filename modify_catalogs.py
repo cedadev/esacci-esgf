@@ -2,11 +2,6 @@
 """
 Script to modify THREDDS xml files to remove ESGF-specific markup. Optionally
 create NcML aggregations and make these accessible through OPeNDAP/WMS/WCS.
-
-Reads input catalogs in 'input_catalogs' and and writes modified catalogs to
-'output_catalogs'.
-
-If aggregations are created they are written to 'aggregations'.
 """
 
 import sys
@@ -290,48 +285,24 @@ class ThreddsXMLDataset(ThreddsXMLBase):
 
 
 class ProcessBatch(object):
-    def __init__(self, args, indir="input_catalogs", outdir="output_catalogs",
-                 agg_outdir="aggregations"):
-        self.indir = indir
-        self.outdir = outdir
-        self.agg_outdir = agg_outdir
-        self.parse_args(args)
-
-    def do_all(self):
-        for fn in self.basenames:
-            try:
-                print(fn)
-                self.process_file(fn, create_aggs=self.args.aggregate, add_wms=self.args.wms)
-                print("")
-            except:
-                print("WARNING: %s failed, exception follows\n" % fn)
-                print("==============")
-                traceback.print_exc()
-                print("==============")
-
-    def process_file(self, basename, **kwargs):
-        in_file = os.path.join(self.indir, basename)
-        out_file = os.path.join(self.outdir, basename)
-
-        tx = ThreddsXMLDataset(do_wcs=True)
-        tx.read(in_file)
-        tx.all_changes(**kwargs)
-        tx.write(out_file, agg_dir=self.agg_outdir)
-
-    def parse_args(self, arg_list):
+    def __init__(self, arg_list):
+        """
+        Parse command line arguments using argparse and store in self.args
+        """
+        self.basenames = []
         parser = argparse.ArgumentParser(description=__doc__)
 
         parser.add_argument(
             "catalog",
             nargs="*",
-            help="Name of input catalog relative to '{}'".format(self.indir)
+            help="Name of input catalog(s) relative to the input directory"
         )
 
         parser.add_argument(
             "-a", "--all",
             dest="all_cats",
             action="store_true",
-            help="Process all catalogs in '{}'".format(self.indir)
+            help="Process all catalogs in the input directory"
         )
         parser.add_argument(
             "-g", "--aggregate",
@@ -344,6 +315,25 @@ class ProcessBatch(object):
             dest="wms",
             action="store_true",
             help="Add WMS and WCS endpoint for aggregations"
+        )
+        parser.add_argument(
+            "-i", "--input-dir",
+            dest="input_dir",
+            default="input_catalogs",
+            help="Directory to read input catalog(s) from [default: %(default)s]"
+        )
+        parser.add_argument(
+            "-o", "--output-dir",
+            dest="output_dir",
+            default="output_catalogs",
+            help="Directory to write modified catalogs to [default: %(default)s]"
+        )
+        parser.add_argument(
+            "-n", "--ncml-dir",
+            dest="ncml_dir",
+            default="aggregations",
+            help="Directory to write NcML aggregations to if using --aggregate "
+                 "[default: %(default)s]"
         )
 
         self.args = parser.parse_args(arg_list)
@@ -359,9 +349,30 @@ class ProcessBatch(object):
         else:
             self.basenames = map(os.path.basename, self.args.catalog)
 
+    def do_all(self):
+        for fn in self.basenames:
+            try:
+                print(fn)
+                self.process_file(fn)
+                print("")
+            except:
+                print("WARNING: %s failed, exception follows\n" % fn)
+                print("==============")
+                traceback.print_exc()
+                print("==============")
+
+    def process_file(self, basename):
+        in_file = os.path.join(self.args.input_dir, basename)
+        out_file = os.path.join(self.args.output_dir, basename)
+
+        tx = ThreddsXMLDataset(do_wcs=True)
+        tx.read(in_file)
+        tx.all_changes(create_aggs=self.args.aggregate, add_wms=self.args.wms)
+        tx.write(out_file, agg_dir=self.args.ncml_dir)
+
     def get_all_basenames(self, dn=None):
         if dn is None:
-            dn = self.indir
+            dn = self.args.input_dir
         return [fn for fn in os.listdir(dn) if
                 fn.startswith("esacci") and fn.endswith(".xml")]
 

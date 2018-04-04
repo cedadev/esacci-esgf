@@ -13,11 +13,14 @@ Install requirements with `pip install -r requirements.txt` (create and activate
 virtualenv first).
 
 To run, first create directories `input_catalogs`, `output_catalogs` and `aggregations`.
-Running `./modify_catalogs.py -a` will read the catalogs in `input_catalogs`, make the
+Running `./modify_catalogs.py -a` will read the catalogs `input_catalogs/esacci*.xml`, make the
 necessary changes, and write the modified catalogs to `output_catalogs`.
 
 If `--aggregate` is used, NcML files for the aggregate datasets will be saved in `aggregations` and
 OPeNDAP endpoints are added.
+
+(The directory names `input_catalogs`, `output_catalogs` and `aggregations` can be overridden with
+the `--input-dir`, `--output-dir` and `--ncml-dir` options respectively)
 
 Use `--wms` to additionally create WMS/WCS endpoints.
 

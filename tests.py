@@ -29,12 +29,12 @@ class TestCatalogUpdates(object):
         Test fixture to return the root element of a processed catalog.
         """
         input_dir = "test_input_catalogs"
-        outdir = str(tmpdir_factory.mktemp("output", numbered=True))
+        output_dir = str(tmpdir_factory.mktemp("output", numbered=True))
         # Process all catalogs in input dir and create aggregations with WMS
-        pb = ProcessBatch(["-agw"], indir=input_dir, outdir=outdir)
+        pb = ProcessBatch(["-agw", "-i", input_dir, "-o", output_dir])
         pb.do_all()
         tree = ET.ElementTree()
-        tree.parse(os.path.join(outdir, os.listdir(input_dir)[0]))
+        tree.parse(os.path.join(output_dir, os.listdir(input_dir)[0]))
         return tree.getroot()
 
     def has_access_method(self, element, name):
