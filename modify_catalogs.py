@@ -289,21 +289,14 @@ class ProcessBatch(object):
         """
         Parse command line arguments using argparse and store in self.args
         """
-        self.basenames = []
         parser = argparse.ArgumentParser(description=__doc__)
 
         parser.add_argument(
-            "catalog",
-            nargs="*",
-            help="Name of input catalog(s) relative to the input directory"
+            "catalogs",
+            nargs="+",
+            help="Path to input catalog(s)"
         )
 
-        parser.add_argument(
-            "-a", "--all",
-            dest="all_cats",
-            action="store_true",
-            help="Process all catalogs in the input directory"
-        )
         parser.add_argument(
             "-g", "--aggregate",
             dest="aggregate",
@@ -317,16 +310,10 @@ class ProcessBatch(object):
             help="Add WMS and WCS endpoint for aggregations"
         )
         parser.add_argument(
-            "-i", "--input-dir",
-            dest="input_dir",
-            default="input_catalogs",
-            help="Directory to read input catalog(s) from [default: %(default)s]"
-        )
-        parser.add_argument(
             "-o", "--output-dir",
             dest="output_dir",
             default="output_catalogs",
-            help="Directory to write modified catalogs to [default: %(default)s]"
+            help="Directory to write modified catalog(s) to [default: %(default)s]"
         )
         parser.add_argument(
             "-n", "--ncml-dir",
@@ -338,21 +325,11 @@ class ProcessBatch(object):
 
         self.args = parser.parse_args(arg_list)
 
-        if not self.args.catalog and not self.args.all_cats:
-            parser.error("Must explicitly specify catalog filenames or use --all")
-        if self.args.catalog and self.args.all_cats:
-            parser.error("Cannot use --all when explicitly listing catalogs")
-
         if self.args.wms and not self.args.aggregate:
             parser.error("Cannot add WMS/WCS aggregations without --aggregate")
 
-        if self.args.all_cats:
-            self.basenames = self.get_all_basenames()
-        else:
-            self.basenames = map(os.path.basename, self.args.catalog)
-
     def do_all(self):
-        for fn in self.basenames:
+        for fn in self.args.catalogs:
             try:
                 print(fn)
                 self.process_file(fn)
@@ -363,20 +340,14 @@ class ProcessBatch(object):
                 traceback.print_exc()
                 print("==============")
 
-    def process_file(self, basename):
-        in_file = os.path.join(self.args.input_dir, basename)
+    def process_file(self, in_file):
+        basename = os.path.basename(in_file)
         out_file = os.path.join(self.args.output_dir, basename)
 
         tx = ThreddsXMLDataset(do_wcs=True)
         tx.read(in_file)
         tx.all_changes(create_aggs=self.args.aggregate, add_wms=self.args.wms)
         tx.write(out_file, agg_dir=self.args.ncml_dir)
-
-    def get_all_basenames(self, dn=None):
-        if dn is None:
-            dn = self.args.input_dir
-        return [fn for fn in os.listdir(dn) if
-                fn.startswith("esacci") and fn.endswith(".xml")]
 
 
 if __name__ == "__main__":
