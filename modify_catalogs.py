@@ -271,7 +271,6 @@ class ThreddsXMLDataset(ThreddsXMLBase):
             self.top_level_dataset.append(ds)
 
     def all_changes(self, create_aggs=False, add_wms=False):
-        self.insert_viewer_metadata()
         self.strip_restrict_access()
 
         if create_aggs:
@@ -279,6 +278,7 @@ class ThreddsXMLDataset(ThreddsXMLBase):
 
         # Add WMS/WCS services
         if add_wms:
+            self.insert_viewer_metadata()
             self.insert_wms_service()
             if self.do_wcs:
                 self.insert_wcs_service()
