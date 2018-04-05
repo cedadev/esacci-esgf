@@ -298,7 +298,7 @@ class ProcessBatch(object):
         )
 
         parser.add_argument(
-            "-g", "--aggregate",
+            "-a", "--aggregate",
             dest="aggregate",
             action="store_true",
             help="Produce NcML aggregations and add OPeNDAP endpoints"

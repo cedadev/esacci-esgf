@@ -34,7 +34,7 @@ class TestCatalogUpdates(object):
         input_dir = "test_input_catalogs"
         output_dir = str(tmpdir_factory.mktemp("output", numbered=True))
         # Process all catalogs in input dir and create aggregations with WMS
-        pb = ProcessBatch(["-gw", "-o", output_dir] + glob("{}/*.xml".format(input_dir)))
+        pb = ProcessBatch(["-aw", "-o", output_dir] + glob("{}/*.xml".format(input_dir)))
         pb.do_all()
         tree = ET.ElementTree()
         tree.parse(os.path.join(output_dir, os.listdir(input_dir)[0]))
