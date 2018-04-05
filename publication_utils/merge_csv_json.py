@@ -29,7 +29,8 @@ class Dataset(namedtuple("Dataset", ["drs", "num_files", "tech_note_url",
     """
     Class to represent a row in the CSV file that corresponds to a dataset
     """
-    # Indices of columns should be converted from a string to boolean
+    # Indices of columns should be converted from a string to some other type
+    int_columns = [1]
     boolean_columns = [4]
 
     @classmethod
@@ -40,12 +41,21 @@ class Dataset(namedtuple("Dataset", ["drs", "num_files", "tech_note_url",
         """
         values = list(map(str.strip, values))
 
+        # Convert boolean values
         for col in cls.boolean_columns:
             mapping = {"Yes": True, "No": False}
             try:
                 values[col] = mapping[values[col]]
             except KeyError:
                 raise ValueError("Invalid value for boolean column '{}'"
+                                 .format(values[col]))
+
+        # Convert int values
+        for col in cls.int_columns:
+            try:
+                values[col] = int(values[col])
+            except ValueError:
+                raise ValueError("Invalid value for int column: '{}'"
                                  .format(values[col]))
 
         return cls(*values)

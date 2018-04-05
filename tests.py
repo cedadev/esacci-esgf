@@ -1,4 +1,5 @@
 import os
+import json
 import xml.etree.cElementTree as ET
 
 import pytest
@@ -8,6 +9,7 @@ import numpy as np
 from modify_catalogs import ProcessBatch
 from aggregation_utils.aggregate import create_aggregation, element_to_string, AggregationError
 from aggregation_utils.partition_files import partition_files
+from publication_utils.merge_csv_json import Dataset as CsvRowDataset, parse_file, HEADER_ROW
 
 
 def get_full_tag(tag, ns="http://www.unidata.ucar.edu/namespaces/thredds/InvCatalog/v1.0"):
@@ -259,3 +261,45 @@ class TestPartitioning(object):
             "/path/four/2.0/xxxx/xx/xx": ["/path/four/2.0/2007/01/01/f9.nc"]
         }
         assert partition_files(all_files) == expected_part
+
+
+class TestMergeCSV(object):
+    def test_invalid_header(self, tmpdir):
+        """
+        Check that an invalid header row in the CSV causes an error
+        """
+        path1 = tmpdir.join("invalid.csv")
+        path1.write("not,a,valid,header,row")
+        with pytest.raises(ValueError):
+            parse_file(str(path1))
+
+        path2 = tmpdir.join("valid.csv")
+        path2.write(",".join(HEADER_ROW))
+        try:
+            parse_file(str(path2))
+        except ValueError:
+            assert False, "Unexpected ValueError"
+
+    def test_row_parsing(self, tmpdir):
+        """
+        Check that a row can be parse from a string
+        """
+        json_file = str(tmpdir.join("f.json"))
+        with open(json_file, "w") as f:
+            json.dump({"ds": [{"file": "data.nc", "size": 0, "mtime": 0, "sha256": 0}]}, f)
+
+        create = CsvRowDataset.from_strings
+
+        # Check extraneous whitespace is ignored and Yes/No to boolean
+        # conversion
+        got1 = create(["ds", "100", " url", "title, here", "Yes", json_file])
+        expected1 = CsvRowDataset("ds", 100, "url", "title, here", True, json_file)
+        assert got1 == expected1
+
+        got2 = create(["ds", "100", " url", "title, here", "No", json_file])
+        expected2 = CsvRowDataset("ds", 100, "url", "title, here", False, json_file)
+        assert got2 == expected2
+
+        # Check invalid int and bool values
+        assert pytest.raises(ValueError, create, ["ds", "blah", "url", "title", "Yes", json_file])
+        assert pytest.raises(ValueError, create, ["ds", "200", "url", "title", "blah", json_file])
