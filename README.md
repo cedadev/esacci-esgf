@@ -92,9 +92,4 @@ A convenience script `./agg_wrapper.sh <dir>` finds NetCDF files in `<dir>`, run
 
 ## Tests
 
-`tests.py` contains some *very simple* tests - to run:
-
-* Create a directory `test_input_catalogs` containing an un-modified THREDDS
-  catalog (this is used as a base catalog to modify during the tests - but the
-  modified catalog will *not* be written to disk)
-* Run `pytest tests.py`.
+`tests.py` contains some tests - run `pytest tests.py`.
