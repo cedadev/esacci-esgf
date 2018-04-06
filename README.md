@@ -132,7 +132,7 @@ actual datasets.
 
 These scripts are located in `aggregation_utils`.
 
-### ./partition_files.py
+### partition_files.py
 
 Usage: `./partition_files.py <outdir>`.
 
@@ -140,12 +140,12 @@ Read file paths from standard input and partitions them into groups of files tha
 aggregated based on their filenames. These groups are written to files `<outdir>/1`, `<outdir>/2`
 etc...
 
-### ./aggregate.py
+### aggregate.py
 
 Read file paths from standard input (one per line) and write an NcML aggregation of those files to
 standard output.
 
-### ./agg_wrapper.sh
+### agg_wrapper.sh
 
 A convenience script `./agg_wrapper.sh <dir>` finds NetCDF files in `<dir>`, runs
 `partition_files.py` on the list and `aggregate.py` on each output.
