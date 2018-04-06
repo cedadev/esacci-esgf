@@ -16,6 +16,10 @@ from aggregation_utils.partition_files import partition_files
 from aggregation_utils.aggregate import create_aggregation, AggregationError
 
 
+# The directory in which aggregations will be stored on the live server
+REMOTE_AGGREGATIONS_DIR = "/usr/local/aggregations"
+
+
 class ThreddsXMLBase(object):
     """
     Base class re generic stuff we want to do to THREDDS XML files
@@ -106,7 +110,7 @@ class ThreddsXMLDataset(ThreddsXMLBase):
     def __init__(self,
                  thredds_roots=None,
                  do_wcs=False,
-                 aggregations_dir="/usr/local/aggregations",
+                 aggregations_dir=REMOTE_AGGREGATIONS_DIR,
                  **kwargs):
         """
         aggregations_dir is the directory in which NcML files will be placed on the
