@@ -36,7 +36,7 @@ This script generates ESGF mapfiles from a JSON file of the form
 
 ```json
 {
-    "<unversioned_dataset_name>": {
+    "<dataset name>.v<version>": {
         "generate_aggregation": <boolean>,
         "include_in_wms": <boolean>,
         "tech_note_url": "<url>",

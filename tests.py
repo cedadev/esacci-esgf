@@ -11,6 +11,7 @@ from modify_catalogs import ProcessBatch
 from aggregation_utils.aggregate import create_aggregation, element_to_string, AggregationError
 from aggregation_utils.partition_files import partition_files
 from publication_utils.merge_csv_json import Dataset as CsvRowDataset, parse_file, HEADER_ROW
+from make_mapfiles import MakeMapfile
 
 
 def get_full_tag(tag, ns="http://www.unidata.ucar.edu/namespaces/thredds/InvCatalog/v1.0"):
@@ -304,3 +305,32 @@ class TestMergeCSV(object):
         # Check invalid int and bool values
         assert pytest.raises(ValueError, create, ["ds", "blah", "url", "title", "Yes", json_file])
         assert pytest.raises(ValueError, create, ["ds", "200", "url", "title", "blah", json_file])
+
+class TestMakeMapfile(object):
+    def test_extract_version(self):
+        valid = [
+            ("mydataset.v1234", ("mydataset", "1234")),
+            ("otherdataset.v9", ("otherdataset", "9"))
+        ]
+        invalid = [
+            "noversion",
+            "badversion.vABCDE",
+            "other.v"
+        ]
+        mm = MakeMapfile()
+
+        for dsid, expected in valid:
+            assert mm.split_versioned_dsid(dsid) == expected
+
+        for dsid in invalid:
+            with pytest.raises(ValueError):
+                mm.split_versioned_dsid(dsid)
+
+    def test_mapfile_line(self):
+        mm = MakeMapfile()
+        file_dict = {
+            "size": 1, "mtime": 2.123456, "sha256": 3, "path": "/some/file.nc"
+        }
+        expected = ("mydataset#12345 | /some/file.nc | 1 | mod_time=2.12346 | "
+                    "checksum=3 | checksum_type=SHA256\n")
+        assert mm.get_mapfile_line("mydataset", "12345", file_dict) == expected

@@ -2,7 +2,7 @@
 """
 Create mapfiles for use with the ESGF publisher from a JSON file of the form
 {
-    "<unversioned_dataset_name>": {
+    "<dataset name>.v<version>": {
         "generate_aggregation": <boolean>,
         "include_in_wms": <boolean>,
         "tech_note_url": "<url>",
@@ -34,19 +34,16 @@ import sys
 import argparse
 import json
 import os
-import time
 import re
 
 
 class MakeMapfile(object):
 
-    def __init__(self, version=None, depth=5, out_root=None):
-        self.version = version or self.yyyymmdd()
+    versioned_dsid_regex = re.compile("(.*)\.v([0-9]+)$")
+
+    def __init__(self, depth=5, out_root=None):
         self.depth = depth
         self.out_root = out_root
-
-    def yyyymmdd(self):
-        return int(time.strftime("%Y%m%d"))
 
     def parse_json(self, filename):
         f = open(filename)
@@ -80,16 +77,18 @@ class MakeMapfile(object):
             path = self.out_root + path
         return path
 
-    def get_mapfile_line(self, unversioned_dsid, file_dict):
-        line = ("{ds_id} | {path} | {size} | mod_time={mtime:.5f} | "
+    def get_mapfile_line(self, unversioned_dsid, version, file_dict):
+        line = ("{dsid}#{version} | {path} | {size} | mod_time={mtime:.5f} | "
                 "checksum={sha256} | checksum_type=SHA256\n")
-        return line.format(ds_id=unversioned_dsid, **file_dict)
+        return line.format(dsid=unversioned_dsid, version=version, **file_dict)
 
-    def make_mapfile(self, unversioned_dsid, dsid, file_dicts):
+    def make_mapfile(self, dsid, file_dicts):
         path = self.get_mapfile_path(dsid, file_dicts)
         content = ""
+        unversioned_dsid, version = self.split_versioned_dsid(dsid)
         for file_dict in file_dicts:
-            content += self.get_mapfile_line(unversioned_dsid, file_dict)
+            content += self.get_mapfile_line(unversioned_dsid, version,
+                                             file_dict)
         self.write_file(path, content)
         print(path)
 
@@ -101,19 +100,21 @@ class MakeMapfile(object):
         f.write(content)
         f.close()
 
-    dset_matcher = re.compile("(.*)\.v[0-9]+$").match
+    def split_versioned_dsid(self, dsid):
+        """
+        Split a versioned dataset id and return (unversioned id, version)
+        """
+        match = self.versioned_dsid_regex.match(dsid)
+        if not match:
+            err = "Dataset ID '{}' does not contain a version number"
+            raise ValueError(err.format(dsid))
+
+        return (match.group(1), match.group(2))
 
     def make_mapfiles(self, filename):
         j = self.parse_json(filename)
-        for dsid_from_json, ds_dict in j.items():
-            m = self.dset_matcher(dsid_from_json)
-            if m:
-                dsid = dsid_from_json
-                unversioned_dsid = m.group(1)
-            else:
-                unversioned_dsid = dsid_from_json
-                dsid = "{}.v{}".format(unversioned_dsid, self.version)
-            self.make_mapfile(unversioned_dsid, dsid, ds_dict["files"])
+        for dsid, ds_dict in j.items():
+            self.make_mapfile(dsid, ds_dict["files"])
 
 
 def main(arg_list):
