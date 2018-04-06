@@ -57,6 +57,18 @@ This script generates ESGF mapfiles from a JSON file of the form
 
 See `./make_mapfiles.py --help` for more info.
 
+### get_catalogs.py
+
+This script is a wrapper around `modify_catalogs.py` that takes input JSON in
+the same format as `make_mapfiles.py` (see above), finds the location of
+THREDDS catalogs produced by the publisher for each dataset, and runs
+`modify_catalogs.py` with appropriate arguments.
+
+It must be run after the first step of publication since the THREDDS catalogs
+need to exist and be recorded in the publication database.
+
+Usage: `./get_catalogs.py -o <outdir> -n <ncml dir> <input JSON>`.
+
 ### merge_csv_json.py
 
 This script is located in `publication_utils`.
