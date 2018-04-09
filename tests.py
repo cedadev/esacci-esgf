@@ -333,4 +333,15 @@ class TestMakeMapfile(object):
         }
         expected = ("mydataset#12345 | /some/file.nc | 1 | mod_time=2.12346 | "
                     "checksum=3 | checksum_type=SHA256\n")
-        assert mm.get_mapfile_line("mydataset", "12345", file_dict) == expected
+        got = mm.get_mapfile_line("mydataset", "12345", file_dict, tech_notes=None)
+        assert got == expected
+
+        expected2 = ("mydataset#12345 | /some/file.nc | 1 | mod_time=2.12346 | "
+                    "checksum=3 | checksum_type=SHA256 | "
+                    "dataset_tech_notes=http://tech.notes | "
+                    "dataset_tech_notes_title=title for the tech notes\n")
+        tech_notes = {"title": "title for the tech notes",
+                      "url": "http://tech.notes"}
+        got2 = mm.get_mapfile_line("mydataset", "12345", file_dict,
+                                  tech_notes=tech_notes)
+        assert got2 == expected2
