@@ -41,9 +41,10 @@ class MakeMapfile(object):
 
     versioned_dsid_regex = re.compile("(.*)\.v([0-9]+)$")
 
-    def __init__(self, depth=5, out_root=None):
+    def __init__(self, depth=5, out_root=None, tech_notes_in_all_lines=False):
         self.depth = depth
         self.out_root = out_root
+        self.tech_notes_in_all_lines = tech_notes_in_all_lines
 
     def parse_json(self, filename):
         f = open(filename)
@@ -77,18 +78,33 @@ class MakeMapfile(object):
             path = self.out_root + path
         return path
 
-    def get_mapfile_line(self, unversioned_dsid, version, file_dict):
-        line = ("{dsid}#{version} | {path} | {size} | mod_time={mtime:.5f} | "
-                "checksum={sha256} | checksum_type=SHA256\n")
-        return line.format(dsid=unversioned_dsid, version=version, **file_dict)
+    def get_mapfile_line(self, unversioned_dsid, version, file_dict,
+                         tech_notes):
+        parts = [
+            "{dsid}#{version}".format(dsid=unversioned_dsid, version=version),
+            file_dict["path"],
+            str(file_dict["size"]),
+            "mod_time={mtime:.5f}".format(mtime=file_dict["mtime"]),
+            "checksum={sha256}".format(sha256=file_dict["sha256"]),
+            "checksum_type=SHA256"
+        ]
 
-    def make_mapfile(self, dsid, file_dicts):
+        if tech_notes:
+            parts += [
+                "dataset_tech_notes={}".format(tech_notes["url"]),
+                "dataset_tech_notes_title={}".format(tech_notes["title"])
+            ]
+
+        return " | ".join(parts) + "\n"
+
+    def make_mapfile(self, dsid, file_dicts, tech_notes):
         path = self.get_mapfile_path(dsid, file_dicts)
         content = ""
         unversioned_dsid, version = self.split_versioned_dsid(dsid)
-        for file_dict in file_dicts:
+        for i, file_dict in enumerate(file_dicts):
+            tn = tech_notes if (self.tech_notes_in_all_lines or i == 0) else None
             content += self.get_mapfile_line(unversioned_dsid, version,
-                                             file_dict)
+                                             file_dict, tn)
         self.write_file(path, content)
         print(path)
 
@@ -114,7 +130,9 @@ class MakeMapfile(object):
     def make_mapfiles(self, filename):
         j = self.parse_json(filename)
         for dsid, ds_dict in j.items():
-            self.make_mapfile(dsid, ds_dict["files"])
+            tech_note = {"url": ds_dict["tech_note_url"],
+                         "title": ds_dict["tech_note_title"]}
+            self.make_mapfile(dsid, ds_dict["files"], tech_note)
 
 
 def main(arg_list):
