@@ -34,8 +34,7 @@ python get_catalogs.py -o $out_cats -n $out_aggs $in_json
 python transfer_catalogs.py -c $out_cats -n $out_aggs -v
 
 # Make sure aggregations on CCI server are cached ready for users to access
-# TODO: write this script
-python aggregation_utils/cache_remote_aggregations.py $in_json
+python aggregation_utils/cache_remote_aggregations.py $in_json -v
 
 #-----------------------------------------------------------------------------#
 # Step 2 of publication: publish to Solr from THREDDS on CCI node
@@ -155,6 +154,17 @@ standard output.
 
 A convenience script `./agg_wrapper.sh <dir>` finds NetCDF files in `<dir>`, runs
 `partition_files.py` on the list and `aggregate.py` on each output.
+
+### cache_remote_aggregations.py
+
+Usage: `./cache_remote_aggregations.py <input JSON> [<base THREDDS URL]`.
+
+Send HTTP requests to OPeNDAP/WMS aggregation endpoints based on dataset IDs
+found in the input JSON. This makes sure THREDDS caches aggregations before any
+end-user tries to access them.
+
+The JSON input should be in the same format as required by `make_mapfiles.py`
+etc...
 
 ## Tests
 

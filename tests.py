@@ -12,6 +12,7 @@ from aggregation_utils.aggregate import create_aggregation, element_to_string, A
 from aggregation_utils.partition_files import partition_files
 from publication_utils.merge_csv_json import Dataset as CsvRowDataset, parse_file, HEADER_ROW
 from make_mapfiles import MakeMapfile
+from aggregation_utils.cache_remote_aggregations import AggregationCacher
 
 
 def get_full_tag(tag, ns="http://www.unidata.ucar.edu/namespaces/thredds/InvCatalog/v1.0"):
@@ -333,7 +334,8 @@ class TestMakeMapfile(object):
         }
         expected = ("mydataset#12345 | /some/file.nc | 1 | mod_time=2.12346 | "
                     "checksum=3 | checksum_type=SHA256\n")
-        got = mm.get_mapfile_line("mydataset", "12345", file_dict, tech_notes=None)
+        got = mm.get_mapfile_line("mydataset", "12345", file_dict,
+                                  tech_notes=None)
         assert got == expected
 
         expected2 = ("mydataset#12345 | /some/file.nc | 1 | mod_time=2.12346 | "
@@ -345,3 +347,38 @@ class TestMakeMapfile(object):
         got2 = mm.get_mapfile_line("mydataset", "12345", file_dict,
                                   tech_notes=tech_notes)
         assert got2 == expected2
+
+
+class TestAggregationCaching(object):
+    def test_get_agg_url(self, tmpdir):
+        json_file = tmpdir.join("ds.json")
+        json_file.write(json.dumps({
+            "opendap-dataset": {
+                "generate_aggregation": True,
+                "include_in_wms": False,
+                "tech_note_url": "some url",
+                "tech_note_title": "some title",
+                "files": []
+            },
+            "wms-dataset": {
+                "generate_aggregation": True,
+                "include_in_wms": True,
+                "tech_note_url": "some url",
+                "tech_note_title": "some title",
+                "files": []
+            },
+            "no-aggregation-dataset": {
+                "generate_aggregation": False,
+                "include_in_wms": False,
+                "tech_note_url": "some url",
+                "tech_note_title": "some title",
+                "files": []
+            },
+        }))
+
+        ac = AggregationCacher(str(json_file), "http://server")
+        expected = [
+            "http://server/dodsC/opendap-dataset.dds",
+            "http://server/wms/wms-dataset?service=WMS&version=1.3.0&request=GetCapabilities"
+        ]
+        assert set(ac.get_all_urls()) == set(expected)
