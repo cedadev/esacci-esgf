@@ -16,10 +16,13 @@ in_json=`mktemp`
 python publication_utils/merge_csv_json.py $in_csv > $in_json
 
 # Get mapfiles to feed into ESGF publisher
-python make_mapfiles.py $in_json  # will write mapfiles in /neodc/...
+mapfiles=`python make_mapfiles.py $in_json` # will write mapfiles in /neodc/...
 
 #-----------------------------------------------------------------------------#
-# Step 1 of publication: publish to THREDDS on publication machine
+# Step 1 of publication: publish to Postgres and THREDDS on publication machine
+# for mapfile in $mapfiles; do
+#     ...
+# done
 #-----------------------------------------------------------------------------#
 
 # Retrieve generated THREDDS catalogs and modify them as necessary
@@ -36,6 +39,9 @@ python aggregation_utils/cache_remote_aggregations.py $in_json
 
 #-----------------------------------------------------------------------------#
 # Step 2 of publication: publish to Solr from THREDDS on CCI node
+# for mapfile in $mapfiles; do
+#     ...
+# done
 #-----------------------------------------------------------------------------#
 
 python modify_solr_links.py <solr node>
