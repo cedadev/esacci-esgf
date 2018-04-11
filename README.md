@@ -16,7 +16,8 @@ in_json=`mktemp`
 python publication_utils/merge_csv_json.py $in_csv > $in_json
 
 # Get mapfiles to feed into ESGF publisher
-mapfiles=`python make_mapfiles.py $in_json` # will write mapfiles in /neodc/...
+mapfile_dir="<root dir to store mapfiles under>"
+mapfiles=`python make_mapfiles.py $in_json $mapfile_dir`
 
 #-----------------------------------------------------------------------------#
 # Step 1 of publication: publish to Postgres and THREDDS on publication machine
@@ -97,7 +98,10 @@ This script generates ESGF mapfiles from a JSON file of the form
 }
 ```
 
-See `./make_mapfiles.py --help` for more info.
+Usage: `./make_mapfiles.py <input JSON> <root output dir>`.
+
+Mapfiles will be written in directories under `<root output dir>`, and the
+paths to the generated files are written to stdout.
 
 ### get_catalogs.py
 

@@ -10,9 +10,9 @@ import numpy as np
 from modify_catalogs import ProcessBatch
 from aggregation_utils.aggregate import create_aggregation, element_to_string, AggregationError
 from aggregation_utils.partition_files import partition_files
+from aggregation_utils.cache_remote_aggregations import AggregationCacher
 from publication_utils.merge_csv_json import Dataset as CsvRowDataset, parse_file, HEADER_ROW
 from make_mapfiles import MakeMapfile
-from aggregation_utils.cache_remote_aggregations import AggregationCacher
 
 
 def get_full_tag(tag, ns="http://www.unidata.ucar.edu/namespaces/thredds/InvCatalog/v1.0"):
@@ -307,6 +307,7 @@ class TestMergeCSV(object):
         assert pytest.raises(ValueError, create, ["ds", "blah", "url", "title", "Yes", json_file])
         assert pytest.raises(ValueError, create, ["ds", "200", "url", "title", "blah", json_file])
 
+
 class TestMakeMapfile(object):
     def test_extract_version(self):
         valid = [
@@ -318,7 +319,7 @@ class TestMakeMapfile(object):
             "badversion.vABCDE",
             "other.v"
         ]
-        mm = MakeMapfile()
+        mm = MakeMapfile("/tmp")
 
         for dsid, expected in valid:
             assert mm.split_versioned_dsid(dsid) == expected
@@ -328,7 +329,7 @@ class TestMakeMapfile(object):
                 mm.split_versioned_dsid(dsid)
 
     def test_mapfile_line(self):
-        mm = MakeMapfile()
+        mm = MakeMapfile("/tmp")
         file_dict = {
             "size": 1, "mtime": 2.123456, "sha256": 3, "path": "/some/file.nc"
         }
@@ -339,14 +340,24 @@ class TestMakeMapfile(object):
         assert got == expected
 
         expected2 = ("mydataset#12345 | /some/file.nc | 1 | mod_time=2.12346 | "
-                    "checksum=3 | checksum_type=SHA256 | "
-                    "dataset_tech_notes=http://tech.notes | "
-                    "dataset_tech_notes_title=title for the tech notes\n")
+                     "checksum=3 | checksum_type=SHA256 | "
+                     "dataset_tech_notes=http://tech.notes | "
+                     "dataset_tech_notes_title=title for the tech notes\n")
         tech_notes = {"title": "title for the tech notes",
                       "url": "http://tech.notes"}
         got2 = mm.get_mapfile_line("mydataset", "12345", file_dict,
-                                  tech_notes=tech_notes)
+                                   tech_notes=tech_notes)
         assert got2 == expected2
+
+    def test_get_mapfile_path(self):
+        mm = MakeMapfile("/tmp", depth=3)
+        tests = [
+            ("my.dataset", "/tmp/my/dataset/my.dataset"),
+            ("lots.of.facets.in.dataset.name",
+             "/tmp/lots/of/facets/lots.of.facets.in.dataset.name")
+        ]
+        for dsid, expected in tests:
+            assert mm.get_mapfile_path(dsid) == expected
 
 
 class TestAggregationCaching(object):
