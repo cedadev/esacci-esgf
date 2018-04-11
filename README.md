@@ -4,13 +4,19 @@ This repo contains scripts related to modifying ESGF-produced THREDDS catalogs
 and creating NcML aggregations.
 
 Install requirements with `pip install -r requirements.txt` (create and
-activate a python3 virtualenv first - the code has been developed and tested
-with python version 3.4.5).
+activate a python3 virtualenv or conda environment first. The code has been
+developed and tested with python version 3.4.5).
 
-To run the entire process, use something like the following:
+To run the entire process, generate a proxy certificate (see below) and use
+something like the following (note that this script has not yet been tested in
+its entirety):
+
 ```bash
 in_csv="<path to input CSV>"
 in_json=`mktemp`
+
+ini_dir="<path to .ini dir with ESGF config files>"
+proj="esacci"
 
 # Get input CSV in a JSON format used throughout the rest of the process
 python publication_utils/merge_csv_json.py $in_csv > $in_json
@@ -19,14 +25,21 @@ python publication_utils/merge_csv_json.py $in_csv > $in_json
 mapfile_dir="<root dir to store mapfiles under>"
 mapfiles=`python make_mapfiles.py $in_json $mapfile_dir`
 
-#-----------------------------------------------------------------------------#
-# Step 1 of publication: publish to Postgres and THREDDS on publication machine
-# for mapfile in $mapfiles; do
-#     ...
-# done
-#-----------------------------------------------------------------------------#
+for mapfile in $mapfiles; do
+    # Publish to postgres - this step may be slow as the publisher will need
+    # to open each data file
+    esgpublish -i $ini_dir --project $proj --map $mapfile
 
-# Retrieve generated THREDDS catalogs and modify them as necessary
+    # Create THREDDS catalogs for each dataset
+    esgpublish -i $ini_dir --project $proj --map $mapfile --noscan --thredds \
+               --service fileservice --no-thredds-reinit
+
+    # Create top level catalog and reinit THREDDS
+    esgpublish -i $ini_dir --project $proj --thredds-reinit
+done
+
+# Retrieve generated THREDDS catalogs and modify them as necessary.
+# This may be slow as to create aggregations each data file needs to be opened
 out_cats=`mktemp -d`
 out_aggs=`mktemp -d`
 python get_catalogs.py -o $out_cats -n $out_aggs -e <path to esg.ini> $in_json
@@ -37,17 +50,26 @@ python transfer_catalogs.py -c $out_cats -n $out_aggs -v
 # Make sure aggregations on CCI server are cached ready for users to access
 python aggregation_utils/cache_remote_aggregations.py $in_json -v
 
-#-----------------------------------------------------------------------------#
-# Step 2 of publication: publish to Solr from THREDDS on CCI node
-# for mapfile in $mapfiles; do
-#     ...
-# done
-#-----------------------------------------------------------------------------#
+for mapfile in $mapfiles; do
+    # Publish to Solr by looking at endpoints on THREDDS server
+    esgpublish -i $ini_dir --project $proj --map $mapfile --noscan --publish
+don
 
 python modify_solr_links.py <solr node>
 
 rm -r $input_json $out_cats $out_aggs
 ```
+
+To authenticate when publishing to Solr a proxy certificate must be generated -
+use something like:
+
+```bash
+mkdir -p ~/.globus
+myproxy-logon -l <CEDA username> -s slcs1.ceda.ac.uk -o ~/.globus/certificate-file -b
+```
+
+(The `-b` flag downloads trustroots to `~/.globus` and only needs to be used
+the first time a certificate is generated)
 
 ## Publication
 
