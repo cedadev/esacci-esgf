@@ -8,7 +8,6 @@ import subprocess
 import argparse
 
 from modify_catalogs import REMOTE_AGGREGATIONS_DIR
-from get_catalogs import THREDDS_CATALOGS_ROOT
 
 
 REMOTE_THREDDS_CONTENT_DIR = "/var/lib/tomcat/content/thredds"
@@ -57,19 +56,16 @@ class CatalogTransferer(object):
         self.remote_command(["mkdir", "-p", REMOTE_CATALOG_DEST])
 
         # Construct src/dest paths for root catalog (which links to 'top level'
-        # catalogs) and 'top level' which link to the actual datasets
+        # catalog)
         local_root_cat = os.path.join(os.path.dirname(__file__), "static",
                                       "catalog.xml")
         remote_root_cat = os.path.join(REMOTE_THREDDS_CONTENT_DIR,
                                        "catalog.xml")
-        local_top_level_cat = os.path.join(THREDDS_CATALOGS_ROOT, "catalog.xml")
-        remote_top_level_cat = os.path.join(REMOTE_CATALOG_DEST, "catalog.xml")
 
         transfers = [
             (self.catalog_dir, REMOTE_CATALOG_DEST),
             (self.ncml_dir, REMOTE_AGGREGATIONS_DIR),
             (local_root_cat, remote_root_cat),
-            (local_top_level_cat, remote_top_level_cat),
         ]
         for src, dest in transfers:
             self.rsync(src, dest)
