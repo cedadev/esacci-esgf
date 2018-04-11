@@ -29,7 +29,7 @@ mapfiles=`python make_mapfiles.py $in_json $mapfile_dir`
 # Retrieve generated THREDDS catalogs and modify them as necessary
 out_cats=`mktemp -d`
 out_aggs=`mktemp -d`
-python get_catalogs.py -o $out_cats -n $out_aggs $in_json
+python get_catalogs.py -o $out_cats -n $out_aggs -e <path to esg.ini> $in_json
 
 # Copy catalogs and aggregations to CCI server and restart tomcat
 python transfer_catalogs.py -c $out_cats -n $out_aggs -v
@@ -105,6 +105,8 @@ paths to the generated files are written to stdout.
 
 ### get_catalogs.py
 
+Usage: `./get_catalogs.py -o <outdir> -n <ncml dir> -e <path to esg.ini> <input JSON>`.
+
 This script is a wrapper around `modify_catalogs.py` that takes input JSON in
 the same format as `make_mapfiles.py` (see above), finds the location of
 THREDDS catalogs produced by the publisher for each dataset, and runs
@@ -113,7 +115,19 @@ THREDDS catalogs produced by the publisher for each dataset, and runs
 It must be run after the first step of publication since the THREDDS catalogs
 need to exist and be recorded in the publication database.
 
-Usage: `./get_catalogs.py -o <outdir> -n <ncml dir> <input JSON>`.
+The DB connection URL and root THREDDS directory is obtained from an INI file,
+the path to which must be given on the command line. This file must at least
+contain a `DEFAULT` section containing the following:
+
+```INI
+[DEFAULT]
+dburl = postgresql://user:password@host/dbname
+thredds_root = /path/to/thredds/root
+```
+
+(any extra sections and settings are ignored, so the full `esg.ini` can be
+used)
+
 
 ### merge_csv_json.py
 
