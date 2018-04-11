@@ -1,7 +1,9 @@
 import os
+import sys
 import json
 import xml.etree.cElementTree as ET
 from glob import glob
+from io import StringIO
 
 import pytest
 from netCDF4 import Dataset
@@ -358,6 +360,42 @@ class TestMakeMapfile(object):
         ]
         for dsid, expected in tests:
             assert mm.get_mapfile_path(dsid) == expected
+
+    def test_tech_notes(self, tmpdir):
+        """
+        Check that tech notes are only included in the first line of the
+        generated mapfiles
+        """
+        outdir = tmpdir.join("mapfiles")
+        mm = MakeMapfile(str(outdir))
+        json_file = tmpdir.join("input.json")
+        json_file.write(json.dumps({
+            "myds.v1234": {
+                "tech_note_url": "http://tech.notes",
+                "tech_note_title": "my tech notes",
+                "generate_aggregation": False,
+                "include_in_wms": False,
+                "files": [
+                    {"path": "/data/file1.nc", "sha256": "1", "mtime": 1, "size": 1},
+                    {"path": "/data/file2.nc", "sha256": "2", "mtime": 2, "size": 2}
+                ]
+            }
+        }))
+
+        s = StringIO()
+        sys.stdout = s
+        mm.make_mapfiles(str(json_file))
+        sys.stdout = sys.__stdout__
+
+        mapfile_path = s.getvalue().strip()
+        assert os.path.isfile(mapfile_path)
+        with open(mapfile_path) as f:
+            lines = f.readlines()
+        assert len(lines) == 2
+        l1, l2 = lines
+
+        assert "dataset_tech_notes" in l1
+        assert "dataset_tech_notes" not in l2
 
 
 class TestAggregationCaching(object):

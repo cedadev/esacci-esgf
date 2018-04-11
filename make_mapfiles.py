@@ -38,10 +38,9 @@ class MakeMapfile(object):
 
     versioned_dsid_regex = re.compile("(.*)\.v([0-9]+)$")
 
-    def __init__(self, out_root, depth=5, tech_notes_in_all_lines=False):
+    def __init__(self, out_root, depth=5):
         self.depth = depth
         self.out_root = out_root
-        self.tech_notes_in_all_lines = tech_notes_in_all_lines
 
     def parse_json(self, filename):
         f = open(filename)
@@ -78,7 +77,8 @@ class MakeMapfile(object):
         content = ""
         unversioned_dsid, version = self.split_versioned_dsid(dsid)
         for i, file_dict in enumerate(file_dicts):
-            tn = tech_notes if (self.tech_notes_in_all_lines or i == 0) else None
+            # Only include tech notes in the first line
+            tn = tech_notes if i == 0 else None
             content += self.get_mapfile_line(unversioned_dsid, version,
                                              file_dict, tn)
         self.write_file(path, content)
