@@ -42,7 +42,7 @@ done
 # This may be slow as to create aggregations each data file needs to be opened
 out_cats=`mktemp -d`
 out_aggs=`mktemp -d`
-python get_catalogs.py -o $out_cats -n $out_aggs -e <path to esg.ini> $in_json
+python get_catalogs.py -o $out_cats -n $out_aggs -e ${ini_dir}/esg.ini $in_json
 
 # Copy catalogs and aggregations to CCI server and restart tomcat
 python transfer_catalogs.py -c $out_cats -n $out_aggs -v
@@ -55,7 +55,7 @@ for mapfile in $mapfiles; do
     esgpublish -i $ini_dir --project $proj --map $mapfile --noscan --publish
 don
 
-python modify_solr_links.py <solr node>
+python modify_solr_links.py "<solr node>"
 
 rm -r $input_json $out_cats $out_aggs
 ```
