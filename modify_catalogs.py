@@ -259,7 +259,13 @@ class ThreddsXMLDataset(ThreddsXMLBase):
             ds = self.new_element("dataset", name=dsid, ID=dsid, urlPath=dsid)
 
             for service_name in services:
-                self.new_child(ds, "access", serviceName=service_name, urlPath=dsid)
+                access = self.new_element("access", serviceName=service_name, urlPath=dsid)
+                # Add 'access' to new dataset so that it has the required
+                # endpoints in THREDDS
+                ds.append(access)
+                # Add 'access' to the top-level dataset so that the esgf
+                # publisher picks up the WMS endpoints when publishing to Solr
+                self.top_level_dataset.append(access)
 
             agg_xml = ThreddsXMLBase()
             agg_xml.set_root(agg_element)
