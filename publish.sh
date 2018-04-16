@@ -50,10 +50,18 @@ in_csv="$1"
 [[ -n "$PUB_CONDA_ROOT" ]]    || die '$PUB_CONDA_ROOT not set'
 [[ -n "$ESACCI_CONDA_ROOT" ]] || die '$ESACCI_CONDA_ROOT not set'
 
+REMOTE_TDS_HOST="cci-odp-data.ceda.ac.uk"
+REMOTE_TDS_USER="root"
+
 # Get input CSV in a JSON format used throughout the rest of the process
 in_json=`mktemp`
 cci_env python publication_utils/merge_csv_json.py "$in_csv" > "$in_json" || \
     die "failed to parse input CSV"
+
+# Check we can SSH to remote server before starting
+log "checking SSH access to ${REMOTE_TDS_HOST}..."
+ssh ${REMOTE_TDS_USER}@${REMOTE_TDS_HOST} ls > /dev/null 2>&1 || \
+    die "cannot SSH to $REMOTE_TDS_HOST"
 
 # Get mapfiles to feed into ESGF publisher
 mapfiles_dir="${MAPFILES_ROOT}/testing/"  # TODO: Avoid hardcoding
@@ -89,7 +97,8 @@ cci_env python get_catalogs.py -o "$CATALOG_DIR" -n "$NCML_DIR" -e ${ini_dir}/es
 
 # Copy catalogs and aggregations to CCI server and restart tomcat
 log "transferring catalogs to remote machine..."
-cci_env python transfer_catalogs.py -c "$CATALOG_DIR" -n "$NCML_DIR" -v || \
+cci_env python transfer_catalogs.py -c "$CATALOG_DIR" -n "$NCML_DIR" -v \
+                                    -u "$REMOTE_TDS_USER" "$REMOTE_TDS_HOST" || \
     die "failed to transfer catalogs"
 
 # Make sure aggregations on CCI server are cached ready for users to access
