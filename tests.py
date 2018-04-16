@@ -14,6 +14,7 @@ from aggregation_utils.aggregate import create_aggregation, element_to_string, A
 from aggregation_utils.partition_files import partition_files
 from aggregation_utils.cache_remote_aggregations import AggregationCacher
 from publication_utils.merge_csv_json import Dataset as CsvRowDataset, parse_file, HEADER_ROW
+from publication_utils.get_host_from_ini import HostnameExtractor
 from make_mapfiles import MakeMapfile
 
 
@@ -431,3 +432,60 @@ class TestAggregationCaching(object):
             "http://server/wms/wms-dataset?service=WMS&version=1.3.0&request=GetCapabilities"
         ]
         assert set(ac.get_all_urls()) == set(expected)
+
+
+class TestHostnameExtractor(object):
+    @classmethod
+    def do_test(self, tmpdir, ini_lines, service):
+        ini = tmpdir.join("esg.ini")
+        host = "some-host.ac.uk"
+        ini.write("\n".join(ini_lines).format(host=host))
+        assert HostnameExtractor.get_hostname(str(ini), service) == host
+
+    def test_thredds_host(self, tmpdir):
+        lines = [
+            "[DEFAULT]",
+            "thredds_url = http://{host}/thredds/data",
+        ]
+        self.do_test(tmpdir, lines, "thredds")
+
+    def test_solr_use_result_api(self, tmpdir):
+        lines = [
+            "[DEFAULT]",
+            "use_rest_api = true",
+            "rest_service_url = http://{host}/solr/one/two/three",
+            "hessian_service_url = somethingelse",
+        ]
+        self.do_test(tmpdir, lines, "solr")
+
+    def test_solr_no_rest_api(self, tmpdir):
+        lines = [
+            "[DEFAULT]",
+            "use_rest_api = ",
+            "rest_service_url = somethingelse",
+            "hessian_service_url = http://{host}/solr/one/two/three",
+        ]
+        self.do_test(tmpdir, lines, "solr")
+
+    def test_solr_no_rest_api_2(self, tmpdir):
+        lines = [
+            "[DEFAULT]",
+            "rest_service_url = somethingelse",
+            "hessian_service_url = http://{host}/solr/one/two/three",
+        ]
+        self.do_test(tmpdir, lines, "solr")
+
+    def test_solr_no_rest_api_3(self, tmpdir):
+        lines = [
+            "[DEFAULT]",
+            "hessian_service_url = http://{host}/solr/one/two/three",
+        ]
+        self.do_test(tmpdir, lines, "solr")
+
+    def test_solr_no_rest_url(self, tmpdir):
+        lines = [
+            "[DEFAULT]",
+            "use_rest_api = true",
+            "hessian_service_url = http://{host}/solr/one/two/three",
+        ]
+        self.do_test(tmpdir, lines, "solr")

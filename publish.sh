@@ -46,53 +46,59 @@ in_csv="$1"
 [[ -n "$MAPFILES_ROOT" ]]     || die '$MAPFILES_ROOT not set'
 [[ -n "$CATALOG_DIR" ]]       || die '$CATALOG_DIR not set'
 [[ -n "$NCML_DIR" ]]          || die '$NCML_DIR not set'
-[[ -n "$SOLR_HOST" ]]         || die '$SOLR_HOST not set'  # TODO: Get this from esg.ini instead
 [[ -n "$PUB_CONDA_ROOT" ]]    || die '$PUB_CONDA_ROOT not set'
 [[ -n "$ESACCI_CONDA_ROOT" ]] || die '$ESACCI_CONDA_ROOT not set'
 
+PROJ="esacci"
 REMOTE_TDS_HOST="cci-odp-data.ceda.ac.uk"
 REMOTE_TDS_USER="root"
+INI_DIR="${INI_ROOT}/cci-odp-data"
+INI_FILE="${INI_DIR}/esg.ini"
+MAPFILES_DIR="${MAPFILES_ROOT}/testing/"  # TODO: Avoid hardcoding
 
-# Get input CSV in a JSON format used throughout the rest of the process
-in_json=`mktemp`
-cci_env python publication_utils/merge_csv_json.py "$in_csv" > "$in_json" || \
-    die "failed to parse input CSV"
+# Get hostnames of services from esg.ini
+REMOTE_TDS_HOST=`cci_env python publication_utils/get_host_from_ini.py "$INI_FILE" thredds` || \
+    die "could not get THREDDS host from $INI_FILE"
+SOLR_HOST=`cci_env python publication_utils/get_host_from_ini.py "$INI_FILE" solr` || \
+    die "could not get Solr host from $INI_FILE"
 
 # Check we can SSH to remote server before starting
 log "checking SSH access to ${REMOTE_TDS_HOST}..."
 ssh ${REMOTE_TDS_USER}@${REMOTE_TDS_HOST} ls > /dev/null 2>&1 || \
     die "cannot SSH to $REMOTE_TDS_HOST"
 
+# Get input CSV in a JSON format used throughout the rest of the process
+in_json=`mktemp`
+cci_env python publication_utils/merge_csv_json.py "$in_csv" > "$in_json" || \
+    die "failed to parse input CSV"
+
 # Get mapfiles to feed into ESGF publisher
-mapfiles_dir="${MAPFILES_ROOT}/testing/"  # TODO: Avoid hardcoding
-log "generating mapfiles in $mapfiles_dir..."
-mapfiles=`cci_env python make_mapfiles.py "$in_json" "$mapfiles_dir"` || \
+log "generating mapfiles in $MAPFILES_DIR..."
+mapfiles=`cci_env python make_mapfiles.py "$in_json" "$MAPFILES_DIR"` || \
     die "failed to generate mapfiles"
 
-proj="esacci"
-ini_dir="${INI_ROOT}/cci-odp-data"
 for mapfile in $mapfiles; do
     log "processing mapfile ${mapfile}..."
 
     # Publish to postgres - this step may be slow as the publisher will need
     # to open each data file
-    esg_env esgpublish -i "$ini_dir" --project "$proj" --map "$mapfile" || \
+    esg_env esgpublish -i "$INI_DIR" --project "$PROJ" --map "$mapfile" || \
         die "failed to publish to postgres"
 
     # Create THREDDS catalogs for each dataset
-    esg_env esgpublish -i "$ini_dir" --project "$proj" --map "$mapfile" --noscan --thredds \
+    esg_env esgpublish -i "$INI_DIR" --project "$PROJ" --map "$mapfile" --noscan --thredds \
                --service fileservice --no-thredds-reinit || \
         die "failed to create THREDDS catalogs"
 
     # Create top level catalog and reinit THREDDS
     # TODO: Handle error here once thredds-reinit is working on cci-odp-data
-    esg_env esgpublish -i "$ini_dir" --project "$proj" --thredds-reinit
+    esg_env esgpublish -i "$INI_DIR" --project "$PROJ" --thredds-reinit
 done
 
 # Retrieve generated THREDDS catalogs and modify them as necessary.
 # This may be slow as to create aggregations each data file needs to be opened
 log "modifying catalogs..."
-cci_env python get_catalogs.py -o "$CATALOG_DIR" -n "$NCML_DIR" -e ${ini_dir}/esg.ini "$in_json" \
+cci_env python get_catalogs.py -o "$CATALOG_DIR" -n "$NCML_DIR" -e "$INI_FILE" "$in_json" \
     > /dev/null || die "failed to retrieve/modify THREDDS catalogs"
 
 # Copy catalogs and aggregations to CCI server and restart tomcat
@@ -111,7 +117,7 @@ for mapfile in $mapfiles; do
     log "processing mapfile ${mapfile}..."
 
     # Publish to Solr by looking at endpoints on THREDDS server
-    esg_env esgpublish -i "$ini_dir" --project "$proj" --map "$mapfile" --noscan --publish || \
+    esg_env esgpublish -i "$INI_DIR" --project "$PROJ" --map "$mapfile" --noscan --publish || \
         die "failed to publish to Solr"
 done
 

@@ -156,6 +156,13 @@ server (default: cci-odp-data.ceda.ac.uk) and restarts tomcat.
 
 It will also copy the root catalog from `static/catalog.xml` in this repo.
 
+### get_host_from_ini.py
+
+Usage `./get_host_from_ini.py <path to esg.ini> (solr | thredds)`.
+
+Parse an ESGF ini config file and extract the hostname of the THREDDS or Solr
+server.
+
 ## Aggregation helper scripts
 
 These scripts are located in `aggregation_utils`.
