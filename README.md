@@ -3,9 +3,25 @@
 This repo contains scripts related to modifying ESGF-produced THREDDS catalogs
 and creating NcML aggregations.
 
-Install requirements with `pip install -r requirements.txt` (create and
-activate a python3 virtualenv or conda environment first. The code has been
-developed and tested with python version 3.4.5).
+## Installation
+
+Requirements are listed in `requirements.txt` and can be installed with
+`pip install -r requirements.txt`. All the Python code has been developed and
+tested under Python 3.4.5.
+
+Use the following to set up a conda environment on `esgf-pub.ceda.ac.uk` to
+run the Python code under:
+
+```
+source /usr/local/publication/setup_env.sh`
+wget --no-check-certificate https://repo.continuum.io/miniconda/Miniconda2-latest-Linux-x86_64.sh
+bash Miniconda2-latest-Linux-x86_64.sh -b -p $ESACCI_CONDA_ROOT
+export PATH=${ESACCI_CONDA_ROOT}/bin:$PATH
+conda create -y -n esgf_wms -c conda-forge python=3.4.5
+source activate esgf_wms
+pip install -r requirements.txt
+source deactivate
+```
 
 ## Usage
 
@@ -20,7 +36,13 @@ myproxy-logon -l <CEDA username> -s slcs1.ceda.ac.uk -o ~/.globus/certificate-fi
 (The `-b` flag downloads trustroots to `~/.globus` and only needs to be used
 the first time a certificate is generated)
 
-To run the entire publication process, run `./publish.sh <input CSV>`.
+To run the entire publication process, run
+
+```
+./publish.sh <input CSV>
+```
+
+This script relies on a conda environment being set up as above.
 See `merge_csv_json.py` for details on the format of the input CSV.
 
 (**TODO**: document the env variables that are required to run `publish.sh`)
