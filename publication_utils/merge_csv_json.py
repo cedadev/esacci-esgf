@@ -7,7 +7,7 @@ data files.
 The CSV file should contain the following header row, and a corresponding row
 for each dataset:
 
-ESGF DRS,No of files,Tech note URL,Tech note title,Include in WMS,JSON file
+ESGF DRS,No of files,Tech note URL,Tech note title,Aggregate,Include in WMS,JSON file
 
 Booleans values should be `Yes' or `No'. Extraneous whitespace is ignored.
 
@@ -20,18 +20,18 @@ import argparse
 from collections import namedtuple
 
 HEADER_ROW = ["ESGF DRS", "No of files", "Tech note URL", "Tech note title",
-              "Include in WMS", "JSON file"]
+              "Aggregate", "Include in WMS", "JSON file"]
 
 
 class Dataset(namedtuple("Dataset", ["drs", "num_files", "tech_note_url",
-                                     "tech_note_title", "include_in_wms",
-                                     "json_filename"])):
+                                     "tech_note_title", "aggregate",
+                                     "include_in_wms", "json_filename"])):
     """
     Class to represent a row in the CSV file that corresponds to a dataset
     """
     # Indices of columns should be converted from a string to some other type
     int_columns = [1]
-    boolean_columns = [4]
+    boolean_columns = [4, 5]
 
     @classmethod
     def from_strings(cls, values):
@@ -43,9 +43,9 @@ class Dataset(namedtuple("Dataset", ["drs", "num_files", "tech_note_url",
 
         # Convert boolean values
         for col in cls.boolean_columns:
-            mapping = {"Yes": True, "No": False}
+            mapping = {"yes": True, "no": False}
             try:
-                values[col] = mapping[values[col]]
+                values[col] = mapping[values[col].lower()]
             except KeyError:
                 raise ValueError("Invalid value for boolean column '{}'"
                                  .format(values[col]))
@@ -66,7 +66,7 @@ class Dataset(namedtuple("Dataset", ["drs", "num_files", "tech_note_url",
         row and its data files
         """
         output = {
-            "generate_aggregation": True,  # TODO: get from CSV once format agreed on
+            "generate_aggregation": self.aggregate,
             "include_in_wms": self.include_in_wms,
             "tech_note_url": self.tech_note_url,
             "tech_note_title": self.tech_note_title,

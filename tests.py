@@ -288,7 +288,7 @@ class TestMergeCSV(object):
 
     def test_row_parsing(self, tmpdir):
         """
-        Check that a row can be parse from a string
+        Check that a row can be parsed from a string
         """
         json_file = str(tmpdir.join("f.json"))
         with open(json_file, "w") as f:
@@ -298,17 +298,57 @@ class TestMergeCSV(object):
 
         # Check extraneous whitespace is ignored and Yes/No to boolean
         # conversion
-        got1 = create(["ds", "100", " url", "title, here", "Yes", json_file])
-        expected1 = CsvRowDataset("ds", 100, "url", "title, here", True, json_file)
+        got1 = create(["ds", "100", " url", "title, here", "no", "Yes", json_file])
+        expected1 = CsvRowDataset("ds", 100, "url", "title, here", False, True, json_file)
         assert got1 == expected1
 
-        got2 = create(["ds", "100", " url", "title, here", "No", json_file])
-        expected2 = CsvRowDataset("ds", 100, "url", "title, here", False, json_file)
+        got2 = create(["ds", "100", " url", "title, here", "No", "yes", json_file])
+        expected2 = CsvRowDataset("ds", 100, "url", "title, here", False, True, json_file)
         assert got2 == expected2
 
         # Check invalid int and bool values
         assert pytest.raises(ValueError, create, ["ds", "blah", "url", "title", "Yes", json_file])
         assert pytest.raises(ValueError, create, ["ds", "200", "url", "title", "blah", json_file])
+
+    def test_parse(self, tmpdir):
+        """
+        Parse a CSV file and check the output JSON is valid and what we expect
+        """
+        json_file = tmpdir.join("f.json")
+        obj = {"ds": [{"file": "data.nc", "size": 0, "mtime": 0, "sha256": 0}]}
+        with open(str(json_file), "w") as f:
+            json.dump(obj, f)
+
+        csv_file = tmpdir.join("f.csv")
+        csv_file.write("\n".join([
+            ",".join(HEADER_ROW),
+            "ds,1,url,title,yes,no,{}".format(str(json_file))
+        ]))
+
+        expected = {
+            "ds": {
+                "generate_aggregation": True,
+                "include_in_wms": False,
+                "tech_note_title": "title",
+                "tech_note_url": "url",
+                "files": [
+                    {"path": "data.nc", "size": 0, "mtime": 0, "sha256": 0}
+                ]
+            }
+        }
+
+        s = StringIO()
+        sys.stdout = s
+        parse_file(str(csv_file))
+        sys.stdout = sys.__stdout__
+
+        output_json = s.getvalue()
+        try:
+            parsed = json.loads(output_json)
+        except ValueError:
+            assert False, "parse_file() produced invalid JSON"
+
+        assert parsed == expected
 
 
 class TestMakeMapfile(object):
