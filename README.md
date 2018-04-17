@@ -26,7 +26,7 @@ source deactivate
 ## Usage
 
 First ensure a proxy certificate has been generated
-(see [below](#Generating-a-proxy-certificate)).
+(see [below](#generating-a-proxy-certificate)).
 
 To run the entire publication process, run
 
@@ -49,9 +49,9 @@ Some environment variable are required by `publish.sh`:
   setup in it
 
 * `ESACCI_CONDA_ROOT` - conda root directory that has `esgf_wms` enviroment
-  setup (see [installation](#Installation))
+  setup (see [installation](#installation))
 
-See `merge_csv_json.py` for details on the format of the input CSV.
+The format of the input CSV is [documented below](#csv).
 
 ### Generating a proxy certificate
 
@@ -64,6 +64,70 @@ myproxy-logon -l <CEDA username> -s slcs1.ceda.ac.uk -o ~/.globus/certificate-fi
 
 (The `-b` flag downloads trustroots to `~/.globus` and only needs to be used
 the first time a certificate is generated)
+
+## Input formats
+
+### CSV
+
+The CSV file passed as an argument to `publish.sh` should have the following
+header row:
+
+```
+ESGF DRS,No of files,Tech note URL,Tech note title,Aggregate,Include in WMS,JSON file
+```
+
+Each row corresponds to a dataset to be published. Boolean values should be
+'Yes' or 'No'.
+
+The references JSON files should be in ['CSV JSON'](#csv-json) format.
+
+### CSV JSON
+
+These JSON files should be of the form
+
+```json
+{
+    "<dataset name>.v<version>": [
+        {
+            "file": "<path>",
+            "size": "<size in bytes>",
+            "mtime": "<mtime>",
+            "sha256": "<checksum>"
+        },
+        ...
+    ],
+    ...
+}
+```
+
+This format is only used because it exists for previously previously published
+datasets, and reusing it means avoiding having to re-calculate checksums etc.
+
+### Dataset JSON
+
+This format combines CSV (which is easy to edit by hand) and 'CSV JSON', and
+is used in various scripts throughout publication:
+
+```json
+{
+    "<dataset name>.v<version>": {
+        "generate_aggregation": <boolean>,
+        "include_in_wms": <boolean>,
+        "tech_note_url": "<url>",
+        "tech_note_title": "<title>",
+        "files": [
+            {
+                "path": "<path>",
+                "sha256": "<checksum>",
+                "mtime": "<mtime>",
+                "size": "<size in bytes>"
+            },
+            ...
+        ]
+    },
+    ...
+}
+```
 
 ## Other scripts
 
@@ -94,28 +158,8 @@ be placed under `/usr/local/aggregations` on the live server.
 
 ### make_mapfiles.py
 
-This script generates ESGF mapfiles from a JSON file of the form
-
-```json
-{
-    "<dataset name>.v<version>": {
-        "generate_aggregation": <boolean>,
-        "include_in_wms": <boolean>,
-        "tech_note_url": "<url>",
-        "tech_note_title": "<title>",
-        "files": [
-            {
-                "path": "<path>",
-                "sha256": "<checksum>",
-                "mtime": "<mtime>",
-                "size": "<size in bytes>"
-            },
-            ...
-        ]
-    },
-    ...
-}
-```
+This script generates ESGF mapfiles from a JSON file in
+['dataset JSON'](#dataset-json) format.
 
 Usage: `./make_mapfiles.py <input JSON> <root output dir>`.
 
@@ -127,7 +171,7 @@ paths to the generated files are written to stdout.
 Usage: `./get_catalogs.py -o <outdir> -n <ncml dir> -e <path to esg.ini> <input JSON>`.
 
 This script is a wrapper around `modify_catalogs.py` that takes input JSON in
-the same format as `make_mapfiles.py` (see above), finds the location of
+['dataset JSON'](#dataset-json) format, finds the location of
 THREDDS catalogs produced by the publisher for each dataset, and runs
 `modify_catalogs.py` with appropriate arguments.
 
@@ -161,9 +205,7 @@ This script is located in `publication_utils`.
 Usage:  `./merge_csv_json.py <input CSV>`.
 
 Read a CSV file containing information about datasets to be published and
-print JSON in the format required by `make_mapfiles.py` to stdout.
-
-See `./merge_csv_json.py --help` for the required format of the CSV.
+print JSON in ['dataset JSON'](#dataset-json) format to stdout.
 
 ### transfer_catalogs.py
 
@@ -207,8 +249,7 @@ Send HTTP requests to OPeNDAP/WMS aggregation endpoints based on dataset IDs
 found in the input JSON. This makes sure THREDDS caches aggregations before any
 end-user tries to access them.
 
-The JSON input should be in the same format as required by `make_mapfiles.py`
-etc...
+Input JSON should be in ['dataset JSON'](#dataset-json) format.
 
 ## Tests
 
