@@ -25,8 +25,37 @@ source deactivate
 
 ## Usage
 
-First generate a proxy certificate (this is required to authenticate when
-publishing to Solr):
+First ensure a proxy certificate has been generated
+(see [below](#Generating-a-proxy-certificate)).
+
+To run the entire publication process, run
+
+```
+./publish.sh <input CSV>
+```
+
+Some environment variable are required by `publish.sh`:
+
+* `INI_ROOT` - parent directory containing ESGF ini config files.
+  The script looks at `${INI_ROOT}/cci-odp-data/esg.ini` to get the CCI config
+
+* `MAPFILES_ROOT` - parent directory under which to write mapfiles
+
+* `CATALOG_DIR` - directory to write modified THREDDS catalogs to
+
+* `NCML_DIR` - directory to write NcML aggregations to
+
+* `PUB_CONDA_ROOT` - conda root directory that has `esgf-pub` enviroment
+  setup in it
+
+* `ESACCI_CONDA_ROOT` - conda root directory that has `esgf_wms` enviroment
+  setup (see [installation](#Installation))
+
+See `merge_csv_json.py` for details on the format of the input CSV.
+
+### Generating a proxy certificate
+
+This is required to authenticate when publishing to Solr:
 
 ```bash
 mkdir -p ~/.globus
@@ -36,21 +65,10 @@ myproxy-logon -l <CEDA username> -s slcs1.ceda.ac.uk -o ~/.globus/certificate-fi
 (The `-b` flag downloads trustroots to `~/.globus` and only needs to be used
 the first time a certificate is generated)
 
-To run the entire publication process, run
+## Other scripts
 
-```
-./publish.sh <input CSV>
-```
-
-This script relies on a conda environment being set up as above.
-See `merge_csv_json.py` for details on the format of the input CSV.
-
-(**TODO**: document the env variables that are required to run `publish.sh`)
-
-Various python scripts are called from `publish.sh` throughout the process -
-they are documented below.
-
-## Publication
+`publish.sh` calls lots of python scripts throughout the process - they are
+documented below.
 
 ### modify_catalogs.py
 
@@ -162,10 +180,6 @@ Usage `./get_host_from_ini.py <path to esg.ini> (solr | thredds)`.
 
 Parse an ESGF ini config file and extract the hostname of the THREDDS or Solr
 server.
-
-## Aggregation helper scripts
-
-These scripts are located in `aggregation_utils`.
 
 ### partition_files.py
 
