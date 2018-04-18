@@ -218,6 +218,13 @@ server (default: cci-odp-data.ceda.ac.uk) and restarts tomcat.
 
 It will also copy the root catalog from `static/catalog.xml` in this repo.
 
+### find_ncml.py
+
+Usage: `./find_ncml.py <catalog>`
+
+Parse a THREDDS catalog and find paths of all referenced NcML aggregations.
+Print the path of each NcML file relative to the aggregation dir root.
+
 ### get_host_from_ini.py
 
 Usage `./get_host_from_ini.py <path to esg.ini> (solr | thredds)`.
