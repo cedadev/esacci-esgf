@@ -25,6 +25,8 @@ source deactivate
 
 ## Usage
 
+### Publishing
+
 First ensure a proxy certificate has been generated
 (see [below](#generating-a-proxy-certificate)).
 
@@ -64,6 +66,22 @@ myproxy-logon -l <CEDA username> -s slcs1.ceda.ac.uk -o ~/.globus/certificate-fi
 
 (The `-b` flag downloads trustroots to `~/.globus` and only needs to be used
 the first time a certificate is generated)
+
+### Un-publishing
+
+The shell script `unpublish.sh` will un-publish data and delete the modified
+THREDDS catalogs and aggregations from `CATALOG_DIR` and `NCML_DIR`
+respectively. It then synchronises the content in these directories with the
+remote THREDDS server.
+
+It is run as `./unpublish.sh <mapfile>`.
+
+It requires the following environment variables to be set (see
+[publish.sh usage](#publishing) for their meaning): `INI_ROOT`, `PUB_CONDA_ROOT`,
+`ESACCI_CONDA_ROOT`, `CATALOG_DIR`, `NCML_DIR`.
+
+As with `publish.sh`, ensure a valid proxy certificate has been generated
+before running.
 
 ## Input formats
 

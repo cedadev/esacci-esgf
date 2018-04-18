@@ -1,59 +1,20 @@
 #!/bin/bash
 
-die() {
-    echo "$0: $@" >&2
-    exit 1
-}
-
 usage() {
     echo "usage: $0 CSV_FILE"
     exit 1
 }
 
-log() {
-    echo "$0: $@"
-}
-
-# Activate a conda environment and run a command in a sub-shell
-# Usage: run_in_conda_env ENV_ROOT_DIR ENV_NAME command [arg [args...]]
-run_in_conda_env() {
-    env_root="$1"
-    shift
-    env_name="$1"
-    shift
-    (
-        . "$env_root/bin/activate" "$env_name" || die "failed to activate conda environment $env_name"
-        "$@"
-    )
-}
-
-# Run a command in the ESGF publisher conda enviroment
-esg_env() {
-    run_in_conda_env "$PUB_CONDA_ROOT" esgf-pub $@
-}
-
-# Run a command in the esgf_wms conda enviroment
-cci_env() {
-    run_in_conda_env "$ESACCI_CONDA_ROOT" esgf_wms $@
-}
+# Source definitions of `esg_env', `cci_env' and others, and constants
+source `dirname $0`/publication_utils/common.sh
 
 # Get CSV input from arguments
 in_csv="$1"
 [[ -n "$in_csv" ]] || usage
 
 # Check required environment variables are set
-[[ -n "$INI_ROOT" ]]          || die '$INI_ROOT not set'
 [[ -n "$MAPFILES_ROOT" ]]     || die '$MAPFILES_ROOT not set'
-[[ -n "$CATALOG_DIR" ]]       || die '$CATALOG_DIR not set'
-[[ -n "$NCML_DIR" ]]          || die '$NCML_DIR not set'
-[[ -n "$PUB_CONDA_ROOT" ]]    || die '$PUB_CONDA_ROOT not set'
-[[ -n "$ESACCI_CONDA_ROOT" ]] || die '$ESACCI_CONDA_ROOT not set'
 
-PROJ="esacci"
-REMOTE_TDS_HOST="cci-odp-data.ceda.ac.uk"
-REMOTE_TDS_USER="root"
-INI_DIR="${INI_ROOT}/cci-odp-data"
-INI_FILE="${INI_DIR}/esg.ini"
 MAPFILES_DIR="${MAPFILES_ROOT}/testing/"  # TODO: Avoid hardcoding
 
 # Get hostnames of services from esg.ini
@@ -62,10 +23,8 @@ REMOTE_TDS_HOST=`cci_env python publication_utils/get_host_from_ini.py "$INI_FIL
 SOLR_HOST=`cci_env python publication_utils/get_host_from_ini.py "$INI_FILE" solr` || \
     die "could not get Solr host from $INI_FILE"
 
-# Check we can SSH to remote server before starting
-log "checking SSH access to ${REMOTE_TDS_HOST}..."
-ssh ${REMOTE_TDS_USER}@${REMOTE_TDS_HOST} ls > /dev/null 2>&1 || \
-    die "cannot SSH to $REMOTE_TDS_HOST"
+# Check we have SSH access before starting
+ssh_check
 
 # Get input CSV in a JSON format used throughout the rest of the process
 in_json=`mktemp`
