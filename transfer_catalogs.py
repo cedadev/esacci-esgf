@@ -15,7 +15,8 @@ REMOTE_CATALOG_DEST = os.path.join(REMOTE_THREDDS_CONTENT_DIR, "esacci")
 
 
 class CatalogTransferer(object):
-    def __init__(self, user, host, catalog_dir, ncml_dir, verbose):
+    def __init__(self, user, host, catalog_dir, ncml_dir, verbose=False,
+                 delete=False):
         self.host_spec = "{}@{}".format(user, host)
 
         # Ensure directories end in '/' to get correct behaviour when rsync'ing
@@ -27,6 +28,7 @@ class CatalogTransferer(object):
         self.catalog_dir = catalog_dir
         self.ncml_dir = ncml_dir
         self.verbose = verbose
+        self.delete = delete
 
     def run_command(self, args):
         """
@@ -43,7 +45,12 @@ class CatalogTransferer(object):
         Use rsync to copy src to dest on the remote machine
         """
         remote_dest = "{}:{}".format(self.host_spec, dest)
-        self.run_command(["rsync", "-a", src, remote_dest])
+        args = ["-a", src, remote_dest]
+
+        if self.delete:
+            args.insert(0, "--delete")
+
+        self.run_command(["rsync"] + args)
 
     def remote_command(self, args):
         """
@@ -101,6 +108,13 @@ def main(arg_list):
         help="Directory containing NcML aggregations"
     )
     parser.add_argument(
+        "-d", "--delete",
+        action="store_true",
+        default=False,
+        help="Delete remote catalogs/aggregations not present in the input "
+             "directories"
+    )
+    parser.add_argument(
         "-v", "--verbose",
         action="store_true",
         default=False,
@@ -109,7 +123,8 @@ def main(arg_list):
 
     args = parser.parse_args(arg_list)
     txer = CatalogTransferer(args.user, args.cci_server, args.catalog_dir,
-                             args.ncml_dir, args.verbose)
+                             args.ncml_dir, verbose=args.verbose,
+                             delete=args.delete)
     txer.do_all()
 
 

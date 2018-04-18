@@ -211,12 +211,15 @@ print JSON in ['dataset JSON'](#dataset-json) format to stdout.
 
 ### transfer_catalogs.py
 
-Usage: `./transfer_catalogs.py -c <catalog dir> -n <ncml dir>`.
+Usage: `./transfer_catalogs.py -c <catalog dir> -n <ncml dir> [--delete]`.
 
 This script copies THREDDS catalogs and NcML aggregations to a remote THREDDS
 server (default: cci-odp-data.ceda.ac.uk) and restarts tomcat.
 
 It will also copy the root catalog from `static/catalog.xml` in this repo.
+
+The `--delete` flag causes remote catalogs/aggregations not present in the
+input directories to be deleted.
 
 ### find_ncml.py
 
