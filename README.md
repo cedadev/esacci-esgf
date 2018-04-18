@@ -181,6 +181,8 @@ catalogs) is preserved.
 
 The top level catalog is also copied to `<outdir>/catalog.xml`.
 
+If no JSON files are given then only the top level catalog is copied.
+
 It must be run after the first step of publication since the THREDDS catalogs
 need to exist and be recorded in the publication database.
 
