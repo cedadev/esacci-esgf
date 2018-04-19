@@ -2,18 +2,28 @@
 
 ## Script containing functions common to publishing and un-publishing
 
-die() {
-    echo "$0: $@" >&2
-    exit 1
-}
+PROG=`basename $0`
 
 bold=$(tput bold) || bold=""
 normal=$(tput sgr0) || normal=""
 
-log() {
+echo_bold() {
     echo -n "$bold"
-    echo "$0: $@"
+    echo $@
     echo -n "$normal"
+}
+
+die() {
+    echo "$PROG: $@" >&2
+    exit 1
+}
+
+warn() {
+    echo_bold "$PROG: WARNING: $@" >&2
+}
+
+log() {
+    echo_bold "$PROG: $@"
 }
 
 # Activate a conda environment and run a command in a sub-shell

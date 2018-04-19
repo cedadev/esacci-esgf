@@ -63,7 +63,7 @@ cci_env python get_catalogs.py -o "$CATALOG_DIR" -n "$NCML_DIR" -e "$INI_FILE" "
 # Copy catalogs and aggregations to CCI server and restart tomcat
 log "transferring catalogs to remote machine..."
 cci_env python transfer_catalogs.py -c "$CATALOG_DIR" -n "$NCML_DIR" -v \
-                                    -u "$REMOTE_TDS_USER" "$REMOTE_TDS_HOST" || \
+                                    -u "$REMOTE_TDS_USER" -s "$REMOTE_TDS_HOST" copy || \
     die "failed to transfer catalogs"
 
 # Make sure aggregations on CCI server are cached ready for users to access

@@ -70,9 +70,8 @@ the first time a certificate is generated)
 ### Un-publishing
 
 The shell script `unpublish.sh` will un-publish data and delete the modified
-THREDDS catalogs and aggregations from `CATALOG_DIR` and `NCML_DIR`
-respectively. It then synchronises the content in these directories with the
-remote THREDDS server.
+THREDDS catalogs and aggregations from the remote server and from `CATALOG_DIR`
+and `NCML_DIR` on the local machine (if they exist in these directories).
 
 It is run as `./unpublish.sh <mapfile>`.
 
@@ -229,15 +228,30 @@ print JSON in ['dataset JSON'](#dataset-json) format to stdout.
 
 ### transfer_catalogs.py
 
-Usage: `./transfer_catalogs.py -c <catalog dir> -n <ncml dir> [--delete]`.
+This script manages THREDDS catalogs and NcML aggregations on a remote THREDDS
+server. It supports copying content from the local machine, deleting content on
+the remote machine, and retrieving content from the remote machine.
 
-This script copies THREDDS catalogs and NcML aggregations to a remote THREDDS
-server (default: cci-odp-data.ceda.ac.uk) and restarts tomcat.
+Usage:
 
-It will also copy the root catalog from `static/catalog.xml` in this repo.
+`./transfer_catalogs.py [-c <catalog>] [-n <ncml>] (copy | delete | retrieve)`
 
-The `--delete` flag causes remote catalogs/aggregations not present in the
-input directories to be deleted.
+When copying, `<catalog>` and `<ncml>` should be local files or directories
+that are to be copied. The root catalog from `static/catalog.xml` in this repo
+is also copied.
+
+When deleting, `<catalog>` and `<ncml>` should be paths of files on the remote
+server relative to the THREDDS/NcML root directories (defined as constants in
+`modify_catalogs.py` and `transfer_catalogs.py`).
+
+Both `-c` and `-n` can be used multiple times when copying or deleting.
+
+When retrieving, `<catalog>` and `<ncml>` are interpreted in the same way as
+with deletion. Exactly one catalog or NcML file must be specified. The file's
+contents is written to stdout.
+
+The server hostname and user to connect as can be changed with `-s` and `-u`
+respectively.
 
 ### find_ncml.py
 
