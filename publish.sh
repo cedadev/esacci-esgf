@@ -23,8 +23,9 @@ REMOTE_TDS_HOST=`cci_env python publication_utils/get_host_from_ini.py "$INI_FIL
 SOLR_HOST=`cci_env python publication_utils/get_host_from_ini.py "$INI_FILE" solr` || \
     die "could not get Solr host from $INI_FILE"
 
-# Check we have SSH access before starting
+# Check SSH access and proxy certificate before starting
 ssh_check
+certificate_check
 
 # Get input CSV in a JSON format used throughout the rest of the process
 in_json=`mktemp`

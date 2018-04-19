@@ -10,6 +10,10 @@ source `dirname $0`/publication_utils/common.sh
 mapfile="$1"
 [[ -n "$mapfile" ]] || usage
 
+# Check SSH access and proxy certificate before starting
+ssh_check
+certificate_check
+
 # Get dataset ID from mapfile. This assumes the mapfile only describes a single
 # dataset
 dsid=`head -n1 "$mapfile" | cut -d'|' -f1 | sed 's/#/.v/'`
@@ -25,9 +29,6 @@ cci_env python transfer_catalogs.py -u "$REMOTE_TDS_USER" -s "$REMOTE_TDS_HOST" 
 agg_paths=`cci_env python find_ncml.py "$temp"` || \
     die "could not find paths to NcML files in $temp"
 rm "$temp"
-
-# Check we have SSH access before starting
-ssh_check
 
 # Delete from Solr
 log "deleting from Solr..."
