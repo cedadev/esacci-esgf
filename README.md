@@ -246,7 +246,15 @@ Usage: `./find_ncml.py <catalog>`
 Parse a THREDDS catalog and find paths of all referenced NcML aggregations.
 Print the path of each NcML file relative to the aggregation dir root.
 
+### get_catalog_path.py
+
+Usage: `./get_catalog_path.py -e <path to esg.ini> <dataset name>`
+
+Query the publication database to find the path of a THREDDS catalog relative
+to the THREDDS root.
+
 ### get_host_from_ini.py
+
 
 Usage `./get_host_from_ini.py <path to esg.ini> (solr | thredds)`.
 
