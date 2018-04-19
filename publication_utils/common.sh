@@ -60,17 +60,9 @@ ssh_check() {
 certificate_check() {
     log "checking certificate expiry time..."
     cert_file=~/.globus/certificate-file
-    expiry_str=`openssl x509 -in "$cert_file" -noout -enddate 2>/dev/null` || \
-        die "certificate at '$cert_file' could not be read"
-
-    expiry_date=`echo "$expiry_str" | cut -d'=' -f2`
-    expiry_seconds=`date --date="$expiry_date" +%s`
-    now=`date +%s`
-    # Only allow certificates with at least an hour remaining
-    min_expiry=$((now + 60*60))
-    if [[ $expiry_seconds -lt $min_expiry ]]; then
-        die "certificate at '$cert_file' has less than one hour before expiry -" \
-            "please renew and try again"
+    if ! openssl x509 -in "$cert_file" -noout -checkend 3600 2>/dev/null; then
+        die "certificate at '$cert_file' is not valid or expires within one" \
+            "hour. please renew and try again"
     fi
 }
 
