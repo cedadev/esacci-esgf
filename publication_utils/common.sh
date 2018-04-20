@@ -41,7 +41,7 @@ run_in_conda_env() {
 
 # Run a command in the ESGF publisher conda enviroment
 esg_env() {
-    run_in_conda_env "$PUB_CONDA_ROOT" esgf-pub $@
+    run_in_conda_env "$PUB_CONDA_ROOT" "$PUB_CONDA_ENV" $@
 }
 
 # Run a command in the esgf_wms conda enviroment
@@ -69,6 +69,7 @@ certificate_check() {
 # Check required environment variables are set
 [[ -n "$INI_ROOT" ]]          || die '$INI_ROOT not set'
 [[ -n "$PUB_CONDA_ROOT" ]]    || die '$PUB_CONDA_ROOT not set'
+[[ -n "$PUB_CONDA_ENV" ]]     || die '$PUB_CONDA_ENV not set'
 [[ -n "$ESACCI_CONDA_ROOT" ]] || die '$ESACCI_CONDA_ROOT not set'
 [[ -n "$CATALOG_DIR" ]]       || die '$CATALOG_DIR not set'
 [[ -n "$NCML_DIR" ]]          || die '$NCML_DIR not set'

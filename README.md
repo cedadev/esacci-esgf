@@ -47,7 +47,9 @@ Some environment variable are required by `publish.sh`:
 
 * `NCML_DIR` - directory to write NcML aggregations to
 
-* `PUB_CONDA_ROOT` - conda root directory that has `esgf-pub` enviroment
+* `PUB_CONDA_ENV` - name of the conda enviroment used to run the ESGF publisher
+
+* `PUB_CONDA_ROOT` - conda root directory that has `PUB_CONDA_ENV` enviroment
   setup in it
 
 * `ESACCI_CONDA_ROOT` - conda root directory that has `esgf_wms` enviroment
