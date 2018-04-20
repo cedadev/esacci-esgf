@@ -1,19 +1,32 @@
 #!/bin/bash
 
+# Source definitions of `esg_env', `cci_env' and others, and constants
+source `dirname $0`/publication_utils/common.sh
+
 usage() {
     echo "usage: $0 CSV_FILE"
     exit 1
 }
 
-# Source definitions of `esg_env', `cci_env' and others, and constants
-source `dirname $0`/publication_utils/common.sh
+# Make sure the proxy certificate has at least an hour remaining; if not then
+# loop until it is renewed
+certificate_check_loop() {
+    while ! certificate_test 71; do
+        if [[ -z "$cert_msg_shown" ]]; then
+            cert_msg_shown="yep"
+            log "certificate at '$CERT_FILE' has less than one hour before expiry. waiting for it to be renewed"
+        fi
+        sleep 1
+    done
+    unset cert_msg_shown
+}
 
 # Get CSV input from arguments
 in_csv="$1"
 [[ -n "$in_csv" ]] || usage
 
 # Check required environment variables are set
-[[ -n "$MAPFILES_ROOT" ]]     || die '$MAPFILES_ROOT not set'
+[[ -n "$MAPFILES_ROOT" ]] || die '$MAPFILES_ROOT not set'
 
 MAPFILES_DIR="${MAPFILES_ROOT}/testing/"  # TODO: Avoid hardcoding
 
@@ -25,7 +38,7 @@ SOLR_HOST=`cci_env python publication_utils/get_host_from_ini.py "$INI_FILE" sol
 
 # Check SSH access and proxy certificate before starting
 ssh_check
-certificate_check
+certificate_check 70
 
 # Get input CSV in a JSON format used throughout the rest of the process
 in_json=`mktemp`
@@ -42,6 +55,7 @@ for mapfile in $mapfiles; do
 
     # Publish to postgres - this step may be slow as the publisher will need
     # to open each data file
+    certificate_check_loop
     esg_env esgpublish -i "$INI_DIR" --project "$PROJ" --map "$mapfile" || \
         die "failed to publish to postgres"
 
@@ -77,6 +91,7 @@ for mapfile in $mapfiles; do
     log "processing mapfile ${mapfile}..."
 
     # Publish to Solr by looking at endpoints on THREDDS server
+    certificate_check_loop
     esg_env esgpublish -i "$INI_DIR" --project "$PROJ" --map "$mapfile" --noscan --publish || \
         die "failed to publish to Solr"
 done

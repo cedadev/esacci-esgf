@@ -63,7 +63,7 @@ This is required to authenticate when publishing to Solr:
 
 ```bash
 mkdir -p ~/.globus
-myproxy-logon -l <CEDA username> -s slcs1.ceda.ac.uk -o ~/.globus/certificate-file -b
+myproxy-logon -l <CEDA username> -s slcs1.ceda.ac.uk -o ~/.globus/certificate-file -b -t 72
 ```
 
 (The `-b` flag downloads trustroots to `~/.globus` and only needs to be used

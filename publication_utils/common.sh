@@ -56,14 +56,19 @@ ssh_check() {
         die "cannot SSH to $REMOTE_TDS_HOST"
 }
 
-# Check proxy certificate doesn't expire very soon
+# Usage: certificate_check MIN_HOURS
+# Check proxy certificate doesn't expire within MIN_HOURS hours
+certificate_test() {
+    min_hours=$1
+    seconds=$((min_hours * 60 * 60))
+    openssl x509 -in "$CERT_FILE" -noout -checkend $seconds 2>/dev/null
+}
+
 certificate_check() {
     log "checking certificate expiry time..."
-    cert_file=~/.globus/certificate-file
-    if ! openssl x509 -in "$cert_file" -noout -checkend 3600 2>/dev/null; then
-        die "certificate at '$cert_file' is not valid or expires within one" \
-            "hour. please renew and try again"
-    fi
+    min_hours=$1
+    msg="certificate at '$CERT_FILE' is not valid or expires within $min_hours hours. please renew and try again"
+    certificate_test $min_hours || die "$msg"
 }
 
 # Check required environment variables are set
@@ -79,3 +84,4 @@ REMOTE_TDS_HOST="cci-odp-data.ceda.ac.uk"
 REMOTE_TDS_USER="root"
 INI_DIR="${INI_ROOT}/cci-odp-data"
 INI_FILE="${INI_DIR}/esg.ini"
+CERT_FILE=~/.globus/certificate-file

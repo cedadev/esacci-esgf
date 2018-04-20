@@ -12,7 +12,7 @@ mapfile="$1"
 
 # Check SSH access and proxy certificate before starting
 ssh_check
-certificate_check
+certificate_check 70
 
 # Get dataset ID from mapfile. This assumes the mapfile only describes a single
 # dataset
