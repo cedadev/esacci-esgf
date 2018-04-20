@@ -49,11 +49,11 @@ for mapfile in $mapfiles; do
     esg_env esgpublish -i "$INI_DIR" --project "$PROJ" --map "$mapfile" --noscan --thredds \
                --service fileservice --no-thredds-reinit || \
         die "failed to create THREDDS catalogs"
-
-    # Create top level catalog and reinit THREDDS
-    # TODO: Handle error here once thredds-reinit is working on cci-odp-data
-    esg_env esgpublish -i "$INI_DIR" --project "$PROJ" --thredds-reinit
 done
+
+# Create top level catalog and reinit THREDDS
+# TODO: Handle error here once thredds-reinit is working on cci-odp-data
+esg_env esgpublish -i "$INI_DIR" --project "$PROJ" --thredds-reinit
 
 # Retrieve generated THREDDS catalogs and modify them as necessary.
 # This may be slow as to create aggregations each data file needs to be opened
