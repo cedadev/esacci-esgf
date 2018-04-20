@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 """
 Script to modify THREDDS xml files to remove ESGF-specific markup. Optionally
-create NcML aggregations and make these accessible through OPeNDAP/WMS/WCS.
+create an NcML aggregation and make it accessible through OPeNDAP/WMS/WCS.
 """
 
 import sys
@@ -9,6 +9,7 @@ import os
 import traceback
 import xml.etree.cElementTree as ET
 import argparse
+from collections import namedtuple
 
 from cached_property import cached_property
 
@@ -18,6 +19,17 @@ from aggregation_utils.aggregate import create_aggregation, AggregationError
 
 # The directory in which aggregations will be stored on the live server
 REMOTE_AGGREGATIONS_DIR = "/usr/local/aggregations"
+
+
+class AggregationInfo(namedtuple("AggregationInfo", ["xml_element", "basename",
+                                                     "sub_dir"])):
+    """
+    namedtuple to store information about an NcML aggregation
+    - xml_element - instance of ThreddsXMLBase for the NcML document
+    - basename    - basename of the to-be-created NcML file
+    - sub_dir      - subdirectory of the root aggregations dir in which the
+                    NcML file should be created
+    """
 
 
 class ThreddsXMLBase(object):
@@ -123,11 +135,7 @@ class ThreddsXMLDataset(ThreddsXMLBase):
         self.thredds_roots.setdefault("esg_esacci", "/neodc/esacci")
         self.do_wcs = do_wcs
         self.aggregations_dir = aggregations_dir
-
-        # For each NcML file for an aggregation of datasets, map
-        # (file basename, subdir) -> ThreddsXMLBase, where subdir is the subdirectory
-        # of self.aggregations_dir in which the file will live
-        self.aggregations = {}
+        self.aggregation = None
 
     @cached_property
     def top_level_dataset(self):
@@ -177,16 +185,17 @@ class ThreddsXMLDataset(ThreddsXMLBase):
 
     def write(self, filename, agg_dir):
         """
-        Write this catalog to 'filename', and save aggregations in 'agg_dir'
+        Write this catalog to 'filename', and save the aggregation in 'agg_dir'
         """
         super().write(filename)
 
-        for (fn, subdir), agg in self.aggregations.items():
-            abs_subdir = os.path.join(agg_dir, subdir)
+        if self.aggregation:
+            agg = self.aggregation
+            abs_subdir = os.path.join(agg_dir, agg.sub_dir)
             if not os.path.isdir(abs_subdir):
                 os.makedirs(abs_subdir)
 
-            agg.write(os.path.join(abs_subdir, fn))
+            agg.xml_element.write(os.path.join(abs_subdir, agg.basename))
 
     def strip_restrict_access(self):
         """
@@ -214,12 +223,12 @@ class ThreddsXMLDataset(ThreddsXMLBase):
                 for element in self.second_level_datasets
                 if element.attrib["serviceName"] == "HTTPServer"]
 
-    def add_aggregations(self, add_wms=False):
+    def add_aggregation(self, add_wms=False):
         """
-        Create one or more NcML aggregations from netCDF files in this dataset,
-        and link to them in the catalog.
+        Create an NcML aggregation from netCDF files in this dataset, and link
+        to them in the catalog.
 
-        The NcML documents are saved in self.aggregations
+        The NcML document and related info is saved in self.aggregation
         """
         # Get directory to store aggregation in by splitting file name into
         # its facets and having a subdirectory for each component.
@@ -237,54 +246,55 @@ class ThreddsXMLDataset(ThreddsXMLBase):
             if self.do_wcs:
                 services.append("wcs")
 
-        # Partition file list into groups that can be aggregated
-        groups = partition_files(self.netcdf_files())
-        for common_name, filenames in groups.items():
-            dsid = None
-            if len(groups) > 1:
-                # common_name is path on disk of files in aggregation, with
-                # differences (i.e. dates) replaced with 'x'. Remove prefix
-                # and replace '/' to create an ID
-                dsid = common_name.replace("/neodc/esacci/", "").replace("/", ".")
-            else:
-                dsid = self.dataset_id
+        dsid = self.dataset_id
+        print("Creating aggregation '{}'".format(dsid))
+        file_list = self.netcdf_files()
 
-            print("Creating aggregation '{}'".format(dsid))
-            try:
-                agg_element = create_aggregation(filenames)
-            except AggregationError:
-                print("WARNING: Failed to create aggregation", file=sys.stderr)
-                return
+        # If file list looks like it contains heterogeneous files then show a
+        # warning
+        groups = partition_files(file_list)
+        if len(groups) > 1:
+            msg = ("WARNING: File list for dataset '{dsid}' may contain "
+                   "heterogeneous files (found {n} potential groups)")
+            print(msg.format(dsid=dsid, n=len(groups)), file=sys.stderr)
 
-            ds = self.new_element("dataset", name=dsid, ID=dsid, urlPath=dsid)
+        try:
+            agg_element = create_aggregation(file_list)
+        except AggregationError:
+            print("WARNING: Failed to create aggregation", file=sys.stderr)
+            return
 
-            for service_name in services:
-                access = self.new_element("access", serviceName=service_name, urlPath=dsid)
-                # Add 'access' to new dataset so that it has the required
-                # endpoints in THREDDS
-                ds.append(access)
-                # Add 'access' to the top-level dataset so that the esgf
-                # publisher picks up the WMS endpoints when publishing to Solr
-                self.top_level_dataset.append(access)
+        ds = self.new_element("dataset", name=dsid, ID=dsid, urlPath=dsid)
 
-            agg_xml = ThreddsXMLBase()
-            agg_xml.set_root(agg_element)
+        for service_name in services:
+            access = self.new_element("access", serviceName=service_name, urlPath=dsid)
+            # Add 'access' to new dataset so that it has the required
+            # endpoints in THREDDS
+            ds.append(access)
+            # Add 'access' to the top-level dataset so that the esgf
+            # publisher picks up the WMS endpoints when publishing to Solr
+            self.top_level_dataset.append(access)
 
-            agg_basename = "{}.ncml".format(dsid)
-            self.aggregations[(agg_basename, sub_dir)] = agg_xml
+        agg_xml = ThreddsXMLBase()
+        agg_xml.set_root(agg_element)
 
-            # Create a 'netcdf' element in the catalog that points to the file containing the
-            # aggregation
-            agg_full_path = os.path.join(self.aggregations_dir, sub_dir, agg_basename)
-            self.new_child(ds, "netcdf", location=agg_full_path,
-                           xmlns="http://www.unidata.ucar.edu/namespaces/netcdf/ncml-2.2")
-            self.top_level_dataset.append(ds)
+        agg_basename = "{}.ncml".format(dsid)
+        self.aggregation = AggregationInfo(xml_element=agg_xml,
+                                           basename=agg_basename,
+                                           sub_dir=sub_dir)
+
+        # Create a 'netcdf' element in the catalog that points to the file containing the
+        # aggregation
+        agg_full_path = os.path.join(self.aggregations_dir, sub_dir, agg_basename)
+        self.new_child(ds, "netcdf", location=agg_full_path,
+                       xmlns="http://www.unidata.ucar.edu/namespaces/netcdf/ncml-2.2")
+        self.top_level_dataset.append(ds)
 
     def all_changes(self, create_aggs=False, add_wms=False):
         self.strip_restrict_access()
 
         if create_aggs:
-            self.add_aggregations(add_wms=add_wms)
+            self.add_aggregation(add_wms=add_wms)
 
         # Add WMS/WCS services
         if add_wms:

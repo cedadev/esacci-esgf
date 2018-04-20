@@ -279,21 +279,32 @@ server.
 
 ### partition_files.py
 
-Usage: `./partition_files.py <outdir>`.
+Read file paths from stdin and partition into sets such that paths in each set
+only differ by having a different date in the directory components of the path.
 
-Read file paths from standard input and partitions them into groups of files that can likely be
-aggregated based on their filenames. These groups are written to files `<outdir>/1`, `<outdir>/2`
-etc...
+Print the directory name for each group on stdout, with date characters
+replaced with 'x'.
 
 ### aggregate.py
 
-Read file paths from standard input (one per line) and write an NcML aggregation of those files to
-standard output.
+Read file paths from standard input (one per line) and write an NcML
+aggregation of those files to standard output.
 
-### agg_wrapper.sh
+### find_netcdf.py
 
-A convenience script `./agg_wrapper.sh <dir>` finds NetCDF files in `<dir>`, runs
-`partition_files.py` on the list and `aggregate.py` on each output.
+Usage: `./find_netcdf.py <catalog>`
+
+Parse a THREDDS catalog and list the references NetCDF files.
+
+This script can be used with `partition_files.py` to check whether files in a
+THREDDS catalog can likely be aggregated as one - e.g.
+
+```bash
+num=`python find_netcdf.py <catalog> | python partition_files.py | wc --lines`
+if [[ $num -gt 1 ]]; then
+    echo "files might be heterogeneous"
+fi
+```
 
 ### cache_remote_aggregations.py
 
