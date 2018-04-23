@@ -277,6 +277,13 @@ Usage `./get_host_from_ini.py <path to esg.ini> (solr | thredds)`.
 Parse an ESGF ini config file and extract the hostname of the THREDDS or Solr
 server.
 
+### remove_key.py
+
+Usage: `./remove_key.py <key> <json file>`.
+
+Remove a key from the top level of a JSON dictionary, and print the new
+dictionary to stdout.
+
 ### partition_files.py
 
 Read file paths from stdin and partition into sets such that paths in each set

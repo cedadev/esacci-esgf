@@ -16,7 +16,7 @@ certificate_check 70
 
 # Get dataset ID from mapfile. This assumes the mapfile only describes a single
 # dataset
-dsid=`head -n1 "$mapfile" | cut -d'|' -f1 | sed 's/#/.v/'`
+dsid=`dsid_from_mapfile "$mapfile"`
 
 # Find the path to catalog and any aggregations referenced by it
 relative_cat_path=`cci_env python get_catalog_path.py -e "$INI_FILE" "$dsid"` || \

@@ -71,6 +71,13 @@ certificate_check() {
     certificate_test $min_hours || die "$msg"
 }
 
+# Usage: dsid_from_mapfile MAPFILE
+# This assumes the mapfile only describes a single dataset, as it only looks at
+# the first line
+dsid_from_mapfile() {
+    head -n1 "$1" | cut -d'|' -f1 | sed 's/#/.v/' | sed 's/ //g'
+}
+
 # Check required environment variables are set
 [[ -n "$INI_ROOT" ]]          || die '$INI_ROOT not set'
 [[ -n "$PUB_CONDA_ROOT" ]]    || die '$PUB_CONDA_ROOT not set'

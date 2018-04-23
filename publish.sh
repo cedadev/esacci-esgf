@@ -21,6 +21,16 @@ certificate_check_loop() {
     unset cert_msg_shown
 }
 
+# Usage: remove_exclusions LIST EXCLUSIONS
+# Remove strings in EXCLUSIONS from LIST. Both lists should contain strings
+# separated by spaces
+remove_exclusions() {
+    list="$1"
+    exclusions="$2"
+    sed_cmd="s/ /\n/g"
+    comm -23 <(echo "$list" | sed "$sed_cmd" | sort) <(echo "$exclusions" | sed "$sed_cmd" | sort)
+}
+
 # Get CSV input from arguments
 in_csv="$1"
 [[ -n "$in_csv" ]] || usage
@@ -49,6 +59,8 @@ cci_env python publication_utils/merge_csv_json.py "$in_csv" > "$in_json" || \
 log "generating mapfiles in $MAPFILES_DIR..."
 mapfiles=`cci_env python make_mapfiles.py "$in_json" "$MAPFILES_DIR"` || \
     die "failed to generate mapfiles"
+# Build a list of mapfiles to exclude from later steps
+excluded_mapfiles=""
 
 for mapfile in $mapfiles; do
     log "processing mapfile ${mapfile}..."
@@ -56,14 +68,40 @@ for mapfile in $mapfiles; do
     # Publish to postgres - this step may be slow as the publisher will need
     # to open each data file
     certificate_check_loop
-    esg_env esgpublish -i "$INI_DIR" --project "$PROJ" --map "$mapfile" || \
-        die "failed to publish to postgres"
+    esg_env esgpublish -i "$INI_DIR" --project "$PROJ" --map "$mapfile"
+    publish_status=$?
 
-    # Create THREDDS catalogs for each dataset
-    esg_env esgpublish -i "$INI_DIR" --project "$PROJ" --map "$mapfile" --noscan --thredds \
-               --service fileservice --no-thredds-reinit || \
-        die "failed to create THREDDS catalogs"
+    if [[ $publish_status -eq 0 ]]; then
+        # Create THREDDS catalogs for each dataset
+        esg_env esgpublish -i "$INI_DIR" --project "$PROJ" --map "$mapfile" --noscan --thredds \
+                           --service fileservice --no-thredds-reinit
+        thredds_status=$?
+        if [[ $thredds_status -ne 0 ]]; then
+            warn "failed to create THREDDS catalogs"
+        fi
+    else
+        warn "failed to publish to postgres"
+    fi
+
+    if [[ $publish_status -ne 0 || $thredds_status -ne 0 ]]; then
+        # Add to exclude list
+        dsid=`dsid_from_mapfile "$mapfile"`
+        warn "excluding '$dsid' from publication"
+        if [[ -z $excluded_mapfiles ]]; then
+            excluded_mapfiles="$mapfile"
+        else
+            excluded_mapfiles="${excluded_mapfiles} ${mapfile}"
+        fi
+
+        # Remove from JSON
+        temp_json="${in_json}.bak"
+        mv "$in_json" $temp_json
+        cci_env python publication_utils/remove_key.py "$dsid" "$temp_json" > "$in_json"
+        rm "$temp_json"
+    fi
 done
+
+mapfiles=`remove_exclusions "$mapfiles" "$excluded_mapfiles"`
 
 # Create top level catalog and reinit THREDDS
 # TODO: Handle error here once thredds-reinit is working on cci-odp-data
@@ -93,7 +131,7 @@ for mapfile in $mapfiles; do
     # Publish to Solr by looking at endpoints on THREDDS server
     certificate_check_loop
     esg_env esgpublish -i "$INI_DIR" --project "$PROJ" --map "$mapfile" --noscan --publish || \
-        die "failed to publish to Solr"
+        warn "failed to publish to Solr"
 done
 
 log "modifying WMS links in Solr..."
