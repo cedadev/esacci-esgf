@@ -239,8 +239,7 @@ Usage:
 `./transfer_catalogs.py [-c <catalog>] [-n <ncml>] (copy | delete | retrieve)`
 
 When copying, `<catalog>` and `<ncml>` should be local files or directories
-that are to be copied. The root catalog from `static/catalog.xml` in this repo
-is also copied.
+that are to be copied.
 
 When deleting, `<catalog>` and `<ncml>` should be paths of files on the remote
 server relative to the THREDDS/NcML root directories (defined as constants in

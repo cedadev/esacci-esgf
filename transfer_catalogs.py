@@ -12,8 +12,7 @@ import argparse
 from modify_catalogs import REMOTE_AGGREGATIONS_DIR
 
 
-REMOTE_THREDDS_CONTENT_DIR = "/var/lib/tomcat/content/thredds"
-REMOTE_CATALOG_DEST = os.path.join(REMOTE_THREDDS_CONTENT_DIR, "esacci")
+REMOTE_CATALOG_DEST = "/var/lib/tomcat/content/thredds/esacci"
 
 
 class RemoteCatalogHandler(object):
@@ -58,18 +57,10 @@ class RemoteCatalogHandler(object):
 
     def copy_to_server(self, catalog_paths, ncml_paths):
         """
-        Copy catalogs and NcML files at the given paths to the remote server,
-        and copy the root-level catalog
+        Copy catalogs and NcML files at the given paths to the remote server
         """
         # Ensure directory to place catalogs in exists on the remote machine
         self.remote_command(["mkdir", "-p", REMOTE_CATALOG_DEST])
-
-        # Construct src/dest paths for root catalog (which links to 'top level'
-        # catalog)
-        local_root_cat = os.path.join(os.path.dirname(__file__), "static",
-                                      "catalog.xml")
-        remote_root_cat = os.path.join(REMOTE_THREDDS_CONTENT_DIR,
-                                       "catalog.xml")
 
         # Ensure a path ends with '/' if it is a directory to get correct
         # behaviour when rsync'ing
@@ -77,9 +68,7 @@ class RemoteCatalogHandler(object):
             return p + "/" if os.path.isdir(p) and not p.endswith("/") else p
 
         # Build a list of (src, dest) to use with rsync
-        transfers = [
-            (local_root_cat, remote_root_cat),
-        ]
+        transfers = []
         for path in catalog_paths:
             transfers.append((normalise_path(path), REMOTE_CATALOG_DEST))
         for path in ncml_paths:
