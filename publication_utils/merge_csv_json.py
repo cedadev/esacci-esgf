@@ -76,7 +76,12 @@ class Dataset(namedtuple("Dataset", ["drs", "num_files", "tech_note_url",
         with open(self.json_filename) as json_file:
             json_doc = json.load(json_file)
 
-        ds_info = json_doc[self.drs]
+        try:
+            ds_info = json_doc[self.drs]
+        except KeyError:
+            raise KeyError("Dataset '{}' not found in JSON file '{}'"
+                           .format(self.drs, self.json_filename))
+
         for file_dict in ds_info:
             # Rename 'file' to 'path'...
             file_dict["path"] = file_dict["file"]
