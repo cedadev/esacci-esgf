@@ -11,7 +11,7 @@ usage() {
 # Make sure the proxy certificate has at least an hour remaining; if not then
 # loop until it is renewed
 certificate_check_loop() {
-    while ! certificate_test 71; do
+    while ! certificate_test 1; do
         if [[ -z "$cert_msg_shown" ]]; then
             cert_msg_shown="yep"
             log "certificate at '$CERT_FILE' has less than one hour before expiry. waiting for it to be renewed"
