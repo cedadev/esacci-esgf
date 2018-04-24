@@ -5,23 +5,29 @@ and creating NcML aggregations.
 
 ## Installation
 
-Requirements are listed in `requirements.txt` and can be installed with
-`pip install -r requirements.txt`. All the Python code has been developed and
-tested under Python 3.4.5.
+Dependencies should be installed in a conda environment with Python 3.4.5
+installed:
 
-Use the following to set up a conda environment on `esgf-pub.ceda.ac.uk` to
-run the Python code under:
+```bash
+# Install conda (python 3)
+conda_root="/path/to/create/conda/installation"
+wget https://repo.continuum.io/miniconda/Miniconda3-latest-Linux-x86_64.sh
+bash Miniconda3-latest-Linux-x86_64.sh -b -p $conda_root
 
+# Create a new env
+export PATH="${conda_root}/bin:$PATH"
+conda env create -f environment.yml
 ```
-source /usr/local/publication/setup_env.sh`
-wget --no-check-certificate https://repo.continuum.io/miniconda/Miniconda2-latest-Linux-x86_64.sh
-bash Miniconda2-latest-Linux-x86_64.sh -b -p $ESACCI_CONDA_ROOT
-export PATH=${ESACCI_CONDA_ROOT}/bin:$PATH
-conda create -y -n esgf_wms -c conda-forge python=3.4.5
-source activate esgf_wms
-pip install -r requirements.txt
-source deactivate
+
+To activate it:
 ```
+export PATH="${conda_root}/bin:$PATH"
+source "${conda_root}/etc/profile.d/conda.sh"
+conda activate esgf_wms
+```
+
+(the use of a `$conda_root` variable is for demo purposes and is not strictly
+necessary)
 
 ## Usage
 
@@ -56,6 +62,9 @@ Some environment variable are required by `publish.sh`:
   setup (see [installation](#installation))
 
 The format of the input CSV is [documented below](#csv).
+
+Note that `publish.sh` invokes both the `esgf_wms` and `esgf-pub` conda
+environments, so make sure neither one is activated before running.
 
 ### Generating a proxy certificate
 
@@ -187,7 +196,7 @@ paths to the generated files are written to stdout.
 
 ### get_catalogs.py
 
-Usage: `./get_catalogs.py -o <outdir> -n <ncml dir> -e <path to esg.ini> <input JSON>`.
+Usage: `./get_catalogs.py -o <outdir> -n <ncml dir> -e <path to esg.ini> [<input JSON>...]`.
 
 This script is a wrapper around `modify_catalogs.py` that takes input JSON in
 ['dataset JSON'](#dataset-json) format, finds the location of
