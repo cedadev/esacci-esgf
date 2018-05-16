@@ -88,6 +88,7 @@ dsid_from_mapfile() {
 
 PROJ="esacci"
 REMOTE_TDS_HOST="cci-odp-data.ceda.ac.uk"
+REMOTE_TDS_URL="http://${REMOTE_TDS_HOST}/thredds/"
 REMOTE_TDS_USER="root"
 INI_DIR="${INI_ROOT}/cci-odp-data"
 INI_FILE="${INI_DIR}/esg.ini"

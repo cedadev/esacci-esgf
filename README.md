@@ -329,7 +329,7 @@ fi
 
 ### cache_remote_aggregations.py
 
-Usage: `./cache_remote_aggregations.py <input JSON> [<base THREDDS URL]`.
+Usage: `./cache_remote_aggregations.py <input JSON> <base THREDDS URL>`.
 
 Send HTTP requests to OPeNDAP/WMS aggregation endpoints based on dataset IDs
 found in the input JSON. This makes sure THREDDS caches aggregations before any

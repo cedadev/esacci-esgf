@@ -5,6 +5,16 @@ THREDDS server so that they are cached for future access.
 
 This script will not wait for each request to complete, so the aggregations
 will not necessarily be cached immediately after the script terminates.
+
+JSON input should be of the following form:
+{
+    "<dataset ID>": {
+        "generate_aggregation": <boolean>,
+        "include_in_wms": <boolean>
+    },
+    ...
+}
+(any extra keys in the inner dictionaries are ignored)
 """
 import sys
 import json
@@ -15,6 +25,9 @@ import requests
 
 class AggregationCacher(object):
     def __init__(self, input_json, base_thredds_url, verbose=False):
+        if base_thredds_url.endswith("/"):
+            base_thredds_url = base_thredds_url[:-1]
+
         self.base_thredds_url = base_thredds_url
         self.verbose = verbose
 
@@ -73,10 +86,7 @@ def main(arg_list):
     )
     parser.add_argument(
         "base_thredds_url",
-        nargs="?",
-        default="http://cci-odp-data.ceda.ac.uk/thredds",
-        help="Base URL of the THREDDS server hosting aggregations [default: "
-             "%(default)s]"
+        help="Base URL of the THREDDS server hosting aggregations"
     )
     parser.add_argument(
         "-v", "--verbose",
