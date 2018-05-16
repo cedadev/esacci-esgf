@@ -11,6 +11,7 @@ import numpy as np
 
 from modify_catalogs import ProcessBatch
 from find_ncml import find_ncml_references
+from find_netcdf import find_netcdf_references
 from aggregation_utils.aggregate import create_aggregation, element_to_string, AggregationError
 from aggregation_utils.partition_files import partition_files
 from aggregation_utils.cache_remote_aggregations import AggregationCacher
@@ -609,3 +610,29 @@ class TestNcmlFinder(object):
         """.strip())
         got = list(find_ncml_references(str(catalog)))
         assert got == []
+
+class TestNetcdfFinder(object):
+    def test_netcdf_present(self, tmpdir):
+        """
+        Check that a NetCDF file is found and the dataset roots are replaced
+        with path on disk
+        """
+        catalog = tmpdir.join("catalog.xml")
+        catalog.write("""
+            <?xml version="1.0" encoding="UTF-8"?>
+            <catalog>
+                <dataset name="some.dataset1" ID="some.dataset1" urlPath="prefix1/one.nc"/>
+                <dataset name="some.dataset2" ID="some.dataset2" urlPath="prefix2/two.nc"/>
+                <dataset name="some.dataset3" ID="some.dataset3" urlPath="prefix3/three.nc"/>
+                <dataset name="some.dataset4" ID="some.dataset4">
+                    <dataset name="nested.dataset" ID="nested.dataset" urlPath="nested.nc"/>
+                </dataset>
+            </catalog>
+        """.strip())
+        roots = {
+            "prefix1": "/first/path",
+            "prefix2": "/second/path"
+        }
+        got = list(find_netcdf_references(str(catalog), dataset_roots=roots))
+        assert got == ["/first/path/one.nc", "/second/path/two.nc",
+                       "prefix3/three.nc", "nested.nc"]

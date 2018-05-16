@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 """
-Read filenames of datasets from standard input and print an NcML aggregation to
-standard output.
+Read filenames of NetCDF datasets from standard input and print an NcML
+aggregation to standard output.
 """
 import os
 import sys

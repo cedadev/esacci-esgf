@@ -8,20 +8,14 @@ import os
 import argparse
 import xml.etree.cElementTree as ET
 
+from xml_utils import find_by_tagname
+
 
 def find_ncml_references(catalog_filename):
     """
     Find <netcdf> elements and extract paths from their 'location' attributes
     """
-    tree = ET.ElementTree()
-    tree.parse(catalog_filename)
-    root = tree.getroot()
-
-    # Regex to optionally match namspace in tag name
-    netcdf_tag_regex = re.compile("({[^}]+})?netcdf")
-    els = (el for el in root.iter() if re.fullmatch(netcdf_tag_regex, el.tag))
-
-    for el in els:
+    for el in find_by_tagname(catalog_filename, "netcdf"):
         yield el.attrib["location"]
 
 
