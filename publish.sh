@@ -110,13 +110,17 @@ esg_env esgpublish -i "$INI_DIR" --project "$PROJ" --thredds-reinit
 # Retrieve generated THREDDS catalogs and modify them as necessary.
 # This may be slow as to create aggregations each data file needs to be opened
 log "modifying catalogs..."
-cci_env python get_catalogs.py -o "$CATALOG_DIR" -n "$NCML_DIR" -e "$INI_FILE" "$in_json" \
+cci_env python get_catalogs.py -o "$CATALOG_DIR" -n "$NCML_DIR" -e "$INI_FILE" \
+                               --remote-agg-dir "$REMOTE_AGGREGATIONS_DIR" "$in_json" \
     > /dev/null || die "failed to retrieve/modify THREDDS catalogs"
 
 # Copy catalogs and aggregations to CCI server and restart tomcat
 log "transferring catalogs to remote machine..."
 cci_env python transfer_catalogs.py -c "$CATALOG_DIR" -n "$NCML_DIR" -v \
-                                    -u "$REMOTE_TDS_USER" -s "$REMOTE_TDS_HOST" copy || \
+                                    -u "$REMOTE_TDS_USER" -s "$REMOTE_TDS_HOST" \
+                                    --remote-catalog-dir="$REMOTE_CATALOG_DIR" \
+                                    --remote-agg-dir="$REMOTE_AGGREGATIONS_DIR" \
+                                    copy || \
     die "failed to transfer catalogs"
 
 # Make sure aggregations on CCI server are cached ready for users to access

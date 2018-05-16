@@ -92,3 +92,6 @@ REMOTE_TDS_USER="root"
 INI_DIR="${INI_ROOT}/cci-odp-data"
 INI_FILE="${INI_DIR}/esg.ini"
 CERT_FILE=~/.globus/certificate-file
+
+REMOTE_AGGREGATIONS_DIR="/usr/local/aggregations/"
+REMOTE_CATALOG_DIR="/var/lib/tomcat/content/thredds/esacci"

@@ -177,12 +177,13 @@ If `--aggregate` is used, NcML files for the aggregate datasets will be saved
 in `aggregations` and OPeNDAP endpoints are added. Use `--wms` to additionally
 create WMS/WCS endpoints.
 
-(The directory names `input_catalogs`, `output_catalogs` and `aggregations` can
+The directory names `input_catalogs`, `output_catalogs` and `aggregations` can
 be overridden with the `--input-dir`, `--output-dir` and `--ncml-dir` options
-respectively)
+respectively.
 
-The code assumes that the files and directories created in `aggregations` will
-be placed under `/usr/local/aggregations` on the live server.
+By default the code assumes that the files and directories created in
+`aggregations` will be placed under `/usr/local/aggregations` on the live server
+- this can be changed with `--remote-agg-dir`.
 
 ### make_mapfiles.py
 
@@ -251,8 +252,8 @@ When copying, `<catalog>` and `<ncml>` should be local files or directories
 that are to be copied.
 
 When deleting, `<catalog>` and `<ncml>` should be paths of files on the remote
-server relative to the THREDDS/NcML root directories (defined as constants in
-`modify_catalogs.py` and `transfer_catalogs.py`).
+server relative to the THREDDS/NcML root directories (given by
+`--remote-catalog-dir` and `--remote-agg-dir`).
 
 Both `-c` and `-n` can be used multiple times when copying or deleting.
 
@@ -267,9 +268,10 @@ respectively.
 
 Usage: `./find_ncml.py <catalog>`
 
-Parse a THREDDS catalog and find paths of all referenced NcML aggregations.
-Print the path of each NcML file relative to the aggregation dir root.
-
+Parse a THREDDS catalog and print paths of all referenced NcML aggregations to
+stdout.
+"""
+import sys
 ### get_catalog_path.py
 
 Usage: `./get_catalog_path.py -e <path to esg.ini> <dataset name>`

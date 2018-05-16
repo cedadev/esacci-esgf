@@ -9,15 +9,13 @@ import os
 import subprocess
 import argparse
 
-from modify_catalogs import REMOTE_AGGREGATIONS_DIR
-
-
-REMOTE_CATALOG_DEST = "/var/lib/tomcat/content/thredds/esacci"
-
 
 class RemoteCatalogHandler(object):
-    def __init__(self, user, server, verbose=False, dry_run=False):
+    def __init__(self, user, server, remote_catalog_dir, remote_agg_dir,
+                 verbose=False, dry_run=False):
         self.host_spec = "{}@{}".format(user, server)
+        self.remote_agg_dir = remote_agg_dir
+        self.remote_catalog_dir = remote_catalog_dir
         self.verbose = verbose
         self.dry_run = dry_run
 
@@ -60,7 +58,7 @@ class RemoteCatalogHandler(object):
         Copy catalogs and NcML files at the given paths to the remote server
         """
         # Ensure directory to place catalogs in exists on the remote machine
-        self.remote_command(["mkdir", "-p", REMOTE_CATALOG_DEST])
+        self.remote_command(["mkdir", "-p", self.remote_catalog_dir])
 
         # Ensure a path ends with '/' if it is a directory to get correct
         # behaviour when rsync'ing
@@ -70,9 +68,9 @@ class RemoteCatalogHandler(object):
         # Build a list of (src, dest) to use with rsync
         transfers = []
         for path in catalog_paths:
-            transfers.append((normalise_path(path), REMOTE_CATALOG_DEST))
+            transfers.append((normalise_path(path), self.remote_catalog_dir))
         for path in ncml_paths:
-            transfers.append((normalise_path(path), REMOTE_AGGREGATIONS_DIR))
+            transfers.append((normalise_path(path), self.remote_agg_dir))
 
         for src, dest in transfers:
             self.rsync(src, dest)
@@ -87,12 +85,12 @@ class RemoteCatalogHandler(object):
             return lambda p: os.path.join(prefix, p)
 
         command = ["rm", "-f", "--"]
-        command += list(map(prepend_path(REMOTE_CATALOG_DEST), catalog_paths))
-        command += list(map(prepend_path(REMOTE_AGGREGATIONS_DIR), ncml_paths))
+        command += list(map(prepend_path(self.remote_catalog_dir), catalog_paths))
+        command += list(map(prepend_path(self.remote_agg_dir), ncml_paths))
         self.remote_command(command)
 
-        self.delete_empty_dirs(REMOTE_CATALOG_DEST)
-        self.delete_empty_dirs(REMOTE_AGGREGATIONS_DIR)
+        self.delete_empty_dirs(self.remote_catalog_dir)
+        self.delete_empty_dirs(self.remote_agg_dir)
 
     def delete_empty_dirs(self, root_dir):
         """
@@ -110,10 +108,10 @@ class RemoteCatalogHandler(object):
         return self.remote_command(["cat", path])
 
     def retrieve_catalog(self, path):
-        return self.retrieve_file(os.path.join(REMOTE_CATALOG_DEST, path))
+        return self.retrieve_file(os.path.join(self.remote_catalog_dir, path))
 
     def retrieve_ncml(self, path):
-        return self.retrieve_file(os.path.join(REMOTE_AGGREGATIONS_DIR, path))
+        return self.retrieve_file(os.path.join(self.remote_agg_dir, path))
 
 
 def main(arg_list):
@@ -125,13 +123,13 @@ def main(arg_list):
     # General arguments
     parser.add_argument(
         "-s", "--server",
-        default="cci-odp-data.ceda.ac.uk",
-        help="Hostname of server to transfer catalogs to [default: %(default)s]"
+        required=True,
+        help="Hostname of server to transfer catalogs to"
     )
     parser.add_argument(
         "-u", "--user",
         default="root",
-        help="Username to connect to CCI server as [default: %(default)s]"
+        help="Username to connect to the server as [default: %(default)s]"
     )
     parser.add_argument(
         "-v", "--verbose",
@@ -151,13 +149,25 @@ def main(arg_list):
         action="append",
         help="Path of catalog to copy/delete. In copy mode, this is a local "
              "path to a file or directory. In delete mode, this is the path "
-             "relative to the esacci THREDDS root. Can be given multiple times"
+             "relative to the remote catalog root directory. Can be given "
+             "multiple times"
     )
     parser.add_argument(
         "-n", "--ncml-path",
         default=[],
         action="append",
         help="As with --catalog-path but for NcML aggregation files"
+    )
+    parser.add_argument(
+        "--remote-catalog-dir",
+        required=True,
+        help="Directory under which catalogs are stored on the server"
+    )
+    parser.add_argument(
+        "--remote-agg-dir",
+        default="/usr/local/aggregations/",
+        help="Directory under which NcML aggregations are stored on the server"
+             " [default: %(default)s]"
     )
 
     # Add subcommands for copy, delete and retrieve
@@ -177,14 +187,16 @@ def main(arg_list):
     )
     subparsers.add_parser(
         "retrieve",
-        help="Retrieve content from remote node. -c and -n are interpreted "
-             "the way as for 'delete', and retrieve content is written to "
-             "stdout"
+        help="Retrieve content from remote node. -c and -n are interpreted in "
+             "the same way as for 'delete', and retrieved content is written "
+             "to stdout"
     )
 
     args = parser.parse_args(arg_list)
 
     handler = RemoteCatalogHandler(user=args.user, server=args.server,
+                                   remote_catalog_dir=args.remote_catalog_dir,
+                                   remote_agg_dir=args.remote_agg_dir,
                                    verbose=args.verbose, dry_run=args.dry_run)
 
     if args.mode == "copy":

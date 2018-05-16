@@ -17,17 +17,13 @@ from aggregation_utils.partition_files import partition_files
 from aggregation_utils.aggregate import create_aggregation, AggregationError
 
 
-# The directory in which aggregations will be stored on the live server
-REMOTE_AGGREGATIONS_DIR = "/usr/local/aggregations"
-
-
 class AggregationInfo(namedtuple("AggregationInfo", ["xml_element", "basename",
                                                      "sub_dir"])):
     """
     namedtuple to store information about an NcML aggregation
     - xml_element - instance of ThreddsXMLBase for the NcML document
     - basename    - basename of the to-be-created NcML file
-    - sub_dir      - subdirectory of the root aggregations dir in which the
+    - sub_dir     - subdirectory of the root aggregations dir in which the
                     NcML file should be created
     """
 
@@ -119,10 +115,7 @@ class ThreddsXMLDataset(ThreddsXMLBase):
 
     """
 
-    def __init__(self,
-                 thredds_roots=None,
-                 do_wcs=False,
-                 aggregations_dir=REMOTE_AGGREGATIONS_DIR,
+    def __init__(self, aggregations_dir, thredds_roots=None, do_wcs=False,
                  **kwargs):
         """
         aggregations_dir is the directory in which NcML files will be placed on the
@@ -342,6 +335,12 @@ class ProcessBatch(object):
             help="Directory to write NcML aggregations to if using --aggregate "
                  "[default: %(default)s]"
         )
+        parser.add_argument(
+            "--remote-agg-dir",
+            default="/usr/local/aggregations/",
+            help="Directory under which NcML aggregations are stored on the "
+                 "TDS server [default: %(default)s]"
+        )
 
         self.args = parser.parse_args(arg_list)
 
@@ -364,7 +363,8 @@ class ProcessBatch(object):
         basename = os.path.basename(in_file)
         out_file = os.path.join(self.args.output_dir, basename)
 
-        tx = ThreddsXMLDataset(do_wcs=True)
+        tx = ThreddsXMLDataset(aggregations_dir=self.args.remote_agg_dir,
+                               do_wcs=True)
         tx.read(in_file)
         tx.all_changes(create_aggs=self.args.aggregate, add_wms=self.args.wms)
         tx.write(out_file, agg_dir=self.args.ncml_dir)

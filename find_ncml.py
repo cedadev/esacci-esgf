@@ -1,14 +1,12 @@
 """
-Parse a THREDDS catalog and find paths of all referenced NcML aggregations.
-Print the path of each NcML file relative to the aggregation dir root.
+Parse a THREDDS catalog and print paths of all referenced NcML aggregations to
+stdout.
 """
 import sys
 import re
 import os
 import argparse
 import xml.etree.cElementTree as ET
-
-from modify_catalogs import REMOTE_AGGREGATIONS_DIR
 
 
 def find_ncml_references(catalog_filename):
@@ -24,8 +22,8 @@ def find_ncml_references(catalog_filename):
     els = (el for el in root.iter() if re.fullmatch(netcdf_tag_regex, el.tag))
 
     for el in els:
-        path = el.attrib["location"]
-        yield os.path.relpath(path, REMOTE_AGGREGATIONS_DIR)
+        yield el.attrib["location"]
+
 
 def main(arg_list):
     parser = argparse.ArgumentParser(

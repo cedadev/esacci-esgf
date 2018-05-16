@@ -9,7 +9,7 @@ import pytest
 from netCDF4 import Dataset
 import numpy as np
 
-from modify_catalogs import ProcessBatch, REMOTE_AGGREGATIONS_DIR
+from modify_catalogs import ProcessBatch
 from find_ncml import find_ncml_references
 from aggregation_utils.aggregate import create_aggregation, element_to_string, AggregationError
 from aggregation_utils.partition_files import partition_files
@@ -531,6 +531,7 @@ class TestHostnameExtractor(object):
         ]
         self.do_test(tmpdir, lines, "solr")
 
+
 class TestNcmlFinder(object):
     def test_no_ncml(self, tmpdir):
         """
@@ -558,16 +559,16 @@ class TestNcmlFinder(object):
             <catalog xmlns="some-namespace1">
                 <dataset name="some.dataset" ID="some.dataset">
                     <dataset>
-                        <netcdf location="{root}/my/ncml/aggregation.ncml"/>
+                        <netcdf location="/my/ncml/aggregation.ncml"/>
                     </dataset>
                     <dataset>
                         <netcdf xmlns="some-namespace2"
-                                location="{root}/my/other/aggregation.ncml"/>
+                                location="/my/other/aggregation.ncml"/>
                     </dataset>
                 </dataset>
             </catalog>
-        """.format(root=REMOTE_AGGREGATIONS_DIR).strip())
-        expected = ["my/ncml/aggregation.ncml", "my/other/aggregation.ncml"]
+        """.strip())
+        expected = ["/my/ncml/aggregation.ncml", "/my/other/aggregation.ncml"]
         got = list(find_ncml_references(str(catalog)))
         assert got == expected
 
@@ -581,10 +582,10 @@ class TestNcmlFinder(object):
             <?xml version="1.0" encoding="UTF-8"?>
             <catalog>
                 <dataset name="some.dataset" ID="some.dataset">
-                    <dataset><somethingelsenetcdf location="{root}/not/an/aggregation"/></dataset>
-                    <dataset><netcdfsomethingelse location="{root}/also/not/an/aggregation"/></dataset>
+                    <dataset><somethingelsenetcdf location="/not/an/aggregation"/></dataset>
+                    <dataset><netcdfsomethingelse location="/also/not/an/aggregation"/></dataset>
                 </dataset>
             </catalog>
-        """.format(root=REMOTE_AGGREGATIONS_DIR).strip())
+        """.strip())
         got = list(find_ncml_references(str(catalog)))
         assert got == []

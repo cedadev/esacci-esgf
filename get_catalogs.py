@@ -21,9 +21,11 @@ from modify_catalogs import ProcessBatch
 
 
 class CatalogGetter(object):
-    def __init__(self, esg_ini, output_dir=None, ncml_dir=None):
+    def __init__(self, esg_ini, output_dir=None, ncml_dir=None,
+                 remote_agg_dir=None):
         self.output_dir = output_dir
         self.ncml_dir = ncml_dir
+        self.remote_agg_dir = remote_agg_dir
 
         # Parse esg.ini config file
         config = ConfigParser()
@@ -86,7 +88,8 @@ class CatalogGetter(object):
             if not os.path.isdir(output_dir):
                 os.mkdir(output_dir)
 
-            options = ["--output-dir", output_dir, "--ncml-dir", self.ncml_dir]
+            options = ["--output-dir", output_dir, "--ncml-dir", self.ncml_dir,
+                       "--remote-agg-dir", self.remote_agg_dir]
             if info["generate_aggregation"]:
                 options.append("--aggregate")
 
@@ -125,7 +128,7 @@ def main(arg_list):
         help="Path to esg.ini containing DB connection URL and THREDDS "
              "catalog root directory"
     )
-    # These arguments are passed straight through to modiy_catalogs
+    # These arguments are passed straight through to modify_catalogs
     parser.add_argument(
         "-o", "--output-dir",
         dest="output_dir",
@@ -138,9 +141,17 @@ def main(arg_list):
         required=True,
         help="Directory to write NcML aggregations to"
     )
+    parser.add_argument(
+        "--remote-agg-dir",
+        dest="remote_agg_dir",
+        required=True,
+        help="Directory under which NcML aggregations are stored on the "
+             "TDS server"
+    )
 
     args = parser.parse_args(arg_list)
-    getter = CatalogGetter(args.esg_ini, args.output_dir, args.ncml_dir)
+    getter = CatalogGetter(args.esg_ini, args.output_dir, args.ncml_dir,
+                           args.remote_agg_dir)
     for json_filename in args.input_json:
         getter.get_and_modify(json_filename)
     getter.copy_top_level_catalog()

@@ -23,11 +23,14 @@ relative_cat_path=`cci_env python get_catalog_path.py -e "$INI_FILE" "$dsid"` ||
     die "could not find paths to catalogs in DB"
 temp=`mktemp`
 cci_env python transfer_catalogs.py -u "$REMOTE_TDS_USER" -s "$REMOTE_TDS_HOST" \
+                                    --remote-catalog-dir="$REMOTE_CATALOG_DIR" \
+                                    --remote-agg-dir="$REMOTE_AGGREGATIONS_DIR" \
                                     -c "$relative_cat_path" retrieve > "$temp" || \
     die "could not retrieve catalog '$relative_cat_path' from remote node"
 
-agg_paths=`cci_env python find_ncml.py "$temp"` || \
+full_agg_paths=`cci_env python find_ncml.py "$temp"` || \
     die "could not find paths to NcML files in $temp"
+agg_paths=`echo "$full_agg_paths" | sed "s,${REMOTE_AGGREGATIONS_DIR},,g"`
 rm "$temp"
 
 # Delete from Solr
@@ -45,7 +48,8 @@ esg_env esgunpublish -i "$INI_DIR" --project "$PROJ" --map "$mapfile" \
 # TODO: Handle error when thredds reinit problem fixed
 log "re-creating top level catalog..."
 esg_env esgpublish -i "$INI_DIR" --project "$PROJ" --thredds-reinit
-cci_env python get_catalogs.py -e "$INI_FILE" -o "$CATALOG_DIR" -n "$NCML_DIR" || \
+cci_env python get_catalogs.py -e "$INI_FILE" -o "$CATALOG_DIR" -n "$NCML_DIR" \
+                               --remote-agg-dir="$REMOTE_AGGREGATIONS_DIR" || \
     die "failed to copy top level catalog to $CATALOG_DIR"
 
 # Delete from DB
@@ -76,10 +80,14 @@ for agg_path in $agg_paths; do
     ncml_args="-n $agg_path $ncml_args"
 done
 cci_env python transfer_catalogs.py -v -u "$REMOTE_TDS_USER" -s "$REMOTE_TDS_HOST" \
+                                    --remote-catalog-dir="$REMOTE_CATALOG_DIR" \
+                                    --remote-agg-dir="$REMOTE_AGGREGATIONS_DIR" \
                                     -c "$relative_cat_path" $ncml_args delete || \
     die "failed to delete content from remote node"
 
 log "copying top level catalog to remote node..."
-cci_env python transfer_catalogs.py -c "${CATALOG_DIR}/catalog.xml" -u "$REMOTE_TDS_USER" \
-                                    -s "$REMOTE_TDS_HOST" copy || \
+cci_env python transfer_catalogs.py -v -u "$REMOTE_TDS_USER" -s "$REMOTE_TDS_HOST" \
+                                    --remote-catalog-dir="$REMOTE_CATALOG_DIR" \
+                                    --remote-agg-dir="$REMOTE_AGGREGATIONS_DIR" \
+                                    -c "${CATALOG_DIR}/catalog.xml" copy || \
     die "failed to copy top level catalog"
