@@ -42,3 +42,4 @@ dependencies:
     - six==1.11.0
     - urllib3==1.22
     - wrapt==1.10.11
+    - git+https://github.com/joesingo/tds_utils

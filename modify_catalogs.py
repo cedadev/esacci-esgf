@@ -13,8 +13,8 @@ from collections import namedtuple
 
 from cached_property import cached_property
 
-from aggregation_utils.partition_files import partition_files
-from aggregation_utils.aggregate import create_aggregation, AggregationError
+from tds_utils.partition_files import partition_files
+from tds_utils.aggregate import create_aggregation, AggregationError
 
 
 class AggregationInfo(namedtuple("AggregationInfo", ["xml_element", "basename",

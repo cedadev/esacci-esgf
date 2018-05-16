@@ -125,8 +125,7 @@ cci_env python transfer_catalogs.py -c "$CATALOG_DIR" -n "$NCML_DIR" -v \
 
 # Make sure aggregations on CCI server are cached ready for users to access
 log "caching aggregations on the remote machine..."
-cci_env python aggregation_utils/cache_remote_aggregations.py -v "$in_json" "$REMOTE_TDS_URL" || \
-    warn "failed caching remote aggregations"
+cci_env cache_remote_aggregations -v "$in_json" "$REMOTE_TDS_URL" || warn "failed to cache remote aggregations"
 
 log "publishing to Solr..."
 for mapfile in $mapfiles; do

@@ -28,7 +28,7 @@ cci_env python transfer_catalogs.py -u "$REMOTE_TDS_USER" -s "$REMOTE_TDS_HOST" 
                                     -c "$relative_cat_path" retrieve > "$temp" || \
     die "could not retrieve catalog '$relative_cat_path' from remote node"
 
-full_agg_paths=`cci_env python find_ncml.py "$temp"` || \
+full_agg_paths=`cci_env find_ncml "$temp"` || \
     die "could not find paths to NcML files in $temp"
 agg_paths=`echo "$full_agg_paths" | sed "s,${REMOTE_AGGREGATIONS_DIR},,g"`
 rm "$temp"

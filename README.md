@@ -264,14 +264,6 @@ contents is written to stdout.
 The server hostname and user to connect as can be changed with `-s` and `-u`
 respectively.
 
-### find_ncml.py
-
-Usage: `./find_ncml.py <catalog>`
-
-Parse a THREDDS catalog and print paths of all referenced NcML aggregations to
-stdout.
-"""
-import sys
 ### get_catalog_path.py
 
 Usage: `./get_catalog_path.py -e <path to esg.ini> <dataset name>`
@@ -293,49 +285,6 @@ Usage: `./remove_key.py <key> <json file>`.
 
 Remove a key from the top level of a JSON dictionary, and print the new
 dictionary to stdout.
-
-### partition_files.py
-
-Read file paths from stdin and partition into sets such that paths in each set
-only differ by having a different date in the directory components of the path.
-
-Print the directory name for each group on stdout, with date characters
-replaced with 'x'.
-
-### aggregate.py
-
-Read filenames of NetCDF datasets from standard input and print an NcML
-aggregation to standard output.
-
-Use `--cache` to open each dataset and write the coordinate value(s) in the
-NcML. This caches the values so that TDS does not need to open each file when
-accessing the aggregation.
-
-### find_netcdf.py
-
-Usage: `./find_netcdf.py <catalog>`
-
-Parse a THREDDS catalog and list the references NetCDF files.
-
-This script can be used with `partition_files.py` to check whether files in a
-THREDDS catalog can likely be aggregated as one - e.g.
-
-```bash
-num=`python find_netcdf.py <catalog> | python partition_files.py | wc --lines`
-if [[ $num -gt 1 ]]; then
-    echo "files might be heterogeneous"
-fi
-```
-
-### cache_remote_aggregations.py
-
-Usage: `./cache_remote_aggregations.py <input JSON> <base THREDDS URL>`.
-
-Send HTTP requests to OPeNDAP/WMS aggregation endpoints based on dataset IDs
-found in the input JSON. This makes sure THREDDS caches aggregations before any
-end-user tries to access them.
-
-Input JSON should be in ['dataset JSON'](#dataset-json) format.
 
 ## Tests
 
