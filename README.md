@@ -304,8 +304,12 @@ replaced with 'x'.
 
 ### aggregate.py
 
-Read file paths from standard input (one per line) and write an NcML
-aggregation of those files to standard output.
+Read filenames of NetCDF datasets from standard input and print an NcML
+aggregation to standard output.
+
+Use `--cache` to open each dataset and write the coordinate value(s) in the
+NcML. This caches the values so that TDS does not need to open each file when
+accessing the aggregation.
 
 ### find_netcdf.py
 

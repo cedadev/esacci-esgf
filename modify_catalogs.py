@@ -252,7 +252,7 @@ class ThreddsXMLDataset(ThreddsXMLBase):
             print(msg.format(dsid=dsid, n=len(groups)), file=sys.stderr)
 
         try:
-            agg_element = create_aggregation(file_list)
+            agg_element = create_aggregation(file_list, "time", cache=True)
         except AggregationError:
             print("WARNING: Failed to create aggregation", file=sys.stderr)
             return

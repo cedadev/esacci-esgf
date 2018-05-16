@@ -1,28 +1,15 @@
 #!/usr/bin/env python3
 """
-Script to produce an NcML aggregation given a list of filenames
+Read filenames of datasets from standard input and print an NcML aggregation to
+standard output.
 """
 import os
 import sys
 import bisect
 import xml.etree.cElementTree as ET
+import argparse
 
 from netCDF4 import Dataset
-
-
-def usage(exit_code):
-    """
-    Print usage and exit with the given exit code
-    """
-    prog = os.path.basename(sys.argv[0])
-    usage_str = """Usage: {}
-
-Read filenames of datasets from standard input and print an NcML aggregation to
-standard output.
-
-  -h, --help     Display help and exit"""
-    print(usage_str.format(prog))
-    sys.exit(exit_code)
 
 
 def element_to_string(element, indentation=0):
@@ -86,49 +73,58 @@ def get_coord_value(filename, dimension):
     return (units, val)
 
 
-def create_aggregation(file_list):
+def create_aggregation(file_list, agg_dimension, cache=False):
     """
-    Create an NcML aggregation for the filenames in `file_list` and return the
-    root element as an instance of ET.Element
-    """
-    agg_dimension = "time"
+    Create a 'joinExisting' NcML aggregation for the filenames in `file_list`
+    and return the root element as an instance of ET.Element.
 
+    If `cache` is True then open each file to write the coordinate values in
+    the NcML.
+    """
     root = ET.Element("netcdf", xmlns="http://www.unidata.ucar.edu/namespaces/netcdf/ncml-2.2")
     aggregation = ET.SubElement(root, "aggregation", dimName=agg_dimension, type="joinExisting")
 
-    coord_values = []
-    # Keep track of whether the files seen have the same units
-    found_units = set([])
-    multiple_units = False
+    sub_el_attrs = []
 
-    for filename in file_list:
-        try:
-            units, value = get_coord_value(filename, agg_dimension)
-        except AggregationError as ex:
-            print("WARNING: {}".format(ex), file=sys.stderr)
-            continue
+    if cache:
+        coord_values = []
+        # Keep track of whether the files seen have the same units
+        found_units = set([])
+        multiple_units = False
 
-        # Insert whilst preserving sort order (sorted by value)
-        bisect.insort(coord_values, (value, filename))
+        for filename in file_list:
+            try:
+                units, value = get_coord_value(filename, agg_dimension)
+            except AggregationError as ex:
+                print("WARNING: {}".format(ex), file=sys.stderr)
+                continue
 
-        if not multiple_units:
-            found_units.add(units)
-            if len(found_units) > 1:
-                multiple_units = True
+            # Insert whilst preserving sort order (sorted by value)
+            bisect.insort(coord_values, (value, filename))
 
-    if not coord_values:
-        raise AggregationError("No aggregation could be created")
+            if not multiple_units:
+                found_units.add(units)
+                if len(found_units) > 1:
+                    multiple_units = True
 
-    for coord_value, filename in coord_values:
-        kwargs = {"location": filename}
-        if not multiple_units:
-            kwargs["coordValue"] = str(coord_value)
+        if not coord_values:
+            raise AggregationError("No aggregation could be created")
 
-        ET.SubElement(aggregation, "netcdf", **kwargs)
+        for coord_value, filename in coord_values:
+            attrs = {"location": filename}
+            if not multiple_units:
+                attrs["coordValue"] = str(coord_value)
+            sub_el_attrs.append(attrs)
 
-    if multiple_units:
-        aggregation.attrib["timeUnitsChange"] = "true"
+        if multiple_units and agg_dimension == "time":
+            aggregation.attrib["timeUnitsChange"] = "true"
 
+    # If not caching coordinate values then include in the order given
+    else:
+        sub_el_attrs = [{"location": filename} for filename in file_list]
+
+    for attrs in sub_el_attrs:
+        ET.SubElement(aggregation, "netcdf", **attrs)
     return root
 
 
@@ -138,13 +134,30 @@ class AggregationError(Exception):
     """
 
 
-def main(args):
-    for arg in args:
-        if arg in ("-h", "--help"):
-            usage(0)
+def main(arg_list):
+    parser = argparse.ArgumentParser(
+        description=__doc__,
+        formatter_class=argparse.RawDescriptionHelpFormatter
+    )
+
+    parser.add_argument(
+        "-d", "--dimension",
+        default="time",
+        help="The dimension along which to aggregate [default: %(default)s]"
+    )
+    parser.add_argument(
+        "-c", "--cache",
+        action="store_true",
+        default=False,
+        help="Open NetCDF files to read coordinate values to include in the "
+             "NcML. This caches the values so that TDS does not need to open "
+             "each file when accessing the aggregation [default: %(default)s]"
+    )
+
+    args = parser.parse_args(arg_list)
 
     path_list = [line for line in sys.stdin.read().split(os.linesep) if line]
-    ncml_el = create_aggregation(path_list)
+    ncml_el = create_aggregation(path_list, args.dimension, cache=args.cache)
     print(element_to_string(ncml_el))
 
 

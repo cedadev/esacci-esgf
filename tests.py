@@ -106,7 +106,8 @@ class TestAggregationCreation(object):
     def test_different_time_units(self, tmpdir):
         """
         Check that the 'timeUnitsChange' attribute is present on the
-        aggregation when files have different time units
+        aggregation when files have different time units and time coordinates
+        are cached
         """
         diff_files = [
             ("diff_units_1.nc", "days since 1970-01-01 00:00:00 UTC"),
@@ -130,13 +131,15 @@ class TestAggregationCreation(object):
 
         # timeUnitsChange should be present in the aggregation with different
         # time units...
-        diff_agg = create_aggregation([tmpdir.join(fname) for fname, _ in diff_files])
+        diff_agg = create_aggregation([tmpdir.join(fname) for fname, _ in diff_files],
+                                      "time", cache=True)
         diff_agg_el = list(diff_agg)[0]
         assert "timeUnitsChange" in diff_agg_el.attrib
         assert diff_agg_el.attrib["timeUnitsChange"] == "true"
 
         # ...but not present otherwise
-        same_agg = create_aggregation([tmpdir.join(fname) for fname, _ in same_files])
+        same_agg = create_aggregation([tmpdir.join(fname) for fname, _ in same_files],
+                                      "time", cache=True)
         same_agg_el = list(same_agg)[0]
         assert "timeUnitsChange" not in same_agg_el.attrib
 
@@ -180,7 +183,7 @@ class TestAggregationCreation(object):
         filenames = ["ds_{}.nc".format(i) for i in range(n)]
         files = [self.netcdf_file(tmpdir, filename) for filename in filenames]
 
-        agg = create_aggregation(files)
+        agg = create_aggregation(files, "time", cache=True)
         agg_el = list(agg)[0]
         netcdf_els = agg_el.findall("netcdf")
 
@@ -194,8 +197,8 @@ class TestAggregationCreation(object):
 
     def test_file_order(self, tmpdir):
         """
-        Test that the file list in the NcML aggregation is in chronological
-        order with respect to the time coordinate values in each file
+        Test that the file list in the NcML aggregation is sorted in time order
+        when cache=True, and in the order given otherwise
         """
         f1 = self.netcdf_file(tmpdir, "ds_1.nc")
         f2 = self.netcdf_file(tmpdir, "ds_2.nc")
@@ -208,10 +211,15 @@ class TestAggregationCreation(object):
         ds1.close()
         ds2.close()
 
-        # Give file list in reverse order
-        agg = create_aggregation([f1, f2])
+        # Give file list in reverse order - result should be sorted
+        agg = create_aggregation([f1, f2], "time", cache=True)
         found_files = [el.attrib["location"] for el in list(agg)[0].findall("netcdf")]
         assert found_files == [f2, f1]
+
+        # Don't cache coordinate values - should stay in the wrong order
+        agg2 = create_aggregation([f1, f2], "time", cache=False)
+        found_files2 = [el.attrib["location"] for el in list(agg2)[0].findall("netcdf")]
+        assert found_files2 == [f1, f2]
 
     def test_error_when_multiple_time_values(self, tmpdir):
         """
@@ -222,7 +230,19 @@ class TestAggregationCreation(object):
         ds = Dataset(f, "a")
         ds.variables["time"][:] = [1, 2, 3, 4, 5]
         ds.close()
-        assert pytest.raises(AggregationError, create_aggregation, [f])
+        assert pytest.raises(AggregationError, create_aggregation, [f], "time",
+                             cache=True)
+
+    def test_no_caching(self, tmpdir):
+        """
+        Check that files are not opened if cache=False when creating an
+        aggregation
+        """
+        f = self.netcdf_file(tmpdir, "ds.nc")
+        try:
+            create_aggregation([f], "nonexistantdimension", cache=False)
+        except AggregationError as ex:
+            assert False, "Unexpected error: {}".format(ex)
 
 
 class TestPartitioning(object):
