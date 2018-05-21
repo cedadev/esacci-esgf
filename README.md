@@ -271,13 +271,11 @@ Usage: `./get_catalog_path.py -e <path to esg.ini> <dataset name>`
 Query the publication database to find the path of a THREDDS catalog relative
 to the THREDDS root.
 
-### get_host_from_ini.py
+### parse_esg_ini.py
 
+Usage `./parse_esg_ini.py <path to esg.ini> (solr_host | thredds_host | thredds_password)`.
 
-Usage `./get_host_from_ini.py <path to esg.ini> (solr | thredds)`.
-
-Parse an ESGF ini config file and extract the hostname of the THREDDS or Solr
-server.
+Parse an ESGF ini config file and extract a value.
 
 ### remove_key.py
 

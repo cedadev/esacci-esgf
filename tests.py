@@ -9,7 +9,7 @@ import pytest
 
 from modify_catalogs import ProcessBatch
 from publication_utils.merge_csv_json import Dataset as CsvRowDataset, parse_file, HEADER_ROW
-from publication_utils.get_host_from_ini import HostnameExtractor
+from publication_utils.parse_ini import EsgIniParser
 from make_mapfiles import MakeMapfile
 
 
@@ -252,20 +252,20 @@ class TestMakeMapfile(object):
         assert "dataset_tech_notes" not in l2
 
 
-class TestHostnameExtractor(object):
+class TestEsgIniParser(object):
     @classmethod
-    def do_test(self, tmpdir, ini_lines, service):
+    def do_hostname_test(self, tmpdir, ini_lines, key):
         ini = tmpdir.join("esg.ini")
         host = "some-host.ac.uk"
         ini.write("\n".join(ini_lines).format(host=host))
-        assert HostnameExtractor.get_hostname(str(ini), service) == host
+        assert EsgIniParser.get_value(str(ini), key) == host
 
     def test_thredds_host(self, tmpdir):
         lines = [
             "[DEFAULT]",
             "thredds_url = http://{host}/thredds/data",
         ]
-        self.do_test(tmpdir, lines, "thredds")
+        self.do_hostname_test(tmpdir, lines, "thredds_host")
 
     def test_solr_use_result_api(self, tmpdir):
         lines = [
@@ -274,7 +274,7 @@ class TestHostnameExtractor(object):
             "rest_service_url = http://{host}/solr/one/two/three",
             "hessian_service_url = somethingelse",
         ]
-        self.do_test(tmpdir, lines, "solr")
+        self.do_hostname_test(tmpdir, lines, "solr_host")
 
     def test_solr_no_rest_api(self, tmpdir):
         lines = [
@@ -283,7 +283,7 @@ class TestHostnameExtractor(object):
             "rest_service_url = somethingelse",
             "hessian_service_url = http://{host}/solr/one/two/three",
         ]
-        self.do_test(tmpdir, lines, "solr")
+        self.do_hostname_test(tmpdir, lines, "solr_host")
 
     def test_solr_no_rest_api_2(self, tmpdir):
         lines = [
@@ -291,14 +291,14 @@ class TestHostnameExtractor(object):
             "rest_service_url = somethingelse",
             "hessian_service_url = http://{host}/solr/one/two/three",
         ]
-        self.do_test(tmpdir, lines, "solr")
+        self.do_hostname_test(tmpdir, lines, "solr_host")
 
     def test_solr_no_rest_api_3(self, tmpdir):
         lines = [
             "[DEFAULT]",
             "hessian_service_url = http://{host}/solr/one/two/three",
         ]
-        self.do_test(tmpdir, lines, "solr")
+        self.do_hostname_test(tmpdir, lines, "solr_host")
 
     def test_solr_no_rest_url(self, tmpdir):
         lines = [
@@ -306,6 +306,4 @@ class TestHostnameExtractor(object):
             "use_rest_api = true",
             "hessian_service_url = http://{host}/solr/one/two/three",
         ]
-        self.do_test(tmpdir, lines, "solr")
-
-
+        self.do_hostname_test(tmpdir, lines, "solr_host")
