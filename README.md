@@ -273,7 +273,7 @@ to the THREDDS root.
 
 ### parse_esg_ini.py
 
-Usage `./parse_esg_ini.py <path to esg.ini> (solr_host | thredds_host | thredds_password)`.
+Usage `./parse_esg_ini.py <path to esg.ini> (solr_host | thredds_host | thredds_password | thredds_root | publication_db_url)`.
 
 Parse an ESGF ini config file and extract a value.
 

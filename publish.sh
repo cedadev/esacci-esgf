@@ -41,9 +41,9 @@ in_csv="$1"
 MAPFILES_DIR="${MAPFILES_ROOT}/testing/"  # TODO: Avoid hardcoding
 
 # Get hostnames of services from esg.ini
-REMOTE_TDS_HOST=`cci_env python publication_utils/get_host_from_ini.py "$INI_FILE" thredds` || \
+REMOTE_TDS_HOST=`cci_env python parse_esg_ini.py "$INI_FILE" thredds_host` || \
     die "could not get THREDDS host from $INI_FILE"
-SOLR_HOST=`cci_env python publication_utils/get_host_from_ini.py "$INI_FILE" solr` || \
+SOLR_HOST=`cci_env python parse_esg_ini.py "$INI_FILE" solr_host` || \
     die "could not get Solr host from $INI_FILE"
 
 # Check SSH access and proxy certificate before starting

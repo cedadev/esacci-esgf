@@ -9,7 +9,7 @@ import pytest
 
 from modify_catalogs import ProcessBatch
 from publication_utils.merge_csv_json import Dataset as CsvRowDataset, parse_file, HEADER_ROW
-from publication_utils.parse_ini import EsgIniParser
+from parse_esg_ini import EsgIniParser
 from make_mapfiles import MakeMapfile
 
 

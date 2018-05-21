@@ -65,7 +65,9 @@ VALUES_MAPPING = {
     "thredds_host": compose(EsgIniParser.get_host_from_url,
                             EsgIniParser.get_by_key("thredds_url")),
     "solr_host": EsgIniParser.get_solr_hostname,
-    "thredds_password": EsgIniParser.get_by_key("thredds_password")
+    "thredds_password": EsgIniParser.get_by_key("thredds_password"),
+    "thredds_root": EsgIniParser.get_by_key("thredds_root"),
+    "publication_db_url": EsgIniParser.get_by_key("dburl")
 }
 
 

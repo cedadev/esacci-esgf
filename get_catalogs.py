@@ -13,11 +13,11 @@ import sys
 import argparse
 import json
 import shutil
-from configparser import ConfigParser
 
 import psycopg2
 
 from modify_catalogs import ProcessBatch
+from parse_esg_ini import EsgIniParser
 
 
 class CatalogGetter(object):
@@ -28,11 +28,9 @@ class CatalogGetter(object):
         self.remote_agg_dir = remote_agg_dir
 
         # Parse esg.ini config file
-        config = ConfigParser()
-        config.read(esg_ini)
-        self.dburl = config["DEFAULT"]["dburl"]
+        self.dburl = EsgIniParser.get_value(esg_ini, "publication_db_url")
         # This is the directory that paths in the DB are relative to
-        self.thredds_root = config["DEFAULT"]["thredds_root"]
+        self.thredds_root = EsgIniParser.get_value(esg_ini, "thredds_root")
 
     def get_catalog_locations(self, ds_names):
         """
