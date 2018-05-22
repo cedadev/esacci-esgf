@@ -16,8 +16,8 @@ import shutil
 
 import psycopg2
 
-from modify_catalogs import ProcessBatch
-from parse_esg_ini import EsgIniParser
+from esgf_wms.modify_catalogs import ProcessBatch
+from esgf_wms.input.parse_esg_ini import EsgIniParser
 
 
 class CatalogGetter(object):
@@ -109,7 +109,7 @@ class CatalogGetter(object):
         shutil.copyfile(src, dest)
 
 
-def main(arg_list):
+def main():
     parser = argparse.ArgumentParser(
         description=__doc__,
         formatter_class=argparse.RawDescriptionHelpFormatter
@@ -147,13 +147,9 @@ def main(arg_list):
              "TDS server"
     )
 
-    args = parser.parse_args(arg_list)
+    args = parser.parse_args(sys.argv[1:])
     getter = CatalogGetter(args.esg_ini, args.output_dir, args.ncml_dir,
                            args.remote_agg_dir)
     for json_filename in args.input_json:
         getter.get_and_modify(json_filename)
     getter.copy_top_level_catalog()
-
-
-if __name__ == "__main__":
-    main(sys.argv[1:])

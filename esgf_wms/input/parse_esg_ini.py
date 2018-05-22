@@ -71,7 +71,7 @@ VALUES_MAPPING = {
 }
 
 
-def main(arg_list):
+def main():
     parser = argparse.ArgumentParser(
         description=__doc__,
         formatter_class=argparse.RawDescriptionHelpFormatter
@@ -88,9 +88,5 @@ def main(arg_list):
         help="Value to extract from esg.ini"
     )
 
-    args = parser.parse_args(arg_list)
+    args = parser.parse_args(sys.argv[1:])
     print(EsgIniParser.get_value(args.esg_ini, args.key))
-
-
-if __name__ == "__main__":
-    main(sys.argv[1:])

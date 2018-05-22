@@ -6,10 +6,10 @@ to the THREDDS root
 import sys
 import argparse
 
-from get_catalogs import CatalogGetter
+from esgf_wms.get_catalogs import CatalogGetter
 
 
-def main(arg_list):
+def main():
     parser = argparse.ArgumentParser(
         description=__doc__,
         formatter_class=argparse.RawDescriptionHelpFormatter
@@ -24,7 +24,7 @@ def main(arg_list):
         help="Path to esg.ini containing DB connection URL"
     )
 
-    args = parser.parse_args(arg_list)
+    args = parser.parse_args(sys.argv[1:])
     getter = CatalogGetter(args.esg_ini)
     locations = getter.get_catalog_locations(args.dataset_name)
 
@@ -32,7 +32,3 @@ def main(arg_list):
         sys.exit(1)
 
     print(locations[args.dataset_name])
-
-
-if __name__ == "__main__":
-    main(sys.argv[1:])

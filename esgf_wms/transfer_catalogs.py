@@ -114,7 +114,7 @@ class RemoteCatalogHandler(object):
         return self.retrieve_file(os.path.join(self.remote_agg_dir, path))
 
 
-def main(arg_list):
+def main():
     parser = argparse.ArgumentParser(
         description=__doc__,
         formatter_class=argparse.RawDescriptionHelpFormatter
@@ -192,7 +192,7 @@ def main(arg_list):
              "to stdout"
     )
 
-    args = parser.parse_args(arg_list)
+    args = parser.parse_args(sys.argv[1:])
 
     handler = RemoteCatalogHandler(user=args.user, server=args.server,
                                    remote_catalog_dir=args.remote_catalog_dir,
@@ -214,7 +214,3 @@ def main(arg_list):
             parser.error("Must specify exactly one catalog or NcML file with "
                          "'retrieve'")
         print(contents)
-
-
-if __name__ == "__main__":
-    main(sys.argv[1:])

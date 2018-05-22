@@ -8,7 +8,7 @@ import argparse
 import json
 
 
-def main(arg_list):
+def main():
     parser = argparse.ArgumentParser(
         description=__doc__,
         formatter_class=argparse.RawDescriptionHelpFormatter
@@ -23,11 +23,7 @@ def main(arg_list):
         help="Path to JSON file"
     )
 
-    args = parser.parse_args(arg_list)
+    args = parser.parse_args(sys.argv[1:])
     doc = json.load(args.file)
     del doc[args.key]
     json.dump(doc, sys.stdout)
-
-
-if __name__ == "__main__":
-    main(sys.argv[1:])

@@ -370,6 +370,6 @@ class ProcessBatch(object):
         tx.write(out_file, agg_dir=self.args.ncml_dir)
 
 
-if __name__ == "__main__":
+def main():
     pb = ProcessBatch(sys.argv[1:])
     pb.do_all()

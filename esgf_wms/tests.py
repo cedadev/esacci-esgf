@@ -7,10 +7,10 @@ from io import StringIO
 
 import pytest
 
-from modify_catalogs import ProcessBatch
-from publication_utils.merge_csv_json import Dataset as CsvRowDataset, parse_file, HEADER_ROW
-from parse_esg_ini import EsgIniParser
-from make_mapfiles import MakeMapfile
+from esgf_wms.modify_catalogs import ProcessBatch
+from esgf_wms.input.merge_csv_json import Dataset as CsvRowDataset, parse_file, HEADER_ROW
+from esgf_wms.input.parse_esg_ini import EsgIniParser
+from esgf_wms.input.make_mapfiles import MakeMapfile
 
 
 def get_full_tag(tag, ns="http://www.unidata.ucar.edu/namespaces/thredds/InvCatalog/v1.0"):
@@ -31,10 +31,13 @@ class TestCatalogUpdates(object):
         """
         Test fixture to return the root element of a processed catalog.
         """
-        input_dir = "test_input_catalogs"
+        input_dir = os.path.abspath("esgf_wms/test_input_catalogs")
         output_dir = str(tmpdir_factory.mktemp("output", numbered=True))
         # Process all catalogs in input dir and create aggregations with WMS
-        pb = ProcessBatch(["-aw", "-o", output_dir] + glob("{}/*.xml".format(input_dir)))
+        test_files = glob("{}/*.xml".format(input_dir))
+        assert test_files, "No test catalogs found"
+
+        pb = ProcessBatch(["-aw", "-o", output_dir] + test_files)
         pb.do_all()
         tree = ET.ElementTree()
         tree.parse(os.path.join(output_dir, os.listdir(input_dir)[0]))

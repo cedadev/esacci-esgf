@@ -110,7 +110,7 @@ def parse_file(csv_filename):
         json.dump(output, sys.stdout, indent=4)
 
 
-def main(arg_list):
+def main():
     parser = argparse.ArgumentParser(
         description=__doc__,
         formatter_class=argparse.RawDescriptionHelpFormatter
@@ -119,9 +119,5 @@ def main(arg_list):
         "input_csv",
         help="CSV file to parse"
     )
-    args = parser.parse_args(arg_list)
+    args = parser.parse_args(sys.argv[1:])
     parse_file(args.input_csv)
-
-
-if __name__ == "__main__":
-    main(sys.argv[1:])

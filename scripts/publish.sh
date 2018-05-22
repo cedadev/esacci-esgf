@@ -1,10 +1,10 @@
 #!/bin/bash
 
 # Source definitions of `esg_env', `cci_env' and others, and constants
-source `dirname $0`/publication_utils/common.sh
+source `dirname "$0"`/common.sh
 
 usage() {
-    echo "usage: $0 CSV_FILE"
+    echo "usage: `basename $0` CSV_FILE"
     exit 1
 }
 
@@ -41,9 +41,9 @@ in_csv="$1"
 MAPFILES_DIR="${MAPFILES_ROOT}/testing/"  # TODO: Avoid hardcoding
 
 # Get hostnames of services from esg.ini
-REMOTE_TDS_HOST=`cci_env python parse_esg_ini.py "$INI_FILE" thredds_host` || \
+REMOTE_TDS_HOST=`cci_env parse_esg_ini "$INI_FILE" thredds_host` || \
     die "could not get THREDDS host from $INI_FILE"
-SOLR_HOST=`cci_env python parse_esg_ini.py "$INI_FILE" solr_host` || \
+SOLR_HOST=`cci_env parse_esg_ini "$INI_FILE" solr_host` || \
     die "could not get Solr host from $INI_FILE"
 
 # Check SSH access and proxy certificate before starting
@@ -52,12 +52,12 @@ certificate_check 70
 
 # Get input CSV in a JSON format used throughout the rest of the process
 in_json=`mktemp`
-cci_env python publication_utils/merge_csv_json.py "$in_csv" > "$in_json" || \
+cci_env merge_csv_json "$in_csv" > "$in_json" || \
     die "failed to parse input CSV"
 
 # Get mapfiles to feed into ESGF publisher
 log "generating mapfiles in $MAPFILES_DIR..."
-mapfiles=`cci_env python make_mapfiles.py "$in_json" "$MAPFILES_DIR"` || \
+mapfiles=`cci_env make_mapfiles "$in_json" "$MAPFILES_DIR"` || \
     die "failed to generate mapfiles"
 # Build a list of mapfiles to exclude from later steps
 excluded_mapfiles=""
@@ -96,7 +96,7 @@ for mapfile in $mapfiles; do
         # Remove from JSON
         temp_json="${in_json}.bak"
         mv "$in_json" $temp_json
-        cci_env python publication_utils/remove_key.py "$dsid" "$temp_json" > "$in_json"
+        cci_env remove_key "$dsid" "$temp_json" > "$in_json"
         rm "$temp_json"
     fi
 done
@@ -110,17 +110,17 @@ esg_env esgpublish -i "$INI_DIR" --project "$PROJ" --thredds-reinit
 # Retrieve generated THREDDS catalogs and modify them as necessary.
 # This may be slow as to create aggregations each data file needs to be opened
 log "modifying catalogs..."
-cci_env python get_catalogs.py -o "$CATALOG_DIR" -n "$NCML_DIR" -e "$INI_FILE" \
-                               --remote-agg-dir "$REMOTE_AGGREGATIONS_DIR" "$in_json" \
+cci_env get_catalogs -o "$CATALOG_DIR" -n "$NCML_DIR" -e "$INI_FILE" \
+                     --remote-agg-dir "$REMOTE_AGGREGATIONS_DIR" "$in_json" \
     > /dev/null || die "failed to retrieve/modify THREDDS catalogs"
 
 # Copy catalogs and aggregations to CCI server and restart tomcat
 log "transferring catalogs to remote machine..."
-cci_env python transfer_catalogs.py -c "$CATALOG_DIR" -n "$NCML_DIR" -v \
-                                    -u "$REMOTE_TDS_USER" -s "$REMOTE_TDS_HOST" \
-                                    --remote-catalog-dir="$REMOTE_CATALOG_DIR" \
-                                    --remote-agg-dir="$REMOTE_AGGREGATIONS_DIR" \
-                                    copy || \
+cci_env transfer_catalogs -c "$CATALOG_DIR" -n "$NCML_DIR" -v \
+                          -u "$REMOTE_TDS_USER" -s "$REMOTE_TDS_HOST" \
+                          --remote-catalog-dir="$REMOTE_CATALOG_DIR" \
+                          --remote-agg-dir="$REMOTE_AGGREGATIONS_DIR" \
+                          copy || \
     die "failed to transfer catalogs"
 
 # Make sure aggregations on CCI server are cached ready for users to access
@@ -138,7 +138,7 @@ for mapfile in $mapfiles; do
 done
 
 log "modifying WMS links in Solr..."
-cci_env python modify_solr_links.py "http://${SOLR_HOST}:8984" || die "failed to modify Solr links"
+cci_env modify_solr_links "http://${SOLR_HOST}:8984" || die "failed to modify Solr links"
 
 # Clean up
 rm "$in_json"

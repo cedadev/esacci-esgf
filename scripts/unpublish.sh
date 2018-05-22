@@ -1,11 +1,11 @@
 #!/bin/bash
 
 usage() {
-    echo "usage: $0 MAPFILE"
+    echo "usage: `basename $0` MAPFILE"
     exit 1
 }
 
-source `dirname $0`/publication_utils/common.sh
+source `dirname "$0"`/common.sh
 
 mapfile="$1"
 [[ -n "$mapfile" ]] || usage
@@ -19,13 +19,13 @@ certificate_check 70
 dsid=`dsid_from_mapfile "$mapfile"`
 
 # Find the path to catalog and any aggregations referenced by it
-relative_cat_path=`cci_env python get_catalog_path.py -e "$INI_FILE" "$dsid"` || \
+relative_cat_path=`cci_env get_catalog_path -e "$INI_FILE" "$dsid"` || \
     die "could not find paths to catalogs in DB"
 temp=`mktemp`
-cci_env python transfer_catalogs.py -u "$REMOTE_TDS_USER" -s "$REMOTE_TDS_HOST" \
-                                    --remote-catalog-dir="$REMOTE_CATALOG_DIR" \
-                                    --remote-agg-dir="$REMOTE_AGGREGATIONS_DIR" \
-                                    -c "$relative_cat_path" retrieve > "$temp" || \
+cci_env transfer_catalogs -u "$REMOTE_TDS_USER" -s "$REMOTE_TDS_HOST" \
+                          --remote-catalog-dir="$REMOTE_CATALOG_DIR" \
+                          --remote-agg-dir="$REMOTE_AGGREGATIONS_DIR" \
+                          -c "$relative_cat_path" retrieve > "$temp" || \
     die "could not retrieve catalog '$relative_cat_path' from remote node"
 
 full_agg_paths=`cci_env find_ncml "$temp"` || \
@@ -48,8 +48,8 @@ esg_env esgunpublish -i "$INI_DIR" --project "$PROJ" --map "$mapfile" \
 # TODO: Handle error when thredds reinit problem fixed
 log "re-creating top level catalog..."
 esg_env esgpublish -i "$INI_DIR" --project "$PROJ" --thredds-reinit
-cci_env python get_catalogs.py -e "$INI_FILE" -o "$CATALOG_DIR" -n "$NCML_DIR" \
-                               --remote-agg-dir="$REMOTE_AGGREGATIONS_DIR" || \
+cci_env get_catalogs -e "$INI_FILE" -o "$CATALOG_DIR" -n "$NCML_DIR" \
+                     --remote-agg-dir="$REMOTE_AGGREGATIONS_DIR" || \
     die "failed to copy top level catalog to $CATALOG_DIR"
 
 # Delete from DB
@@ -79,15 +79,15 @@ ncml_args=""
 for agg_path in $agg_paths; do
     ncml_args="-n $agg_path $ncml_args"
 done
-cci_env python transfer_catalogs.py -v -u "$REMOTE_TDS_USER" -s "$REMOTE_TDS_HOST" \
-                                    --remote-catalog-dir="$REMOTE_CATALOG_DIR" \
-                                    --remote-agg-dir="$REMOTE_AGGREGATIONS_DIR" \
-                                    -c "$relative_cat_path" $ncml_args delete || \
+cci_env transfer_catalogs -v -u "$REMOTE_TDS_USER" -s "$REMOTE_TDS_HOST" \
+                          --remote-catalog-dir="$REMOTE_CATALOG_DIR" \
+                          --remote-agg-dir="$REMOTE_AGGREGATIONS_DIR" \
+                          -c "$relative_cat_path" $ncml_args delete || \
     die "failed to delete content from remote node"
 
 log "copying top level catalog to remote node..."
-cci_env python transfer_catalogs.py -v -u "$REMOTE_TDS_USER" -s "$REMOTE_TDS_HOST" \
-                                    --remote-catalog-dir="$REMOTE_CATALOG_DIR" \
-                                    --remote-agg-dir="$REMOTE_AGGREGATIONS_DIR" \
-                                    -c "${CATALOG_DIR}/catalog.xml" copy || \
+cci_env transfer_catalogs -v -u "$REMOTE_TDS_USER" -s "$REMOTE_TDS_HOST" \
+                          --remote-catalog-dir="$REMOTE_CATALOG_DIR" \
+                          --remote-agg-dir="$REMOTE_AGGREGATIONS_DIR" \
+                          -c "${CATALOG_DIR}/catalog.xml" copy || \
     die "failed to copy top level catalog"
