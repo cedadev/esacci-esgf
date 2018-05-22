@@ -38,8 +38,7 @@ in_csv="$1"
 # Check required environment variables are set
 [[ -n "$MAPFILES_ROOT" ]] || die '$MAPFILES_ROOT not set'
 
-MAPFILES_DIR="${MAPFILES_ROOT}/testing/"  # TODO: Avoid hardcoding
-
+MAPFILES_DIR="${MAPFILES_ROOT}/cci-odp-data/"
 
 # Check SSH access and proxy certificate before starting
 ssh_check

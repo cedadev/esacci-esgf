@@ -50,7 +50,8 @@ Some environment variable are required by `publish.sh`:
 * `INI_ROOT` - parent directory containing ESGF ini config files.
   The script looks at `${INI_ROOT}/cci-odp-data/esg.ini` to get the CCI config
 
-* `MAPFILES_ROOT` - parent directory under which to write mapfiles
+* `MAPFILES_ROOT` - parent directory under which to write mapfiles. Mapfiles
+  are saved under `${MAPFILES_ROOT}/cci-odp-data/`
 
 * `CATALOG_DIR` - directory to write modified THREDDS catalogs to
 
