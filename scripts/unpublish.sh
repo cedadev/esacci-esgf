@@ -45,9 +45,10 @@ esg_env esgunpublish -i "$INI_DIR" --project "$PROJ" --map "$mapfile" \
                      die "failed to delete THREDDS catalogs"
 
 # Recreate top level catalog and copy
-# TODO: Handle error when thredds reinit problem fixed
 log "re-creating top level catalog..."
-esg_env esgpublish -i "$INI_DIR" --project "$PROJ" --thredds-reinit
+esg_env esgpublish -i "$INI_DIR" --project "$PROJ" --thredds-reinit || \
+    die "failed to create top level catalog or THREDDS reinit"
+
 cci_env get_catalogs -e "$INI_FILE" -o "$CATALOG_DIR" -n "$NCML_DIR" \
                      --remote-agg-dir="$REMOTE_AGGREGATIONS_DIR" || \
     die "failed to copy top level catalog to $CATALOG_DIR"
@@ -89,5 +90,7 @@ log "copying top level catalog to remote node..."
 cci_env transfer_catalogs -v -u "$REMOTE_TDS_USER" -s "$REMOTE_TDS_HOST" \
                           --remote-catalog-dir="$REMOTE_CATALOG_DIR" \
                           --remote-agg-dir="$REMOTE_AGGREGATIONS_DIR" \
+                          --reinit --thredds-username="$TDS_ADMIN_USER" \
+                          --thredds-password="$TDS_ADMIN_PASSWORD" \
                           -c "${CATALOG_DIR}/catalog.xml" copy || \
     die "failed to copy top level catalog"

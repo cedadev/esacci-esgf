@@ -66,6 +66,7 @@ VALUES_MAPPING = {
                             EsgIniParser.get_by_key("thredds_url")),
     "solr_host": EsgIniParser.get_solr_hostname,
     "thredds_password": EsgIniParser.get_by_key("thredds_password"),
+    "thredds_username": EsgIniParser.get_by_key("thredds_username"),
     "thredds_root": EsgIniParser.get_by_key("thredds_root"),
     "publication_db_url": EsgIniParser.get_by_key("dburl")
 }

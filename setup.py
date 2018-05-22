@@ -4,6 +4,7 @@ requirements = [
     "cached-property==1.3.0",
     "psycopg2-binary==2.7.4",
     "pysolr==3.7.0",
+    "requests==2.18.4",
 ]
 
 setup(

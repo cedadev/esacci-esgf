@@ -40,11 +40,6 @@ in_csv="$1"
 
 MAPFILES_DIR="${MAPFILES_ROOT}/testing/"  # TODO: Avoid hardcoding
 
-# Get hostnames of services from esg.ini
-REMOTE_TDS_HOST=`cci_env parse_esg_ini "$INI_FILE" thredds_host` || \
-    die "could not get THREDDS host from $INI_FILE"
-SOLR_HOST=`cci_env parse_esg_ini "$INI_FILE" solr_host` || \
-    die "could not get Solr host from $INI_FILE"
 
 # Check SSH access and proxy certificate before starting
 ssh_check
@@ -104,8 +99,8 @@ done
 mapfiles=`remove_exclusions "$mapfiles" "$excluded_mapfiles"`
 
 # Create top level catalog and reinit THREDDS
-# TODO: Handle error here once thredds-reinit is working on cci-odp-data
-esg_env esgpublish -i "$INI_DIR" --project "$PROJ" --thredds-reinit
+esg_env esgpublish -i "$INI_DIR" --project "$PROJ" --thredds-reinit || \
+    die "failed to create top level catalog or THREDDS reinit"
 
 # Retrieve generated THREDDS catalogs and modify them as necessary.
 # This may be slow as to create aggregations each data file needs to be opened
@@ -114,12 +109,14 @@ cci_env get_catalogs -o "$CATALOG_DIR" -n "$NCML_DIR" -e "$INI_FILE" \
                      --remote-agg-dir "$REMOTE_AGGREGATIONS_DIR" "$in_json" \
     > /dev/null || die "failed to retrieve/modify THREDDS catalogs"
 
-# Copy catalogs and aggregations to CCI server and restart tomcat
+# Copy catalogs and aggregations to CCI server and reinit THREDDS
 log "transferring catalogs to remote machine..."
 cci_env transfer_catalogs -c "$CATALOG_DIR" -n "$NCML_DIR" -v \
                           -u "$REMOTE_TDS_USER" -s "$REMOTE_TDS_HOST" \
                           --remote-catalog-dir="$REMOTE_CATALOG_DIR" \
                           --remote-agg-dir="$REMOTE_AGGREGATIONS_DIR" \
+                          --reinit --thredds-username="$TDS_ADMIN_USER" \
+                          --thredds-password="$TDS_ADMIN_PASSWORD" \
                           copy || \
     die "failed to transfer catalogs"
 

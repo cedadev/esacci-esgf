@@ -87,11 +87,18 @@ dsid_from_mapfile() {
 [[ -n "$NCML_DIR" ]]          || die '$NCML_DIR not set'
 
 PROJ="esacci"
-REMOTE_TDS_HOST="cci-odp-data.ceda.ac.uk"
-REMOTE_TDS_URL="http://${REMOTE_TDS_HOST}/thredds/"
 REMOTE_TDS_USER="root"
 INI_DIR="${INI_ROOT}/cci-odp-data"
 INI_FILE="${INI_DIR}/esg.ini"
+
+REMOTE_TDS_HOST=`cci_env parse_esg_ini "$INI_FILE" thredds_host` || die "could not get THREDDS host from $INI_FILE"
+SOLR_HOST=`cci_env parse_esg_ini "$INI_FILE" solr_host` || die "could not get Solr host from $INI_FILE"
+TDS_ADMIN_USER=`cci_env parse_esg_ini "$INI_FILE" thredds_username` || \
+    die "could not get THREDDS admin username from $INI_FILE"
+TDS_ADMIN_PASSWORD=`cci_env parse_esg_ini "$INI_FILE" thredds_password` || \
+    die "could not get THREDDS admin password from $INI_FILE"
+
+REMOTE_TDS_URL="http://${REMOTE_TDS_HOST}/thredds/"
 CERT_FILE=~/.globus/certificate-file
 
 REMOTE_AGGREGATIONS_DIR="/usr/local/aggregations/"

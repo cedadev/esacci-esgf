@@ -9,15 +9,21 @@ import os
 import subprocess
 import argparse
 
+import requests
+
 
 class RemoteCatalogHandler(object):
     def __init__(self, user, server, remote_catalog_dir, remote_agg_dir,
-                 verbose=False, dry_run=False):
-        self.host_spec = "{}@{}".format(user, server)
+                 verbose=False, dry_run=False, reinit=False,
+                 thredds_credentials=None):
+        self.hostname = server
+        self.host_spec = "{}@{}".format(user, self.hostname)
         self.remote_agg_dir = remote_agg_dir
         self.remote_catalog_dir = remote_catalog_dir
         self.verbose = verbose
         self.dry_run = dry_run
+        self.reinit = reinit
+        self.thredds_credentials = thredds_credentials
 
     def run_command(self, args):
         """
@@ -50,8 +56,12 @@ class RemoteCatalogHandler(object):
         """
         Re-initialise THREDDS on the remote server
         """
-        # TODO: Use reinit URL instead of restarting tomcat
-        self.remote_command(["service", "tomcat", "restart"])
+        url = ("http://{hostname}/thredds/admin/debug/?catalogs/reinit"
+               .format(hostname=self.hostname))
+        response = requests.get(url, auth=self.thredds_credentials)
+        if response.status_code != 200:
+            sys.stderr.write("WARNING: THREDDS reinit failed with status code "
+                             "{}\n".format(response.status_code))
 
     def copy_to_server(self, catalog_paths, ncml_paths):
         """
@@ -75,7 +85,8 @@ class RemoteCatalogHandler(object):
         for src, dest in transfers:
             self.rsync(src, dest)
 
-        self.reinit_server()
+        if self.reinit:
+            self.reinit_server()
 
     def delete_from_server(self, catalog_paths, ncml_paths):
         """
@@ -91,6 +102,9 @@ class RemoteCatalogHandler(object):
 
         self.delete_empty_dirs(self.remote_catalog_dir)
         self.delete_empty_dirs(self.remote_agg_dir)
+
+        if self.reinit:
+            self.reinit_server()
 
     def delete_empty_dirs(self, root_dir):
         """
@@ -144,6 +158,21 @@ def main():
         help="Don't actually run commands on remote host (use with --verbose)"
     )
     parser.add_argument(
+        "--reinit",
+        action="store_true",
+        default=False,
+        help="Reinitialise THREDDS catalogs after copy or delete operations "
+             "[default: %(default)s]"
+    )
+    parser.add_argument(
+        "--thredds-username",
+        help="THREDDS admin username to use when calling reinit URL"
+    )
+    parser.add_argument(
+        "--thredds-password",
+        help="THREDDS admin password to use when calling reinit URL"
+    )
+    parser.add_argument(
         "-c", "--catalog-path",
         default=[],
         action="append",
@@ -194,10 +223,19 @@ def main():
 
     args = parser.parse_args(sys.argv[1:])
 
+    thredds_creds = None
+    if args.reinit:
+        if not (args.thredds_username and args.thredds_password):
+            parser.error("Must give --thredds-username and --thredds-password "
+                         "when using --reinit")
+        thredds_creds = (args.thredds_username, args.thredds_password)
+
     handler = RemoteCatalogHandler(user=args.user, server=args.server,
                                    remote_catalog_dir=args.remote_catalog_dir,
                                    remote_agg_dir=args.remote_agg_dir,
-                                   verbose=args.verbose, dry_run=args.dry_run)
+                                   verbose=args.verbose, dry_run=args.dry_run,
+                                   reinit=args.reinit,
+                                   thredds_credentials=thredds_creds)
 
     if args.mode == "copy":
         handler.copy_to_server(args.catalog_path, args.ncml_path)
