@@ -163,8 +163,9 @@ is used in various scripts throughout publication:
 
 ## Other scripts
 
-`publish.sh` calls lots of python scripts throughout the process - they are
-documented below.
+`publish.sh` calls lots of python scripts throughout the process, some of which
+are in the [tds-utils](https://github.com/cedadev/tds-utils) repository.
+Scripts from this repo are documented below:
 
 ### modify_catalogs.py
 
