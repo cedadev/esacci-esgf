@@ -97,6 +97,11 @@ done
 
 mapfiles=`remove_exclusions "$mapfiles" "$excluded_mapfiles"`
 
+# No point in continuing if all datasets failed above
+if [[ -z $mapfiles ]]; then
+    die "all datasets have been excluded -- aborting"
+fi
+
 # Create top level catalog and reinit THREDDS
 esg_env esgpublish -i "$INI_DIR" --project "$PROJ" --thredds-reinit || \
     die "failed to create top level catalog or THREDDS reinit"
