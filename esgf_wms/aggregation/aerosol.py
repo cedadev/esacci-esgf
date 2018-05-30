@@ -85,7 +85,12 @@ class CCIAerosolDatasetReader(NetcdfDatasetReader):
         CCI aerosol datasets do not have 'time' variables, so the timestamp
         must be calculated by other means
         """
-        start, end = self.get_start_end_date()
+        try:
+            start, end = self.get_start_end_date()
+        except ValueError as ex:
+            filename = os.path.basename(self.ds.filepath())
+            raise ValueError("Error in file '{}': {}".format(filename, ex))
+
         midpoint = (start.timestamp() + end.timestamp()) / 2
         return (UNITS, [int(midpoint)])
 

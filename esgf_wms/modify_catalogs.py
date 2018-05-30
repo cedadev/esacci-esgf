@@ -14,7 +14,10 @@ from collections import namedtuple
 from cached_property import cached_property
 
 from tds_utils.partition_files import partition_files
-from tds_utils.aggregate import create_aggregation, AggregationError
+from tds_utils.aggregation import AggregationError
+from tds_utils.aggregation import AggregationCreator as DefaultAggregationCreator
+
+from esgf_wms.aggregation.aerosol import CCIAerosolAggregationCreator
 
 
 class AggregationInfo(namedtuple("AggregationInfo", ["xml_element", "basename",
@@ -105,14 +108,8 @@ class ThreddsXMLBase(object):
 
 class ThreddsXMLDataset(ThreddsXMLBase):
     """
-    An intermediate class re THREDDS catalogs that describe datasets -
-    methods in common to what we want to do on the data node
-    and on the WMS server
-
-       AND
-
-    A class for processing THREDDS XML files and tweaking them to add WMS tags.
-
+    A class for processing THREDDS XML files and tweaking them to add WMS tags
+    and NcML aggregation
     """
 
     def __init__(self, aggregations_dir, thredds_roots=None, do_wcs=False,
@@ -121,9 +118,7 @@ class ThreddsXMLDataset(ThreddsXMLBase):
         aggregations_dir is the directory in which NcML files will be placed on the
         server (used to reference aggregations from the THREDDS catalog)
         """
-
         super().__init__(**kwargs)
-
         self.thredds_roots = thredds_roots or {}
         self.thredds_roots.setdefault("esg_esacci", "/neodc/esacci")
         self.do_wcs = do_wcs
@@ -216,6 +211,14 @@ class ThreddsXMLDataset(ThreddsXMLBase):
                 for element in self.second_level_datasets
                 if element.attrib["serviceName"] == "HTTPServer"]
 
+    def get_aggregation_creator_cls(self):
+        """
+        Return a subclass of tds_utils.aggregation.BaseAggregationCreator
+        used to create the NcML aggregation
+        """
+        return (CCIAerosolAggregationCreator if "AEROSOL" in self.dataset_id
+                else DefaultAggregationCreator)
+
     def add_aggregation(self, add_wms=False):
         """
         Create an NcML aggregation from netCDF files in this dataset, and link
@@ -251,8 +254,9 @@ class ThreddsXMLDataset(ThreddsXMLBase):
                    "heterogeneous files (found {n} potential groups)")
             print(msg.format(dsid=dsid, n=len(groups)), file=sys.stderr)
 
+        creator = self.get_aggregation_creator_cls()("time")
         try:
-            agg_element = create_aggregation(file_list, "time", cache=True)
+            agg_element = creator.create_aggregation(file_list, cache=True)
         except AggregationError:
             print("WARNING: Failed to create aggregation", file=sys.stderr)
             return
