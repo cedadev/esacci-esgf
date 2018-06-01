@@ -7,7 +7,7 @@ from tds_utils.aggregation import (NetcdfDatasetReader, BaseAggregationCreator,
                                    AggregationType, NcMLVariable)
 
 
-UNITS = "seconds since 1970-01-01 00:00:00 UTC"
+UNITS = "days since 1970-01-01 00:00:00 UTC"
 
 
 class CCIAerosolDatasetReader(NetcdfDatasetReader):
@@ -92,7 +92,7 @@ class CCIAerosolDatasetReader(NetcdfDatasetReader):
             raise ValueError("Error in file '{}': {}".format(filename, ex))
 
         midpoint = (start.timestamp() + end.timestamp()) / 2
-        return (UNITS, [int(midpoint)])
+        return (UNITS, [int(midpoint / (60 * 60 * 24))])
 
 
 class CCIAerosolAggregationCreator(BaseAggregationCreator):
