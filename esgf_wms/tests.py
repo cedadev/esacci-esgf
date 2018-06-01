@@ -84,6 +84,12 @@ class TestCatalogUpdates(object):
         assert self.has_access_method(agg_ds, "wcs")
         assert self.has_access_method(agg_ds, "OpenDAPServer")
 
+        properties = agg_ds.findall(get_full_tag("property"))
+        assert len(properties) == 1
+        assert "name" in properties[0].attrib
+        assert "value" in properties[0].attrib
+        assert "jasmin.eofrom.space" in properties[0].attrib["value"]
+
 
 class TestMergeCSV(object):
     def test_invalid_header(self, tmpdir):

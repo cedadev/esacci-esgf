@@ -140,16 +140,18 @@ class ThreddsXMLDataset(ThreddsXMLBase):
     def dataset_id(self):
         return self.top_level_dataset.attrib["ID"]
 
-    def insert_viewer_metadata(self):
+    def insert_metadata(self):
         mt = self.new_element("metadata", inherited="true")
         self.new_child(mt, "serviceName", "all")
         self.new_child(mt, "authority", "pml.ac.uk:")
         self.new_child(mt, "dataType", "Grid")
-        self.new_child(mt, "property", name="viewer",
-                       value="http://jasmin.eofrom.space/?wms_url={WMS}"
-                             "?service=WMS&amp;version=1.3.0"
-                             "&amp;request=GetCapabilities,GISportal Viewer")
         self.insert_element_before_similar(self.top_level_dataset, mt)
+
+    def insert_wms_viewer(self, ds):
+        self.new_child(ds, "property", name="viewer",
+                       value="http://jasmin.eofrom.space/?wms_url={WMS}"
+                             "?service=WMS&version=1.3.0"
+                             "&request=GetCapabilities,GISportal Viewer")
 
     def insert_wms_service(self,
                            base="/thredds/wms/"):
@@ -266,7 +268,8 @@ class ThreddsXMLDataset(ThreddsXMLBase):
         ds = self.new_element("dataset", name=dsid, ID=dsid, urlPath=dsid)
 
         for service_name in services:
-            access = self.new_element("access", serviceName=service_name, urlPath=dsid)
+            access = self.new_element("access", serviceName=service_name,
+                                      urlPath=dsid)
             # Add 'access' to new dataset so that it has the required
             # endpoints in THREDDS
             ds.append(access)
@@ -287,17 +290,21 @@ class ThreddsXMLDataset(ThreddsXMLBase):
         agg_full_path = os.path.join(self.aggregations_dir, sub_dir, agg_basename)
         self.new_child(ds, "netcdf", location=agg_full_path,
                        xmlns="http://www.unidata.ucar.edu/namespaces/netcdf/ncml-2.2")
+
+        if add_wms:
+            self.insert_wms_viewer(ds)
+
         self.top_level_dataset.append(ds)
 
     def all_changes(self, create_aggs=False, add_wms=False):
         self.strip_restrict_access()
+        self.insert_metadata()
 
         if create_aggs:
             self.add_aggregation(add_wms=add_wms)
 
         # Add WMS/WCS services
         if add_wms:
-            self.insert_viewer_metadata()
             self.insert_wms_service()
             if self.do_wcs:
                 self.insert_wcs_service()
