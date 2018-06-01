@@ -146,7 +146,9 @@ class ThreddsXMLDataset(ThreddsXMLBase):
         self.new_child(mt, "authority", "pml.ac.uk:")
         self.new_child(mt, "dataType", "Grid")
         self.new_child(mt, "property", name="viewer",
-                       value="http://jasmin.eofrom.space/?wms_url={WMS},GISportal Viewer")
+                       value="http://jasmin.eofrom.space/?wms_url={WMS}"
+                             "?service=WMS&amp;version=1.3.0"
+                             "&amp;request=GetCapabilities,GISportal Viewer")
         self.insert_element_before_similar(self.top_level_dataset, mt)
 
     def insert_wms_service(self,
