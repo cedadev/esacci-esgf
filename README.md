@@ -1,4 +1,4 @@
-# esgf_wms
+# esacci-esgf
 
 This repo contains scripts related to modifying ESGF-produced THREDDS catalogs
 and creating NcML aggregations.
@@ -18,7 +18,7 @@ bash Miniconda3-latest-Linux-x86_64.sh -b -p $conda_root
 export PATH="${conda_root}/bin:$PATH"
 conda env create -f environment.yml
 
-# Install esgf_wms python pakage
+# Install esacci-esgf python pakage
 pip install -e .
 ```
 
@@ -26,7 +26,7 @@ To activate it:
 ```
 export PATH="${conda_root}/bin:$PATH"
 source "${conda_root}/etc/profile.d/conda.sh"
-conda activate esgf_wms
+conda activate esacci-esgf
 ```
 
 (the use of a `$conda_root` variable is for demo purposes and is not strictly
@@ -62,12 +62,12 @@ Some environment variable are required by `publish.sh`:
 * `PUB_CONDA_ROOT` - conda root directory that has `PUB_CONDA_ENV` enviroment
   setup in it
 
-* `ESACCI_CONDA_ROOT` - conda root directory that has `esgf_wms` enviroment
+* `ESACCI_CONDA_ROOT` - conda root directory that has `esacci-esgf` enviroment
   setup (see [installation](#installation))
 
 The format of the input CSV is [documented below](#csv).
 
-Note that `publish.sh` invokes both the `esgf_wms` and `esgf-pub` conda
+Note that `publish.sh` invokes both the `esacci-esgf` and `esgf-pub` conda
 environments, so make sure neither one is activated before running.
 
 ### Generating a proxy certificate
@@ -291,4 +291,4 @@ dictionary to stdout.
 
 ## Tests
 
-`tests.py` contains some tests - run `pytest esgf_wms/tests.py`.
+`tests.py` contains some tests - run `pytest esacci_esgf/tests.py`.

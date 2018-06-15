@@ -44,9 +44,9 @@ esg_env() {
     run_in_conda_env "$PUB_CONDA_ROOT" "$PUB_CONDA_ENV" $@
 }
 
-# Run a command in the esgf_wms conda enviroment
+# Run a command in the esaci-esgf conda enviroment
 cci_env() {
-    run_in_conda_env "$ESACCI_CONDA_ROOT" esgf_wms $@
+    run_in_conda_env "$ESACCI_CONDA_ROOT" esacci-esgf $@
 }
 
 # Check we can SSH to the remote server

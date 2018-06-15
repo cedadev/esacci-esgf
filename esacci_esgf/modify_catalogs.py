@@ -17,7 +17,7 @@ from tds_utils.partition_files import partition_files
 from tds_utils.aggregation import AggregationError
 from tds_utils.aggregation import AggregationCreator as DefaultAggregationCreator
 
-from esgf_wms.aggregation.aerosol import CCIAerosolAggregationCreator
+from esacci_esgf.aggregation.aerosol import CCIAerosolAggregationCreator
 
 
 class AggregationInfo(namedtuple("AggregationInfo", ["xml_element", "basename",

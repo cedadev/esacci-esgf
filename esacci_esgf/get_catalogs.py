@@ -16,8 +16,8 @@ import shutil
 
 import psycopg2
 
-from esgf_wms.modify_catalogs import ProcessBatch
-from esgf_wms.input.parse_esg_ini import EsgIniParser
+from esacci_esgf.modify_catalogs import ProcessBatch
+from esacci_esgf.input.parse_esg_ini import EsgIniParser
 
 
 class CatalogGetter(object):

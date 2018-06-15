@@ -8,7 +8,7 @@ requirements = [
 ]
 
 setup(
-    name="esgf-wms",
+    name="esacci_esgf",
     version="0.0.1",
     description="Scripts to help publish CCI data using the ESGF publisher "
                 "and a standalone TDS server",
@@ -19,15 +19,15 @@ setup(
     },
     entry_points={
         "console_scripts": [
-            "get_catalog_path=esgf_wms.get_catalog_path:main",
-            "get_catalogs=esgf_wms.get_catalogs:main",
-            "make_mapfiles=esgf_wms.input.make_mapfiles:main",
-            "merge_csv_json=esgf_wms.input.merge_csv_json:main",
-            "modify_catalogs=esgf_wms.modify_catalogs:main",
-            "modify_solr_links=esgf_wms.modify_solr_links:main",
-            "parse_esg_ini=esgf_wms.input.parse_esg_ini:main",
-            "remove_key=esgf_wms.input.remove_key:main",
-            "transfer_catalogs=esgf_wms.transfer_catalogs:main",
+            "get_catalog_path=esacci_esgf.get_catalog_path:main",
+            "get_catalogs=esacci_esgf.get_catalogs:main",
+            "make_mapfiles=esacci_esgf.input.make_mapfiles:main",
+            "merge_csv_json=esacci_esgf.input.merge_csv_json:main",
+            "modify_catalogs=esacci_esgf.modify_catalogs:main",
+            "modify_solr_links=esacci_esgf.modify_solr_links:main",
+            "parse_esg_ini=esacci_esgf.input.parse_esg_ini:main",
+            "remove_key=esacci_esgf.input.remove_key:main",
+            "transfer_catalogs=esacci_esgf.transfer_catalogs:main",
         ]
     }
 )

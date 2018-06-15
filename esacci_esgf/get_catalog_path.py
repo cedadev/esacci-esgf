@@ -6,7 +6,7 @@ to the THREDDS root
 import sys
 import argparse
 
-from esgf_wms.get_catalogs import CatalogGetter
+from esacci_esgf.get_catalogs import CatalogGetter
 
 
 def main():
