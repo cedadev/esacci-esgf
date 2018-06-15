@@ -62,7 +62,7 @@ for mapfile in $mapfiles; do
     # Publish to postgres - this step may be slow as the publisher will need
     # to open each data file
     certificate_check_loop
-    esg_env esgpublish -i "$INI_DIR" --project "$PROJ" --map "$mapfile"
+    esg_env esgpublish -i "$INI_DIR" --project "$PROJ" --map "$mapfile" --commit-every 100
     publish_status=$?
 
     if [[ $publish_status -eq 0 ]]; then

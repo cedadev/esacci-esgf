@@ -32,6 +32,12 @@ conda activate esacci-esgf
 (the use of a `$conda_root` variable is for demo purposes and is not strictly
 necessary)
 
+This project currently uses a patched version of the ESGF publisher (the
+`esacci-patches` branch of
+[this fork](https://github.com/joesingo/esg-publisher/tree/esacci-patches))
+which should be installed in a separate conda environment (see `PUB_CONDA_ENV`
+below).
+
 ## Usage
 
 ### Publishing
@@ -67,8 +73,8 @@ Some environment variable are required by `publish.sh`:
 
 The format of the input CSV is [documented below](#csv).
 
-Note that `publish.sh` invokes both the `esacci-esgf` and `esgf-pub` conda
-environments, so make sure neither one is activated before running.
+Note that `publish.sh` invokes both the `esacci-esgf` and `$PUB_CONDA_ENV`
+conda environments, so make sure neither one is activated before running.
 
 ### Generating a proxy certificate
 
