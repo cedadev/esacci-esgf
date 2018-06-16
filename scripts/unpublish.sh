@@ -94,3 +94,5 @@ cci_env transfer_catalogs -v -u "$REMOTE_TDS_USER" -s "$REMOTE_TDS_HOST" \
                           --thredds-password="$TDS_ADMIN_PASSWORD" \
                           -c "${CATALOG_DIR}/catalog.xml" copy || \
     die "failed to copy top level catalog"
+
+log "unpublication complete"

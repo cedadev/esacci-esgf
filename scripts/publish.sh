@@ -143,3 +143,5 @@ cci_env modify_solr_links "http://${SOLR_HOST}:8984" || die "failed to modify So
 
 # Clean up
 rm "$in_json"
+
+log "publication complete"
