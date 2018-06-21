@@ -14,9 +14,10 @@ conda_root="/path/to/create/conda/installation"
 wget https://repo.continuum.io/miniconda/Miniconda3-latest-Linux-x86_64.sh
 bash Miniconda3-latest-Linux-x86_64.sh -b -p $conda_root
 
-# Create a new env
+# Create a new env and activate it
 export PATH="${conda_root}/bin:$PATH"
 conda env create -f environment.yml
+conda activate esacci-esgf
 
 # Install esacci-esgf python pakage
 pip install -e .
@@ -24,9 +25,7 @@ pip install -e .
 
 To activate it:
 ```
-export PATH="${conda_root}/bin:$PATH"
-source "${conda_root}/etc/profile.d/conda.sh"
-conda activate esacci-esgf
+source "${conda_root}/bin/activate esacci-esgf
 ```
 
 (the use of a `$conda_root` variable is for demo purposes and is not strictly
