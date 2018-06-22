@@ -41,12 +41,12 @@ run_in_conda_env() {
 
 # Run a command in the ESGF publisher conda enviroment
 esg_env() {
-    run_in_conda_env "$PUB_CONDA_ROOT" "$PUB_CONDA_ENV" $@
+    run_in_conda_env "$CONDA_ROOT" "$PUB_CONDA_ENV" $@
 }
 
 # Run a command in the esaci-esgf conda enviroment
 cci_env() {
-    run_in_conda_env "$ESACCI_CONDA_ROOT" esacci-esgf $@
+    run_in_conda_env "$CONDA_ROOT" "$ESACCI_CONDA_ENV" $@
 }
 
 # Check we can SSH to the remote server
@@ -80,9 +80,8 @@ dsid_from_mapfile() {
 
 # Check required environment variables are set
 [[ -n "$INI_DIR" ]]           || die '$INI_DIR not set'
-[[ -n "$PUB_CONDA_ROOT" ]]    || die '$PUB_CONDA_ROOT not set'
+[[ -n "$CONDA_ROOT" ]]        || die '$CONDA_ROOT not set'
 [[ -n "$PUB_CONDA_ENV" ]]     || die '$PUB_CONDA_ENV not set'
-[[ -n "$ESACCI_CONDA_ROOT" ]] || die '$ESACCI_CONDA_ROOT not set'
 [[ -n "$CATALOG_DIR" ]]       || die '$CATALOG_DIR not set'
 [[ -n "$NCML_DIR" ]]          || die '$NCML_DIR not set'
 
@@ -90,6 +89,7 @@ dsid_from_mapfile() {
 : ${REMOTE_TDS_USER:="root"}
 : ${REMOTE_NCML_DIR:="/usr/local/aggregations/"}
 : ${REMOTE_CATALOG_DIR:="/var/lib/tomcat/content/thredds/esacci"}
+: ${ESACCI_CONDA_ENV:="esacci-esgf"}
 : ${CERT_FILE:=~/.globus/certificate-file}
 
 INI_FILE="${INI_DIR}/esg.ini"

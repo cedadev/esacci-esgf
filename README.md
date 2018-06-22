@@ -58,9 +58,9 @@ The following environment variable are used by `publish.sh`:
 | `MAPFILES_DIR`       | directory under which to write mapfiles |
 | `CATALOG_DIR`        | directory to write modified THREDDS catalogs to |
 | `NCML_DIR`           | directory to write NcML aggregations to |
+| `CONDA_ROOT`         | conda root directory |
 | `PUB_CONDA_ENV`      | name of the conda enviroment used to run the ESGF publisher |
-| `PUB_CONDA_ROOT`     | conda root directory that has `PUB_CONDA_ENV` enviroment setup in it |
-| `ESACCI_CONDA_ROOT`  | conda root directory that has `esacci-esgf` enviroment setup (see [installation](#installation)) |
+| `ESACCI_CONDA_ENV`   | name of the conda enviroment used to run the scripts from this repository (default: `esacci-esgf`). See [installation](#installation) |
 | `REMOTE_TDS_USER`    | user to SSH to the remote THREDDS host as (default: `root`) |
 | `REMOTE_CATALOG_DIR` | directory in which to store modified THREDDS catalogs on the remote THREDDS host (default: `/var/lib/tomcat/content/thredds/esacci`) |
 | `REMOTE_NCML_DIR`    | directory in which to store NcML aggregations on the remote THREDDS host (default: `/usr/local/aggregations/`) |
@@ -92,8 +92,8 @@ and `NCML_DIR` on the local machine (if they exist in these directories).
 It is run as `scripts/unpublish.sh <mapfile>`.
 
 It requires the following environment variables to be set (see
-[publish.sh usage](#publishing) for their meaning): `INI_DIR`, `PUB_CONDA_ROOT`,
-`ESACCI_CONDA_ROOT`, `CATALOG_DIR`, `NCML_DIR`.
+[publish.sh usage](#publishing) for their meaning): `INI_DIR`, `CONDA_ROOT`,
+`CATALOG_DIR`, `NCML_DIR`.
 
 As with `publish.sh`, ensure a valid proxy certificate has been generated
 before running.
