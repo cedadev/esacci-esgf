@@ -71,6 +71,10 @@ The format of the input CSV is [documented below](#csv).
 Note that `publish.sh` invokes both the `esacci-esgf` and `$PUB_CONDA_ENV`
 conda environments, so make sure neither one is activated before running.
 
+### esg.ini configuration
+
+The name in `thredds_dataset_roots` for the CCI root must be `esg_esacci`.
+
 ### Generating a proxy certificate
 
 This is required to authenticate when publishing to Solr:
@@ -279,7 +283,7 @@ to the THREDDS root.
 
 ### parse_esg_ini.py
 
-Usage `parse_esg_ini <path to esg.ini> (solr_host | thredds_host | thredds_password | thredds_root | publication_db_url)`.
+Usage `parse_esg_ini <path to esg.ini> (thredds_host | thredds_root | thredds_password | thredds_data_path | thredds_username | solr_host | publication_db_url)`
 
 Parse an ESGF ini config file and extract a value.
 

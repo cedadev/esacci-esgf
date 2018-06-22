@@ -17,6 +17,7 @@ from tds_utils.partition_files import partition_files
 from tds_utils.aggregation import AggregationError
 from tds_utils.aggregation import AggregationCreator as DefaultAggregationCreator
 
+from esacci_esgf.input.parse_esg_ini import EsgIniParser
 from esacci_esgf.aggregation.aerosol import CCIAerosolAggregationCreator
 
 
@@ -120,7 +121,6 @@ class ThreddsXMLDataset(ThreddsXMLBase):
         """
         super().__init__(**kwargs)
         self.thredds_roots = thredds_roots or {}
-        self.thredds_roots.setdefault("esg_esacci", "/neodc/esacci")
         self.do_wcs = do_wcs
         self.aggregations_dir = aggregations_dir
         self.aggregation = None
@@ -354,6 +354,14 @@ class ProcessBatch(object):
             help="Directory under which NcML aggregations are stored on the "
                  "TDS server [default: %(default)s]"
         )
+        parser.add_argument(
+            "--data-dir",
+            dest="data_dir",
+            default="/neodc/esacci",
+            help="Directory under which data is stored, so that the THREDDS "
+                 "dataset root can be translated to give the real path on "
+                 "disk [default: %(default)s]"
+        )
 
         self.args = parser.parse_args(arg_list)
 
@@ -375,8 +383,12 @@ class ProcessBatch(object):
     def process_file(self, in_file):
         basename = os.path.basename(in_file)
         out_file = os.path.join(self.args.output_dir, basename)
+        thredds_roots = {
+            EsgIniParser.THREDDS_DATA_PATH_KEY: self.args.data_dir
+        }
 
         tx = ThreddsXMLDataset(aggregations_dir=self.args.remote_agg_dir,
+                               thredds_roots=thredds_roots,
                                do_wcs=True)
         tx.read(in_file)
         tx.all_changes(create_aggs=self.args.aggregate, add_wms=self.args.wms)

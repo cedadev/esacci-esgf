@@ -316,3 +316,26 @@ class TestEsgIniParser(object):
             "hessian_service_url = http://{host}/solr/one/two/three",
         ]
         self.do_hostname_test(tmpdir, lines, "solr_host")
+
+    def test_thredds_data_path(self, tmpdir):
+        ini = tmpdir.join("esg.ini")
+        ini.write("\n".join([
+            "[DEFAULT]",
+            "thredds_dataset_roots =",
+            "    some_root | blah",
+            " \t  esg_esacci       |      /my/data    ",
+            " some_other_root | bleh"
+        ]))
+        assert EsgIniParser.get_value(str(ini), "thredds_data_path") == "/my/data"
+
+    def test_thredds_data_path_not_found(self, tmpdir):
+        ini = tmpdir.join("esg.ini")
+        ini.write("\n".join([
+            "[DEFAULT]",
+            "thredds_dataset_roots =",
+            "   root1  | a",
+            "   root2  | b",
+            "   esacci | c"
+        ]))
+        with pytest.raises(ValueError):
+            EsgIniParser.get_value(str(ini), "thredds_data_path")

@@ -9,6 +9,11 @@ from urllib.parse import urlparse
 
 
 class EsgIniParser(object):
+
+    # The name of the THREDDS dataset root to look for when finding the path
+    # on disk to data in the 'thredds_dataset_roots' option
+    THREDDS_DATA_PATH_KEY = "esg_esacci"
+
     @classmethod
     def get_host_from_url(cls, url):
         """
@@ -44,6 +49,25 @@ class EsgIniParser(object):
         return cls.get_host_from_url(url)
 
     @classmethod
+    def get_thredds_data_path(cls, raw_value):
+        """
+        Take the value from the 'thredds_dataset_roots' option that maps
+        dataset root to path on disk, find the relevant line, and return the
+        path to data
+        """
+        lines = filter(None, raw_value.split("\n"))
+        for line in lines:
+            # Remove whitespace from line (assumes paths do not contain
+            # whitespace)
+            line = line.replace(" ", "").replace("\t", "")
+            root, path = line.split("|")
+            if root == cls.THREDDS_DATA_PATH_KEY:
+                return path
+
+        raise ValueError("Could not find '{}' in THREDDS dataset roots"
+                         .format(cls.THREDDS_DATA_PATH_KEY))
+
+    @classmethod
     def get_by_key(cls, key):
         """
         Return a function that extracts the value corresponding to the given
@@ -68,6 +92,10 @@ VALUES_MAPPING = {
     "thredds_password": EsgIniParser.get_by_key("thredds_password"),
     "thredds_username": EsgIniParser.get_by_key("thredds_username"),
     "thredds_root": EsgIniParser.get_by_key("thredds_root"),
+    "thredds_data_path": compose(
+        EsgIniParser.get_thredds_data_path,
+        EsgIniParser.get_by_key("thredds_dataset_roots")
+    ),
     "publication_db_url": EsgIniParser.get_by_key("dburl")
 }
 

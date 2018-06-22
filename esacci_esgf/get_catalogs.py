@@ -31,6 +31,9 @@ class CatalogGetter(object):
         self.dburl = EsgIniParser.get_value(esg_ini, "publication_db_url")
         # This is the directory that paths in the DB are relative to
         self.thredds_root = EsgIniParser.get_value(esg_ini, "thredds_root")
+        # Directory in which data is stored -- required to translate thredds
+        # dataset roots to real paths
+        self.data_dir = EsgIniParser.get_value(esg_ini, "thredds_data_path")
 
     def get_catalog_locations(self, ds_names):
         """
@@ -87,7 +90,8 @@ class CatalogGetter(object):
                 os.mkdir(output_dir)
 
             options = ["--output-dir", output_dir, "--ncml-dir", self.ncml_dir,
-                       "--remote-agg-dir", self.remote_agg_dir]
+                       "--remote-agg-dir", self.remote_agg_dir, "--data-dir",
+                       self.data_dir]
             if info["generate_aggregation"]:
                 options.append("--aggregate")
 
