@@ -76,7 +76,7 @@ The following variables are optional:
 * `REMOTE_CATALOG_DIR` - directory in which to store modified THREDDS
   catalogs on the remote THREDDS host (default: `/var/lib/tomcat/content/thredds/esacci`)
 
-* `REMOTE_AGGREGATIONS_DIR` - directory in which to store NcML aggregations on
+* `REMOTE_NCML_DIR` - directory in which to store NcML aggregations on
   the remote THREDDS host (default: `/usr/local/aggregations/`)
 
 * `CERT_FILE` - path to the the certificate file used to authenticate when

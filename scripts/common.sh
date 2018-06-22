@@ -88,7 +88,7 @@ dsid_from_mapfile() {
 
 # Set optional variables
 : ${REMOTE_TDS_USER:="root"}
-: ${REMOTE_AGGREGATIONS_DIR:="/usr/local/aggregations/"}
+: ${REMOTE_NCML_DIR:="/usr/local/aggregations/"}
 : ${REMOTE_CATALOG_DIR:="/var/lib/tomcat/content/thredds/esacci"}
 : ${CERT_FILE:=~/.globus/certificate-file}
 
