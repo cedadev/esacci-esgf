@@ -50,38 +50,21 @@ To run the entire publication process, run
 scripts/publish.sh <input CSV>
 ```
 
-The following environment variable are required by `publish.sh`:
+The following environment variable are used by `publish.sh`:
 
-* `INI_DIR` - directory containing ESGF ini config files. This directory
-  should contain `esg.ini` and `esg.esacci.ini`
-
-* `MAPFILES_DIR` - directory under which to write mapfiles
-
-* `CATALOG_DIR` - directory to write modified THREDDS catalogs to
-
-* `NCML_DIR` - directory to write NcML aggregations to
-
-* `PUB_CONDA_ENV` - name of the conda enviroment used to run the ESGF publisher
-
-* `PUB_CONDA_ROOT` - conda root directory that has `PUB_CONDA_ENV` enviroment
-  setup in it
-
-* `ESACCI_CONDA_ROOT` - conda root directory that has `esacci-esgf` enviroment
-  setup (see [installation](#installation))
-
-The following variables are optional:
-
-* `REMOTE_TDS_USER` - user to SSH to the remote THREDDS host as (default: `root`)
-
-* `REMOTE_CATALOG_DIR` - directory in which to store modified THREDDS
-  catalogs on the remote THREDDS host (default: `/var/lib/tomcat/content/thredds/esacci`)
-
-* `REMOTE_NCML_DIR` - directory in which to store NcML aggregations on
-  the remote THREDDS host (default: `/usr/local/aggregations/`)
-
-* `CERT_FILE` - path to the the certificate file used to authenticate when
-  publishing to Solr -- see [generating a proxy certificate](#generating-a-proxy-certificate)
-  (default: `~/.globus/certificate-file`)
+| Name                 | Description |
+| -------------------- | ----------- |
+| `INI_DIR`            | directory containing ESGF ini config files. This directory should contain `esg.ini` and `esg.esacci.ini` |
+| `MAPFILES_DIR`       | directory under which to write mapfiles |
+| `CATALOG_DIR`        | directory to write modified THREDDS catalogs to |
+| `NCML_DIR`           | directory to write NcML aggregations to |
+| `PUB_CONDA_ENV`      | name of the conda enviroment used to run the ESGF publisher |
+| `PUB_CONDA_ROOT`     | conda root directory that has `PUB_CONDA_ENV` enviroment setup in it |
+| `ESACCI_CONDA_ROOT`  | conda root directory that has `esacci-esgf` enviroment setup (see [installation](#installation)) |
+| `REMOTE_TDS_USER`    | user to SSH to the remote THREDDS host as (default: `root`) |
+| `REMOTE_CATALOG_DIR` | directory in which to store modified THREDDS catalogs on the remote THREDDS host (default: `/var/lib/tomcat/content/thredds/esacci`) |
+| `REMOTE_NCML_DIR`    | directory in which to store NcML aggregations on the remote THREDDS host (default: `/usr/local/aggregations/`) |
+| `CERT_FILE`          | path to the the certificate file used to authenticate when publishing to Solr (default: `~/.globus/certificate-file`) |
 
 The format of the input CSV is [documented below](#csv).
 
