@@ -50,13 +50,12 @@ To run the entire publication process, run
 scripts/publish.sh <input CSV>
 ```
 
-Some environment variable are required by `publish.sh`:
+The following environment variable are required by `publish.sh`:
 
-* `INI_ROOT` - parent directory containing ESGF ini config files.
-  The script looks at `${INI_ROOT}/cci-odp-data/esg.ini` to get the CCI config
+* `INI_DIR` - directory containing ESGF ini config files. This directory
+  should contain `esg.ini` and `esg.esacci.ini`
 
-* `MAPFILES_ROOT` - parent directory under which to write mapfiles. Mapfiles
-  are saved under `${MAPFILES_ROOT}/cci-odp-data/`
+* `MAPFILES_DIR` - directory under which to write mapfiles
 
 * `CATALOG_DIR` - directory to write modified THREDDS catalogs to
 
@@ -69,6 +68,20 @@ Some environment variable are required by `publish.sh`:
 
 * `ESACCI_CONDA_ROOT` - conda root directory that has `esacci-esgf` enviroment
   setup (see [installation](#installation))
+
+The following variables are optional:
+
+* `REMOTE_TDS_USER` - user to SSH to the remote THREDDS host as (default: `root`)
+
+* `REMOTE_CATALOG_DIR` - directory in which to store modified THREDDS
+  catalogs on the remote THREDDS host (default: `/var/lib/tomcat/content/thredds/esacci`)
+
+* `REMOTE_AGGREGATIONS_DIR` - directory in which to store NcML aggregations on
+  the remote THREDDS host (default: `/usr/local/aggregations/`)
+
+* `CERT_FILE` - path to the the certificate file used to authenticate when
+  publishing to Solr -- see [generating a proxy certificate](#generating-a-proxy-certificate)
+  (default: `~/.globus/certificate-file`)
 
 The format of the input CSV is [documented below](#csv).
 
@@ -96,7 +109,7 @@ and `NCML_DIR` on the local machine (if they exist in these directories).
 It is run as `scripts/unpublish.sh <mapfile>`.
 
 It requires the following environment variables to be set (see
-[publish.sh usage](#publishing) for their meaning): `INI_ROOT`, `PUB_CONDA_ROOT`,
+[publish.sh usage](#publishing) for their meaning): `INI_DIR`, `PUB_CONDA_ROOT`,
 `ESACCI_CONDA_ROOT`, `CATALOG_DIR`, `NCML_DIR`.
 
 As with `publish.sh`, ensure a valid proxy certificate has been generated

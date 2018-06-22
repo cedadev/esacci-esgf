@@ -79,17 +79,21 @@ dsid_from_mapfile() {
 }
 
 # Check required environment variables are set
-[[ -n "$INI_ROOT" ]]          || die '$INI_ROOT not set'
+[[ -n "$INI_DIR" ]]           || die '$INI_DIR not set'
 [[ -n "$PUB_CONDA_ROOT" ]]    || die '$PUB_CONDA_ROOT not set'
 [[ -n "$PUB_CONDA_ENV" ]]     || die '$PUB_CONDA_ENV not set'
 [[ -n "$ESACCI_CONDA_ROOT" ]] || die '$ESACCI_CONDA_ROOT not set'
 [[ -n "$CATALOG_DIR" ]]       || die '$CATALOG_DIR not set'
 [[ -n "$NCML_DIR" ]]          || die '$NCML_DIR not set'
 
-PROJ="esacci"
-REMOTE_TDS_USER="root"
-INI_DIR="${INI_ROOT}/cci-odp-data"
+# Set optional variables
+: ${REMOTE_TDS_USER:="root"}
+: ${REMOTE_AGGREGATIONS_DIR:="/usr/local/aggregations/"}
+: ${REMOTE_CATALOG_DIR:="/var/lib/tomcat/content/thredds/esacci"}
+: ${CERT_FILE:=~/.globus/certificate-file}
+
 INI_FILE="${INI_DIR}/esg.ini"
+PROJ="esacci"
 
 REMOTE_TDS_HOST=`cci_env parse_esg_ini "$INI_FILE" thredds_host` || die "could not get THREDDS host from $INI_FILE"
 SOLR_HOST=`cci_env parse_esg_ini "$INI_FILE" solr_host` || die "could not get Solr host from $INI_FILE"
@@ -99,7 +103,3 @@ TDS_ADMIN_PASSWORD=`cci_env parse_esg_ini "$INI_FILE" thredds_password` || \
     die "could not get THREDDS admin password from $INI_FILE"
 
 REMOTE_TDS_URL="http://${REMOTE_TDS_HOST}/thredds/"
-CERT_FILE=~/.globus/certificate-file
-
-REMOTE_AGGREGATIONS_DIR="/usr/local/aggregations/"
-REMOTE_CATALOG_DIR="/var/lib/tomcat/content/thredds/esacci"

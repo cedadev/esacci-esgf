@@ -36,9 +36,7 @@ in_csv="$1"
 [[ -n "$in_csv" ]] || usage
 
 # Check required environment variables are set
-[[ -n "$MAPFILES_ROOT" ]] || die '$MAPFILES_ROOT not set'
-
-MAPFILES_DIR="${MAPFILES_ROOT}/cci-odp-data/"
+[[ -n "$MAPFILES_DIR" ]] || die '$MAPFILES_DIR not set'
 
 # Check SSH access and proxy certificate before starting
 ssh_check
