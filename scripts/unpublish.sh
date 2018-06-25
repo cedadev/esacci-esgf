@@ -1,5 +1,16 @@
 #!/bin/bash
 
+###############################################################################
+# Script to unpublish a dataset
+#
+# - Unpublish from Solr, THREDDS and PostgreSQL
+#
+# - Remove local and remote copies of THREDDS catalogs and NcML aggregations
+#
+# - Recreate top level catalog and transfer to remote node
+#
+###############################################################################
+
 usage() {
     echo "usage: `basename $0` MAPFILE"
     exit 1

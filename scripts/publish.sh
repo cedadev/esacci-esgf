@@ -1,5 +1,29 @@
 #!/bin/bash
 
+###############################################################################
+# This is the main script used to publish CCI data. It does the following:
+#
+# - Parse the input CSV and generate mapfiles.
+
+# - Use esgpublish to publish to the PostgreSQL database and generate initial
+#   THREDDS catalogs.
+#
+# - Get catalogs and call modify_catalogs on each with appropriate arguments.
+#   This creates NcML aggregations and adds WMS access links to the catalog (if
+#   required).
+#
+# - Transfer the catalogs/aggregations to the remote THREDDS server, and call
+#   the THREDDS reinit URL.
+#
+# - Send a HTTP request to OpenDAP/WMS endpoints on the remote THREDDS server
+#   to cache aggregations
+#
+# - Use esgpublish to publish to Solr
+#
+# - Correct OpenDAP/WMS links in Solr
+#
+###############################################################################
+
 # Source definitions of `esg_env', `cci_env' and others, and constants
 source `dirname "$0"`/common.sh
 
