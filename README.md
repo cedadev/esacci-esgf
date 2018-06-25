@@ -16,7 +16,7 @@ bash Miniconda3-latest-Linux-x86_64.sh -b -p $conda_root
 
 # Create a new env and activate it
 export PATH="${conda_root}/bin:$PATH"
-conda env create -f environment.yml
+conda env create -f environment.yml -n esacci-esgf
 conda activate esacci-esgf
 
 # Install esacci-esgf python pakage

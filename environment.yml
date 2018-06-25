@@ -1,4 +1,3 @@
-name: esacci-esgf
 channels:
   - conda-forge
   - defaults
