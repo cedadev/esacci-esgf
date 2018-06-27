@@ -2,8 +2,9 @@
 
 ## Installation
 
-`esacci-esgf` provides scripts to interact with the ESGF publisher and number
-of python scripts, both of which should be installed via Conda. For example:
+`esacci-esgf` provides scripts to interact with the ESGF publisher (version >=
+3.5.1) and a number of python scripts, both of which should be installed via
+Conda. For example:
 
 ```bash
 # Get conda (if not already installed)
@@ -31,10 +32,6 @@ conda deactivate
 
 (the use of a `$conda_root` variable is for demo purposes and is not strictly
 necessary)
-
-**Note**: the project currently uses a patched version of the ESGF publisher -- the
-`esacci-patches` branch of
-[joesingo:esg-publisher](https://github.com/joesingo/esg-publisher/tree/esacci-patches).
 
 These conda environments are activated and deactivated as needed during
 publishing, so it should not be necessary to explicitly activate them after
