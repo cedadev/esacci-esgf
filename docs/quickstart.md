@@ -1,0 +1,78 @@
+# Quickstart
+
+## Installation
+
+`esacci-esgf` provides scripts to interact with the ESGF publisher and number
+of python scripts, both of which should be installed via Conda. For example:
+
+```bash
+# Get conda (if not already installed)
+conda_root="/usr/local/conda"
+wget https://repo.continuum.io/miniconda/Miniconda2-latest-Linux-x86_64.sh
+bash Miniconda3-latest-Linux-x86_64.sh -b -p "$conda_root"
+export PATH="${conda_root}/bin:$PATH"
+
+# Create environment for ESGF publisher
+conda create -n esgf-pub
+conda activate esgf-pub
+# Install publisher... (outside the scope of this documentation)
+...
+conda deactivate
+
+# Create environment for esacci-esgf
+cd /path/to/esacci-esgf/
+conda env create -f environment.yml -n esacci-esgf
+conda activate esacci-esgf
+
+# Install esacci-esgf python pakage
+pip install -e .
+conda deactivate
+```
+
+(the use of a `$conda_root` variable is for demo purposes and is not strictly
+necessary)
+
+**Note**: the project currently uses a patched version of the ESGF publisher -- the
+`esacci-patches` branch of
+[joesingo:esg-publisher](https://github.com/joesingo/esg-publisher/tree/esacci-patches).
+
+These conda environments are activated and deactivated as needed during
+publishing, so it should not be necessary to explicitly activate them after
+installation.
+
+## Usage
+
+Publishing is done with `scripts/publish.sh`. Since it needs to activate both
+the publisher and `esacci-esgf` conda environments, make sure neither are
+activated before running (the base environment may or may not be activated).
+
+Make sure the required environment variables are set (see [environment
+variables](configuration.md#environment-variables)), and that `esg.ini` and
+`esg.esacci.ini` are in place and pointed to by the relevant environment
+variables.
+
+Generate a proxy certificate for publishing to Solr (see [generating a
+proxy certificate](configuration.md#generating-a-proxy-certificate)).
+
+Run `publish.sh` as follows:
+
+```bash
+./scripts/publish.sh /path/to/input.csv
+```
+
+See [input formats](input_files.md) for the format of the input CSV.
+
+**Note**: for large datasets publication may take a long time, so it is worth
+writing output to files and running `publish.sh` in the background:
+
+```bash
+./scripts.push.sh /path/to/input.csv >cci.out 2>cci.err &
+```
+
+To remove published datasets, use:
+
+```bash
+./scripts/unpublish.sh /path/to/mapfile
+```
+
+This also requires a proxy certificate to un-publish from Solr.
