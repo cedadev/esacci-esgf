@@ -14,8 +14,9 @@ from collections import namedtuple
 from cached_property import cached_property
 
 from tds_utils.partition_files import partition_files
-from tds_utils.aggregation import AggregationError
-from tds_utils.aggregation import AggregationCreator as DefaultAggregationCreator
+from tds_utils.aggregation import (AggregationError,
+                                   AggregationCreator as DefaultAggregationCreator)
+from tds_utils.aggregation.exceptions import CoordinatesError
 
 from esacci_esgf.input.parse_esg_ini import EsgIniParser
 from esacci_esgf.aggregation.aerosol import CCIAerosolAggregationCreator
@@ -258,9 +259,22 @@ class ThreddsXMLDataset(ThreddsXMLBase):
                    "heterogeneous files (found {n} potential groups)")
             print(msg.format(dsid=dsid, n=len(groups)), file=sys.stderr)
 
-        creator = self.get_aggregation_creator_cls()("time")
+        agg_dim = "time"
+        creator = self.get_aggregation_creator_cls()(agg_dim)
+        # Open the first file to see if aggregation dimension is also a
+        # variable -- if so then its values can be cached in the ncml
+        cache = True
+        with creator.dataset_reader_cls(file_list[0]) as reader:
+            try:
+                reader.get_coord_values(agg_dim)
+            except CoordinatesError:
+                cache = False
+                print("WARNING: Skipping coordinate value caching: variable "
+                      "'{}' could not be read in first file".format(agg_dim),
+                      file=sys.stderr)
+
         try:
-            agg_element = creator.create_aggregation(file_list, cache=True)
+            agg_element = creator.create_aggregation(file_list, cache=cache)
         except AggregationError:
             print("WARNING: Failed to create aggregation", file=sys.stderr)
             return
