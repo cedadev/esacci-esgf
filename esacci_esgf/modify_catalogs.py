@@ -14,11 +14,10 @@ from collections import namedtuple
 from cached_property import cached_property
 
 from tds_utils.partition_files import partition_files
-from tds_utils.aggregation import (AggregationError,
-                                   AggregationCreator as DefaultAggregationCreator)
-from tds_utils.aggregation.exceptions import CoordinatesError
+from tds_utils.aggregation import AggregationError, CoordinatesError
 
 from esacci_esgf.input.parse_esg_ini import EsgIniParser
+from esacci_esgf.aggregation.base import CCIAggregationCreator
 from esacci_esgf.aggregation.aerosol import CCIAerosolAggregationCreator
 
 
@@ -218,11 +217,11 @@ class ThreddsXMLDataset(ThreddsXMLBase):
 
     def get_aggregation_creator_cls(self):
         """
-        Return a subclass of tds_utils.aggregation.BaseAggregationCreator
-        used to create the NcML aggregation
+        Return a subclass of CCIAggregationCreator used to create the NcML
+        aggregation
         """
         return (CCIAerosolAggregationCreator if "AEROSOL" in self.dataset_id
-                else DefaultAggregationCreator)
+                else CCIAggregationCreator)
 
     def add_aggregation(self, add_wms=False):
         """
@@ -274,7 +273,7 @@ class ThreddsXMLDataset(ThreddsXMLBase):
                       file=sys.stderr)
 
         try:
-            agg_element = creator.create_aggregation(file_list, cache=cache)
+            agg_element = creator.create_aggregation(dsid, file_list, cache=cache)
         except AggregationError:
             print("WARNING: Failed to create aggregation", file=sys.stderr)
             return

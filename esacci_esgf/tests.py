@@ -1,16 +1,20 @@
 import os
 import sys
+import re
 import json
 import xml.etree.cElementTree as ET
 from glob import glob
 from io import StringIO
 
 import pytest
+import numpy as np
+from netCDF4 import Dataset
 
 from esacci_esgf.modify_catalogs import ProcessBatch
 from esacci_esgf.input.merge_csv_json import Dataset as CsvRowDataset, parse_file, HEADER_ROW
 from esacci_esgf.input.parse_esg_ini import EsgIniParser
 from esacci_esgf.input.make_mapfiles import MakeMapfile
+from esacci_esgf.aggregation.base import CCIAggregationCreator
 
 
 def get_full_tag(tag, ns="http://www.unidata.ucar.edu/namespaces/thredds/InvCatalog/v1.0"):
@@ -339,3 +343,105 @@ class TestEsgIniParser(object):
         ]))
         with pytest.raises(ValueError):
             EsgIniParser.get_value(str(ini), "thredds_data_path")
+
+class TestAggregations:
+    def netcdf_file(self, tmpdir, filename, dim="time", values=[1234],
+                    units=None, global_attrs=None):
+        """
+        Create a NetCDF file containing a single dimension. Return the path
+        at which the dataset is saved.
+        """
+        path = str(tmpdir.join(filename))
+        ds = Dataset(path, "w")
+        ds.createDimension(dim, None)
+        var = ds.createVariable(dim, np.float32, (dim,))
+        if units:
+            var.units = units
+        var[:] = values
+        if global_attrs:
+            for attr, value in global_attrs.items():
+                setattr(ds, attr, value)
+        ds.close()
+        return path
+
+    def get_attrs_dict(self, root_element):
+        """
+        Extract <attribute> tags from root XML element, and return the
+        attributes as a dictionary mapping attribute names to values
+        """
+        attr_elements = root_element.findall("attribute")
+        attrs_dict = {}
+        for el in attr_elements:
+            attrs_dict[el.attrib["name"]] = el.attrib["value"]
+        return attrs_dict
+
+    def test_time_coverage_attributes(self, tmpdir):
+        files = [
+            self.netcdf_file(tmpdir, "f1.nc", global_attrs={
+                # 1st Jan 2000
+                "time_coverage_start": "20000101T000000Z",
+                "time_coverage_end":   "20000101T120000Z",
+            }),
+            self.netcdf_file(tmpdir, "f2.nc", global_attrs={
+                # 4th Jan 2000
+                "time_coverage_start": "20000104T000000Z",
+                "time_coverage_end":   "20010104T120000Z",
+            }),
+            self.netcdf_file(tmpdir, "f2.nc", global_attrs={
+                # 6th Jan 2000
+                "time_coverage_start": "20000106T000000Z",
+                "time_coverage_end":   "20000106T120000Z",
+            })
+        ]
+        agg = CCIAggregationCreator("time").create_aggregation("drs", files)
+
+        attrs_dict = self.get_attrs_dict(agg)
+        assert "time_coverage_start" in attrs_dict
+        assert "time_coverage_end" in attrs_dict
+        assert "time_coverage_duration" in attrs_dict
+
+        assert attrs_dict["time_coverage_start"] == "20000101T000000Z"
+        assert attrs_dict["time_coverage_end"] == "20000106T120000Z"
+        assert attrs_dict["time_coverage_duration"] == "P5DT12H"
+
+    def test_time_coverage_attributes2(self, tmpdir):
+        """
+        Same principle as above, but use '{start,stop}_time' instead of
+        'time_coverage_{start,stop}'
+        """
+        files = [
+            self.netcdf_file(tmpdir, "f1.nc", global_attrs={
+                "start_time": "20000101T000000Z",
+                "stop_time":   "20000101T120000Z",
+            }),
+            self.netcdf_file(tmpdir, "f2.nc", global_attrs={
+                "start_time": "20000106T000000Z",
+                "stop_time":   "20000106T120000Z",
+            })
+        ]
+        agg = CCIAggregationCreator("time").create_aggregation("drs", files)
+        attrs_dict = self.get_attrs_dict(agg)
+        assert "start_time" in attrs_dict
+        assert "stop_time" in attrs_dict
+        assert "time_coverage_duration" in attrs_dict
+        assert attrs_dict["start_time"] == "20000101T000000Z"
+        assert attrs_dict["stop_time"] == "20000106T120000Z"
+        assert attrs_dict["time_coverage_duration"] == "P5DT12H"
+
+    def test_global_attributes(self, tmpdir):
+        files = [
+            self.netcdf_file(tmpdir, "f.nc", global_attrs={"history": "helo"})
+        ]
+        agg = CCIAggregationCreator("time").create_aggregation("mydrs", files)
+        attr_dict = self.get_attrs_dict(agg)
+
+        assert "history" in attr_dict
+        assert ("The CCI Open Data Portal aggregated all files in the dataset"
+                in attr_dict["history"])
+
+        assert "id" in attr_dict
+        assert attr_dict["id"] == "mydrs"
+
+        assert "tracking_id" in attr_dict
+        assert re.match("^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$",
+                        attr_dict["tracking_id"])
