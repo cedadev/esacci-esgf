@@ -377,17 +377,17 @@ class TestAggregations:
 
     def test_time_coverage_attributes(self, tmpdir):
         files = [
-            self.netcdf_file(tmpdir, "f1.nc", global_attrs={
+            self.netcdf_file(tmpdir, "f1.nc", values=[1], global_attrs={
                 # 1st Jan 2000
                 "time_coverage_start": "20000101T000000Z",
                 "time_coverage_end":   "20000101T120000Z",
             }),
-            self.netcdf_file(tmpdir, "f2.nc", global_attrs={
+            self.netcdf_file(tmpdir, "f2.nc", values=[2], global_attrs={
                 # 4th Jan 2000
                 "time_coverage_start": "20000104T000000Z",
-                "time_coverage_end":   "20010104T120000Z",
+                "time_coverage_end":   "20000104T120000Z",
             }),
-            self.netcdf_file(tmpdir, "f2.nc", global_attrs={
+            self.netcdf_file(tmpdir, "f3.nc", values=[3], global_attrs={
                 # 6th Jan 2000
                 "time_coverage_start": "20000106T000000Z",
                 "time_coverage_end":   "20000106T120000Z",
@@ -410,11 +410,11 @@ class TestAggregations:
         'time_coverage_{start,stop}'
         """
         files = [
-            self.netcdf_file(tmpdir, "f1.nc", global_attrs={
+            self.netcdf_file(tmpdir, "f1.nc", values=[1], global_attrs={
                 "start_time": "20000101T000000Z",
                 "stop_time":   "20000101T120000Z",
             }),
-            self.netcdf_file(tmpdir, "f2.nc", global_attrs={
+            self.netcdf_file(tmpdir, "f2.nc", values=[2], global_attrs={
                 "start_time": "20000106T000000Z",
                 "stop_time":   "20000106T120000Z",
             })
@@ -430,7 +430,7 @@ class TestAggregations:
 
     def test_global_attributes(self, tmpdir):
         files = [
-            self.netcdf_file(tmpdir, "f.nc", global_attrs={"history": "helo"})
+            self.netcdf_file(tmpdir, "f.nc", values=[1], global_attrs={"history": "helo"})
         ]
         agg = CCIAggregationCreator("time").create_aggregation("mydrs", files)
         attr_dict = self.get_attrs_dict(agg)
@@ -445,3 +445,75 @@ class TestAggregations:
         assert "tracking_id" in attr_dict
         assert re.match("^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$",
                         attr_dict["tracking_id"])
+
+    def test_geospatial_attributes(self, tmpdir):
+        files = [
+            self.netcdf_file(tmpdir, "f1.nc", values=[1], global_attrs={
+                "geospatial_lon_min": 0,
+                "geospatial_lon_max": 45,
+                "geospatial_lat_min": -70,
+                "geospatial_lat_max": 10
+            }),
+            self.netcdf_file(tmpdir, "f2.nc", values=[2], global_attrs={
+                "geospatial_lon_min": -120,
+                "geospatial_lon_max": 45,
+                "geospatial_lat_min": 0,
+                "geospatial_lat_max": 85
+            }),
+            self.netcdf_file(tmpdir, "f3.nc", values=[3], global_attrs={
+                "geospatial_lon_min": -119,
+                "geospatial_lon_max": 175,
+                "geospatial_lat_min": 75,
+                "geospatial_lat_max": 77
+            })
+        ]
+        agg = CCIAggregationCreator("time").create_aggregation("drs", files)
+
+        attrs_dict = self.get_attrs_dict(agg)
+        assert "geospatial_lon_min" in attrs_dict
+        assert "geospatial_lon_max" in attrs_dict
+        assert "geospatial_lat_min" in attrs_dict
+        assert "geospatial_lat_max" in attrs_dict
+
+        assert attrs_dict["geospatial_lon_min"] == -120
+        assert attrs_dict["geospatial_lon_max"] == 175
+        assert attrs_dict["geospatial_lat_min"] == -70
+        assert attrs_dict["geospatial_lat_max"] == 85
+
+    def test_geospatial_attributes2(self, tmpdir):
+        """
+        Same as above test but use {north,south}ernmost_latitude and
+        {east,west}ernmost_longitude instead
+        """
+        files = [
+            self.netcdf_file(tmpdir, "f1.nc", values=[1], global_attrs={
+                "westernmost_longitude": 0,
+                "easternmost_longitude": 45,
+                "southernmost_latitude": -70,
+                "nothernmost_latitude": 10
+            }),
+            self.netcdf_file(tmpdir, "f2.nc", values=[2], global_attrs={
+                "westernmost_longitude": -120,
+                "easternmost_longitude": 45,
+                "southernmost_latitude": 0,
+                "nothernmost_latitude": 85
+            }),
+            self.netcdf_file(tmpdir, "f3.nc", values=[3], global_attrs={
+                "westernmost_longitude": -119,
+                "easternmost_longitude": 175,
+                "southernmost_latitude": 75,
+                "nothernmost_latitude": 77
+            })
+        ]
+        agg = CCIAggregationCreator("time").create_aggregation("drs", files)
+
+        attrs_dict = self.get_attrs_dict(agg)
+        assert "westernmost_longitude" in attrs_dict
+        assert "easternmost_longitude" in attrs_dict
+        assert "southernmost_latitude" in attrs_dict
+        assert "nothernmost_latitude" in attrs_dict
+
+        assert attrs_dict["westernmost_longitude"] == -120
+        assert attrs_dict["easternmost_longitude"] == 175
+        assert attrs_dict["southernmost_latitude"] == -70
+        assert attrs_dict["nothernmost_latitude"] == 85

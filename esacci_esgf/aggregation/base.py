@@ -5,18 +5,72 @@ from uuid import uuid4
 from netCDF4 import Dataset
 import isodate
 
-from tds_utils.aggregation import AggregationCreator
+from tds_utils.aggregation import AggregationCreator, AggregatedGlobalAttr
+
+
+# Functions to convert between ISO datetime string and datetime objects
+str_to_date = isodate.parse_datetime
+def date_to_str(dt):
+    return isodate.datetime_isoformat(dt, format="%Y%m%dT%H%M%S%Z")
+
+# Functions to find earliest/latest dates from a list of ISO-format strings
+def min_date(dates):
+    return date_to_str(min(map(str_to_date, dates)))
+def max_date(dates):
+    return date_to_str(max(map(str_to_date, dates)))
 
 
 class CCIAggregationCreator(AggregationCreator):
 
+    # List of (start_attr, end_attr) for possible attribute names for time
+    # coverage
+    date_range_formats = [
+        ("time_coverage_start", "time_coverage_end"),
+        ("start_time", "stop_time")
+    ]
+
+    # Same as above for geospatial bounds
+    geospatial_bounds_formats = [
+        ("geospatial_lat_max", "geospatial_lon_max",
+         "geospatial_lat_min", "geospatial_lon_min"),
+
+        ("nothernmost_latitude", "easternmost_longitude",
+         "southernmost_latitude", "westernmost_longitude")
+    ]
+
     def create_aggregation(self, drs, file_list, *args, **kwargs):
-        # Override default method to add extra global attributes
+        # Add extra global attributes
         global_attrs = kwargs.pop("global_attrs", {})
         global_attrs.update(self.get_global_attrs(file_list, drs))
 
+        # Add aggregated global attributes
+        attr_aggs = kwargs.pop("attr_aggs", [])
+        ds = Dataset(file_list[0])
+
+        # Time coverage
+        for start_attr, end_attr in self.date_range_formats:
+            if hasattr(ds, start_attr) and hasattr(ds, end_attr):
+                attr_aggs += [
+                    AggregatedGlobalAttr(attr=start_attr, callback=min_date),
+                    AggregatedGlobalAttr(attr=end_attr, callback=max_date)
+                ]
+                break
+
+        # Geospatial bounds
+        for attr_names in self.geospatial_bounds_formats:
+            if all(hasattr(ds, attr) for attr in attr_names):
+                n_attr, e_attr, s_attr, w_attr = attr_names
+                attr_aggs += [
+                    AggregatedGlobalAttr(attr=n_attr, callback=max),
+                    AggregatedGlobalAttr(attr=e_attr, callback=max),
+                    AggregatedGlobalAttr(attr=s_attr, callback=min),
+                    AggregatedGlobalAttr(attr=w_attr, callback=min)
+                ]
+                break
+
         return super().create_aggregation(file_list, *args,
-                                          global_attrs=global_attrs, **kwargs)
+                                          global_attrs=global_attrs,
+                                          attr_aggs=attr_aggs, **kwargs)
 
     @classmethod
     def get_global_attrs(cls, file_list, drs):
@@ -50,34 +104,14 @@ class CCIAggregationCreator(AggregationCreator):
 
     def process_root_element(self, root):
         # Add additional global attributes that require files to have been
-        # read and sorted by time first
-        aggregation_element = root.findall("aggregation")[0]
-        files = aggregation_element.findall("netcdf")
-        attrs = {}
+        # read first
+        attr_dict = {}
+        for el in root.findall("attribute"):
+            attr_dict[el.attrib["name"]] = el.attrib["value"]
 
-        # List of start/end datetime attribute names. This is required since
-        # unfortunately not all products use the same attribute names
-        date_range_formats = [
-            ("time_coverage_start", "time_coverage_end"),
-            ("start_time", "stop_time")
-        ]
-        first_ds = Dataset(files[0].attrib["location"])
-        last_ds = Dataset(files[-1].attrib["location"])
-        for start_attr_name, end_attr_name in date_range_formats:
-            try:
-                start = getattr(first_ds, start_attr_name)
-                end = getattr(last_ds, end_attr_name)
-                attrs[start_attr_name] = start
-                attrs[end_attr_name] = end
-
-                duration = isodate.parse_datetime(end) - isodate.parse_datetime(start)
-                attrs["time_coverage_duration"] = isodate.duration_isoformat(duration)
-                break
-            except AttributeError:
-                continue
-        else:
-            print("WARNING: Could not read start/end coverage times", file=sys.stderr)
-
-        for attr, value in attrs.items():
-            self.add_global_attr(root, attr, value)
+        for start, end in self.date_range_formats:
+            if start in attr_dict and end in attr_dict:
+                duration = str_to_date(attr_dict[end]) - str_to_date(attr_dict[start])
+                self.add_global_attr(root, "time_coverage_duration",
+                                     isodate.duration_isoformat(duration))
         return root
