@@ -367,12 +367,16 @@ class TestAggregations:
     def get_attrs_dict(self, root_element):
         """
         Extract <attribute> tags from root XML element, and return the
-        attributes as a dictionary mapping attribute names to values
+        attributes as a dictionary mapping attribute names to
+        {"value": val, "type": type}
         """
         attr_elements = root_element.findall("attribute")
         attrs_dict = {}
         for el in attr_elements:
-            attrs_dict[el.attrib["name"]] = el.attrib["value"]
+            attrs_dict[el.attrib["name"]] = {
+                "value": el.attrib["value"],
+                "type": el.attrib.get("type", None)
+            }
         return attrs_dict
 
     def test_time_coverage_attributes(self, tmpdir):
@@ -401,9 +405,9 @@ class TestAggregations:
         assert "time_coverage_end" in attrs_dict
         assert "time_coverage_duration" in attrs_dict
 
-        assert attrs_dict["time_coverage_start"] == "20000101T074500Z"
-        assert attrs_dict["time_coverage_end"] == "20000106T120000Z"
-        assert attrs_dict["time_coverage_duration"] == "P5DT4H15M"
+        assert attrs_dict["time_coverage_start"]["value"] == "20000101T074500Z"
+        assert attrs_dict["time_coverage_end"]["value"] == "20000106T120000Z"
+        assert attrs_dict["time_coverage_duration"]["value"] == "P5DT4H15M"
 
     def test_time_coverage_attributes2(self, tmpdir):
         """
@@ -425,9 +429,9 @@ class TestAggregations:
         assert "start_time" in attrs_dict
         assert "stop_time" in attrs_dict
         assert "time_coverage_duration" in attrs_dict
-        assert attrs_dict["start_time"] == "20000101T084300Z"
-        assert attrs_dict["stop_time"] == "20000106T124500Z"
-        assert attrs_dict["time_coverage_duration"] == "P5DT4H2M"
+        assert attrs_dict["start_time"]["value"] == "20000101T084300Z"
+        assert attrs_dict["stop_time"]["value"] == "20000106T124500Z"
+        assert attrs_dict["time_coverage_duration"]["value"] == "P5DT4H2M"
 
     def test_global_attributes(self, tmpdir):
         files = [
@@ -438,48 +442,54 @@ class TestAggregations:
 
         assert "history" in attr_dict
         assert ("The CCI Open Data Portal aggregated all files in the dataset"
-                in attr_dict["history"])
+                in attr_dict["history"]["value"])
 
         assert "id" in attr_dict
-        assert attr_dict["id"] == "mydrs"
+        assert attr_dict["id"]["value"] == "mydrs"
 
         assert "tracking_id" in attr_dict
         assert re.match("^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$",
-                        attr_dict["tracking_id"])
+                        attr_dict["tracking_id"]["value"])
 
     def test_geospatial_attributes(self, tmpdir):
         files = [
             self.netcdf_file(tmpdir, "f1.nc", values=[1], global_attrs={
-                "geospatial_lon_min": 0,
-                "geospatial_lon_max": 45,
-                "geospatial_lat_min": -70,
-                "geospatial_lat_max": 10
+                "geospatial_lon_min": 0.0,
+                "geospatial_lon_max": 45.0,
+                "geospatial_lat_min": -70.0,
+                "geospatial_lat_max": 10.0
             }),
             self.netcdf_file(tmpdir, "f2.nc", values=[2], global_attrs={
-                "geospatial_lon_min": -120,
-                "geospatial_lon_max": 45,
-                "geospatial_lat_min": 0,
-                "geospatial_lat_max": 85
+                "geospatial_lon_min": -120.0,
+                "geospatial_lon_max": 45.0,
+                "geospatial_lat_min": 0.0,
+                "geospatial_lat_max": 85.0
             }),
             self.netcdf_file(tmpdir, "f3.nc", values=[3], global_attrs={
-                "geospatial_lon_min": -119,
-                "geospatial_lon_max": 175,
-                "geospatial_lat_min": 75,
-                "geospatial_lat_max": 77
+                "geospatial_lon_min": -119.0,
+                "geospatial_lon_max": 175.0,
+                "geospatial_lat_min": 75.0,
+                "geospatial_lat_max": 77.0
             })
         ]
         agg = CCIAggregationCreator("time").create_aggregation("drs", files)
 
-        attrs_dict = self.get_attrs_dict(agg)
-        assert "geospatial_lon_min" in attrs_dict
-        assert "geospatial_lon_max" in attrs_dict
-        assert "geospatial_lat_min" in attrs_dict
-        assert "geospatial_lat_max" in attrs_dict
 
-        assert attrs_dict["geospatial_lon_min"] == -120
-        assert attrs_dict["geospatial_lon_max"] == 175
-        assert attrs_dict["geospatial_lat_min"] == -70
-        assert attrs_dict["geospatial_lat_max"] == 85
+        attrs_dict = self.get_attrs_dict(agg)
+        names = [
+            "geospatial_lon_min",
+            "geospatial_lon_max",
+            "geospatial_lat_min",
+            "geospatial_lat_max"
+        ]
+        for attr in names:
+            assert attr in attrs_dict
+            assert attrs_dict[attr]["type"] == "float"
+
+        assert attrs_dict["geospatial_lon_min"]["value"] == "-120.0"
+        assert attrs_dict["geospatial_lon_max"]["value"] == "175.0"
+        assert attrs_dict["geospatial_lat_min"]["value"] == "-70.0"
+        assert attrs_dict["geospatial_lat_max"]["value"] == "85.0"
 
     def test_geospatial_attributes2(self, tmpdir):
         """
@@ -488,33 +498,38 @@ class TestAggregations:
         """
         files = [
             self.netcdf_file(tmpdir, "f1.nc", values=[1], global_attrs={
-                "westernmost_longitude": 0,
-                "easternmost_longitude": 45,
-                "southernmost_latitude": -70,
-                "nothernmost_latitude": 10
+                "westernmost_longitude": 0.0,
+                "easternmost_longitude": 45.0,
+                "southernmost_latitude": -70.0,
+                "nothernmost_latitude": 10.0
             }),
             self.netcdf_file(tmpdir, "f2.nc", values=[2], global_attrs={
-                "westernmost_longitude": -120,
-                "easternmost_longitude": 45,
-                "southernmost_latitude": 0,
-                "nothernmost_latitude": 85
+                "westernmost_longitude": -120.0,
+                "easternmost_longitude": 45.0,
+                "southernmost_latitude": 0.0,
+                "nothernmost_latitude": 85.0
             }),
             self.netcdf_file(tmpdir, "f3.nc", values=[3], global_attrs={
-                "westernmost_longitude": -119,
-                "easternmost_longitude": 175,
-                "southernmost_latitude": 75,
-                "nothernmost_latitude": 77
+                "westernmost_longitude": -119.0,
+                "easternmost_longitude": 175.0,
+                "southernmost_latitude": 75.0,
+                "nothernmost_latitude": 77.0
             })
         ]
         agg = CCIAggregationCreator("time").create_aggregation("drs", files)
 
         attrs_dict = self.get_attrs_dict(agg)
-        assert "westernmost_longitude" in attrs_dict
-        assert "easternmost_longitude" in attrs_dict
-        assert "southernmost_latitude" in attrs_dict
-        assert "nothernmost_latitude" in attrs_dict
+        names = [
+            "westernmost_longitude",
+            "easternmost_longitude",
+            "southernmost_latitude",
+            "nothernmost_latitude"
+        ]
+        for attr in names:
+            assert attr in attrs_dict
+            assert attrs_dict[attr]["type"] == "float"
 
-        assert attrs_dict["westernmost_longitude"] == -120
-        assert attrs_dict["easternmost_longitude"] == 175
-        assert attrs_dict["southernmost_latitude"] == -70
-        assert attrs_dict["nothernmost_latitude"] == 85
+        assert attrs_dict["westernmost_longitude"]["value"] == "-120.0"
+        assert attrs_dict["easternmost_longitude"]["value"] == "175.0"
+        assert attrs_dict["southernmost_latitude"]["value"] == "-70.0"
+        assert attrs_dict["nothernmost_latitude"]["value"] == "85.0"
