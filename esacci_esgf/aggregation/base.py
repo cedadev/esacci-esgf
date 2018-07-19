@@ -1,4 +1,5 @@
 import sys
+import re
 from datetime import datetime
 from uuid import uuid4
 
@@ -10,6 +11,13 @@ from tds_utils.aggregation import AggregationCreator, AggregatedGlobalAttr
 
 # Functions to convert between ISO datetime string and datetime objects
 str_to_date = isodate.parse_datetime
+def str_to_date(date_str):
+    # Fix some formats known to be in used in CCI data
+    if re.match("^\d{12}Z$", date_str):
+        date_str = "{date}T{time}Z".format(date=date_str[:8], time=date_str[8:12])
+
+    return isodate.parse_datetime(date_str)
+
 def date_to_str(dt):
     return isodate.datetime_isoformat(dt, format="%Y%m%dT%H%M%S%Z")
 

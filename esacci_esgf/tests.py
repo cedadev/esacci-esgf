@@ -378,18 +378,19 @@ class TestAggregations:
     def test_time_coverage_attributes(self, tmpdir):
         files = [
             self.netcdf_file(tmpdir, "f1.nc", values=[1], global_attrs={
-                # 1st Jan 2000
-                "time_coverage_start": "20000101T000000Z",
+                # 1st Jan 2000. Sometimes omit the 'T' separator and seconds to
+                # mimic the real data
+                "time_coverage_start": "200001010745Z",
                 "time_coverage_end":   "20000101T120000Z",
             }),
             self.netcdf_file(tmpdir, "f2.nc", values=[2], global_attrs={
                 # 4th Jan 2000
                 "time_coverage_start": "20000104T000000Z",
-                "time_coverage_end":   "20000104T120000Z",
+                "time_coverage_end":   "200001041200Z",
             }),
             self.netcdf_file(tmpdir, "f3.nc", values=[3], global_attrs={
                 # 6th Jan 2000
-                "time_coverage_start": "20000106T000000Z",
+                "time_coverage_start": "200001060000Z",
                 "time_coverage_end":   "20000106T120000Z",
             })
         ]
@@ -400,9 +401,9 @@ class TestAggregations:
         assert "time_coverage_end" in attrs_dict
         assert "time_coverage_duration" in attrs_dict
 
-        assert attrs_dict["time_coverage_start"] == "20000101T000000Z"
+        assert attrs_dict["time_coverage_start"] == "20000101T074500Z"
         assert attrs_dict["time_coverage_end"] == "20000106T120000Z"
-        assert attrs_dict["time_coverage_duration"] == "P5DT12H"
+        assert attrs_dict["time_coverage_duration"] == "P5DT4H15M"
 
     def test_time_coverage_attributes2(self, tmpdir):
         """
@@ -411,12 +412,12 @@ class TestAggregations:
         """
         files = [
             self.netcdf_file(tmpdir, "f1.nc", values=[1], global_attrs={
-                "start_time": "20000101T000000Z",
+                "start_time": "200001010843Z",
                 "stop_time":   "20000101T120000Z",
             }),
             self.netcdf_file(tmpdir, "f2.nc", values=[2], global_attrs={
                 "start_time": "20000106T000000Z",
-                "stop_time":   "20000106T120000Z",
+                "stop_time":   "20000106T124500Z",
             })
         ]
         agg = CCIAggregationCreator("time").create_aggregation("drs", files)
@@ -424,9 +425,9 @@ class TestAggregations:
         assert "start_time" in attrs_dict
         assert "stop_time" in attrs_dict
         assert "time_coverage_duration" in attrs_dict
-        assert attrs_dict["start_time"] == "20000101T000000Z"
-        assert attrs_dict["stop_time"] == "20000106T120000Z"
-        assert attrs_dict["time_coverage_duration"] == "P5DT12H"
+        assert attrs_dict["start_time"] == "20000101T084300Z"
+        assert attrs_dict["stop_time"] == "20000106T124500Z"
+        assert attrs_dict["time_coverage_duration"] == "P5DT4H2M"
 
     def test_global_attributes(self, tmpdir):
         files = [
