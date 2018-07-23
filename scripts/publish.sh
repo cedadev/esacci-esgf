@@ -132,8 +132,8 @@ esg_env esgpublish -i "$INI_DIR" --project "$PROJ" --thredds-reinit || \
 # This may be slow as to create aggregations each data file needs to be opened
 log "modifying catalogs..."
 cci_env get_catalogs -o "$CATALOG_DIR" -n "$NCML_DIR" -e "$INI_FILE" \
-                     --remote-agg-dir "$REMOTE_NCML_DIR" "$in_json" \
-    > /dev/null || die "failed to retrieve/modify THREDDS catalogs"
+                     --remote-agg-dir "$REMOTE_NCML_DIR" "$in_json"  || \
+    die "failed to retrieve/modify THREDDS catalogs"
 
 # Copy catalogs and aggregations to CCI server and reinit THREDDS
 log "transferring catalogs to remote machine..."
