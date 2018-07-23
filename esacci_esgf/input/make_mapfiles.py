@@ -55,14 +55,18 @@ class MakeMapfile(object):
 
     def get_mapfile_line(self, unversioned_dsid, version, file_dict,
                          tech_notes):
-        parts = [
-            "{dsid}#{version}".format(dsid=unversioned_dsid, version=version),
-            file_dict["path"],
-            str(file_dict["size"]),
-            "mod_time={mtime:.5f}".format(mtime=file_dict["mtime"]),
-            "checksum={sha256}".format(sha256=file_dict["sha256"]),
-            "checksum_type=SHA256"
-        ]
+        try:
+            parts = [
+                "{dsid}#{version}".format(dsid=unversioned_dsid, version=version),
+                file_dict["path"],
+                str(file_dict["size"]),
+                "mod_time={mtime:.5f}".format(mtime=file_dict["mtime"]),
+                "checksum={sha256}".format(sha256=file_dict["sha256"]),
+                "checksum_type=SHA256"
+            ]
+        except KeyError as ex:
+            ds = "{}.v{}".format(unversioned_dsid, version)
+            raise KeyError("Missing key for dataset '{}': {}".format(ds, ex))
 
         if tech_notes:
             parts += [
