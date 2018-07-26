@@ -86,6 +86,7 @@ mapfiles=`cci_env make_mapfiles "$in_json" "$MAPFILES_DIR"` || \
     die "failed to generate mapfiles"
 # Build a list of mapfiles to exclude from later steps
 excluded_mapfiles=""
+excluded_dsids=""  # Record DRSes too just to show a message at the end
 
 for mapfile in $mapfiles; do
     log "processing mapfile ${mapfile}..."
@@ -114,8 +115,10 @@ for mapfile in $mapfiles; do
         warn "excluding '$dsid' from publication"
         if [[ -z $excluded_mapfiles ]]; then
             excluded_mapfiles="$mapfile"
+            excluded_dsids="$dsid"
         else
             excluded_mapfiles="${excluded_mapfiles} ${mapfile}"
+            excluded_dsids="${excluded_dsids} ${dsid}"
         fi
 
         # Remove from JSON
@@ -176,3 +179,7 @@ cci_env modify_solr_links "http://${SOLR_HOST}:8984" || die "failed to modify So
 rm "$in_json"
 
 log "publication complete"
+if [[ -n $excluded_dsids ]]; then
+    log "The following datasets could not be published:"
+    log "$excluded_dsids"
+fi
