@@ -2,9 +2,11 @@
 
 ## Installation
 
-`esacci-esgf` provides scripts to interact with the ESGF publisher (version >=
-3.5.1) and a number of python scripts, both of which should be installed via
-Conda. For example:
+`esacci-esgf` provides scripts to interact with the [ESGF
+publisher](https://github.com/ESGF/esg-publisher) (version >= 3.5.1), and a
+number of python scripts, both of which should be installed via Conda. Separate
+environments should be used, since ESGF uses Python 2.7 whereas `esacci-esgf`
+uses Python 3.4.5. For example:
 
 ```bash
 # Get conda (if not already installed)
@@ -13,10 +15,10 @@ wget https://repo.continuum.io/miniconda/Miniconda2-latest-Linux-x86_64.sh
 bash Miniconda3-latest-Linux-x86_64.sh -b -p "$conda_root"
 export PATH="${conda_root}/bin:$PATH"
 
-# Create environment for ESGF publisher
+# Create environment for ESGF software (publisher and esgf-prepare)
 conda create -n esgf-pub
 conda activate esgf-pub
-# Install publisher... (outside the scope of this documentation)
+# Install publisher and esgf-prepare... (outside the scope of this documentation)
 ...
 conda deactivate
 

@@ -71,6 +71,15 @@ in_json=`mktemp`
 cci_env merge_csv_json "$in_csv" > "$in_json" || \
     die "failed to parse input CSV"
 
+# Check facet values in DRSes match those defined in the project INI.
+# esgcheckvocab writes its output to stdout, but we want it on stderr, so
+# redirect 1>&2 and discard esgcheckvocab's stderr. Note that the ordering of
+# the redirects is important here
+log "Checking facets in DRSes..."
+esg_env esgcheckvocab -i "$INI_DIR" --project "$PROJ" \
+                      --dataset-list <(tail -n+2 "$in_csv" | cut -d, -f1) \
+    1>&2 2>/dev/null || die "Invalid facet values found in DRSes"
+
 # Get mapfiles to feed into ESGF publisher
 log "generating mapfiles in $MAPFILES_DIR..."
 mapfiles=`cci_env make_mapfiles "$in_json" "$MAPFILES_DIR"` || \
