@@ -10,3 +10,4 @@ See the links below for usage.
 * [Input files](docs/input_files.md)
 * [Publication](docs/publication.md)
 * [Scripts](docs/scripts.md)
+* [Aggregations](docs/aggregations.md)
