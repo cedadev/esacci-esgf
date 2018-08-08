@@ -15,6 +15,9 @@ file in the list. The following attributes are added/overwritten:
 | `history`     | A message is appended to state that the CCI open data portal has aggregated a collection of files |
 | `id`          | This is overwritten to contain the DRS (if left unchanged if would be the filename of the penultimate file) |
 | `tracking_id` | A new version 4 UUID is created |
+| `source`      | A comma separated list of values from the original files (with duplicated removed) |
+| `sensor`      | As with `source`, but values in original files are comma separated lists of strings themselves |
+| `platform`    | As with `sensor` |
 | `time_coverage_{start,end}` | This is set to the earliest/latest time across the constituent files |
 | `{start,stop}_time`         | Same as above |
 | `time_coverage_duration`    | The time range the aggregation covers, calculated as the difference between latest end time and earliest start time |

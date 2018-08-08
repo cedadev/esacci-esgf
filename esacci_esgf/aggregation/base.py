@@ -28,6 +28,28 @@ def max_date(dates):
     return date_to_str(max(map(str_to_date, dates)))
 
 
+def combine_lists(lists):
+    """
+    Take a list of comma-separated strings and return a string containing the
+    unique items, separated by commas
+    e.g. ["one,two", "two,three"] -> "one,two,three"
+    """
+    unique_items = set([])
+    for string in lists:
+        items = filter(None, map(str.strip, string.split(",")))
+        unique_items.update(items)
+    return ",".join(sorted(unique_items))
+
+
+def unique_strings(strings):
+    """
+    Find unique strings in the list `strings` and combine them into a single
+    comma-separated string
+    """
+    # Remove whitespace and empty strings
+    return ",".join(sorted(set(filter(None, map(str.strip, strings)))))
+
+
 class CCIAggregationCreator(AggregationCreator):
 
     # List of (start_attr, end_attr) for possible attribute names for time
@@ -54,6 +76,13 @@ class CCIAggregationCreator(AggregationCreator):
         # Add aggregated global attributes
         attr_aggs = kwargs.pop("attr_aggs", [])
         ds = Dataset(file_list[0])
+
+        # Platform, sensor and source
+        attr_aggs += [
+            AggregatedGlobalAttr(attr="platform", callback=combine_lists),
+            AggregatedGlobalAttr(attr="sensor", callback=combine_lists),
+            AggregatedGlobalAttr(attr="source", callback=unique_strings)
+        ]
 
         # Time coverage
         for start_attr, end_attr in self.date_range_formats:

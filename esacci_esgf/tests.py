@@ -451,6 +451,43 @@ class TestAggregations:
         assert re.match("^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$",
                         attr_dict["tracking_id"]["value"])
 
+    def test_sensor_platform_source_attributes(self, tmpdir):
+        platform_values = [
+            "one,two,three",
+            "two, four,",
+            "five,one, three"
+        ]
+        sensor_values = [
+            "dog,cat,frog",
+            "cat, cow",
+            "rabbit,dog, frog"
+        ]
+        source_values = [
+            "source1 ",
+            "something,with,commas",
+            "something,else,with,commas"
+        ]
+        files = []
+        for i, (platforms, sensors, source) in enumerate(zip(platform_values, sensor_values, source_values)):
+            files.append(self.netcdf_file(
+                tmpdir,
+                "f_{}.nc".format(i),
+                values=[i],
+                global_attrs={"platform": platforms, "sensor": sensors, "source": source}
+            ))
+
+        agg = CCIAggregationCreator("time").create_aggregation("mydrs", files)
+        attr_dict = self.get_attrs_dict(agg)
+
+        assert "platform" in attr_dict
+        assert attr_dict["platform"]["value"] == "five,four,one,three,two"
+        assert "sensor" in attr_dict
+        assert attr_dict["sensor"]["value"] == "cat,cow,dog,frog,rabbit"
+        assert "source" in attr_dict
+        assert attr_dict["source"]["value"] == (
+            "something,else,with,commas,something,with,commas,source1"
+        )
+
     def test_geospatial_attributes(self, tmpdir):
         files = [
             self.netcdf_file(tmpdir, "f1.nc", values=[1], global_attrs={
