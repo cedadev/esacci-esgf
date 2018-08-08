@@ -32,7 +32,7 @@ usage() {
     exit 1
 }
 
-# Make sure the proxy certificate has at least an hour remaining; if not then
+# Make sure the user certificate has at least an hour remaining; if not then
 # loop until it is renewed
 certificate_check_loop() {
     while ! certificate_test 1; do
@@ -62,7 +62,7 @@ in_csv="$1"
 # Check required environment variables are set
 [[ -n "$MAPFILES_DIR" ]] || die '$MAPFILES_DIR not set'
 
-# Check SSH access and proxy certificate before starting
+# Check SSH access and user certificate before starting
 ssh_check
 certificate_check 70
 
@@ -136,7 +136,8 @@ if [[ -z $mapfiles ]]; then
     die "all datasets have been excluded -- aborting"
 fi
 
-# Create top level catalog and reinit THREDDS
+# Create top level catalog (this must be done by reinit-ing THREDDS through the
+# publisher
 esg_env esgpublish -i "$INI_DIR" --project "$PROJ" --thredds-reinit || \
     die "failed to create top level catalog or THREDDS reinit"
 

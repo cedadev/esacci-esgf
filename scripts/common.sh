@@ -57,7 +57,7 @@ ssh_check() {
 }
 
 # Usage: certificate_check MIN_HOURS
-# Check proxy certificate doesn't expire within MIN_HOURS hours
+# Check user certificate doesn't expire within MIN_HOURS hours
 certificate_test() {
     min_hours=$1
     seconds=$((min_hours * 60 * 60))

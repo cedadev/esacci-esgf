@@ -19,9 +19,9 @@ set:
 | `REMOTE_NCML_DIR`    | directory in which to store NcML aggregations on the remote THREDDS host (default: `/usr/local/aggregations/`) |
 | `CERT_FILE`          | path to the certificate file used to authenticate when publishing to Solr (default: `~/.globus/certificate-file`) |
 
-## Generating a proxy certificate
+## Generating a user certificate
 
-A proxy certificate is required to authenticate when publishing to Solr:
+A user certificate is required to authenticate when publishing to Solr:
 
 ```bash
 mkdir -p ~/.globus

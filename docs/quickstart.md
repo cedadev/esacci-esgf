@@ -51,8 +51,8 @@ variables](configuration.md#environment-variables)), and that `esg.ini` and
 `esg.esacci.ini` are in place and pointed to by the relevant environment
 variables.
 
-Generate a proxy certificate for publishing to Solr (see [generating a
-proxy certificate](configuration.md#generating-a-proxy-certificate)).
+Generate a user certificate for publishing to Solr (see [generating a
+user certificate](configuration.md#generating-a-user-certificate)).
 
 Run `publish.sh` as follows:
 
@@ -75,4 +75,4 @@ To remove published datasets, use:
 ./scripts/unpublish.sh /path/to/mapfile
 ```
 
-This also requires a proxy certificate to un-publish from Solr.
+This also requires a user certificate to un-publish from Solr.

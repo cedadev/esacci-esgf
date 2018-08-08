@@ -21,7 +21,7 @@ source `dirname "$0"`/common.sh
 mapfile="$1"
 [[ -n "$mapfile" ]] || usage
 
-# Check SSH access and proxy certificate before starting
+# Check SSH access and user certificate before starting
 ssh_check
 certificate_check 70
 
