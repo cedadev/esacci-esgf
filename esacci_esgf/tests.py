@@ -488,6 +488,19 @@ class TestAggregations:
             "something,else,with,commas,something,with,commas,source1"
         )
 
+    def test_removed_attributes(self, tmpdir):
+        files = [
+            self.netcdf_file(tmpdir, "f.nc", values=[1], global_attrs={
+                "number_of_processed_orbits": "12"
+            })
+        ]
+        agg = CCIAggregationCreator("time").create_aggregation("mydrs", files)
+        remove_elements = agg.findall("remove")
+        assert len(remove_elements) >= 2
+        remove_names = [el.attrib["name"] for el in remove_elements]
+        assert "number_of_processed_orbits" in remove_names
+        assert "number_of_files_composited" in remove_names
+
     def test_geospatial_attributes(self, tmpdir):
         files = [
             self.netcdf_file(tmpdir, "f1.nc", values=[1], global_attrs={

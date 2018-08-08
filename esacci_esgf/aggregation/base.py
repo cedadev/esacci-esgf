@@ -105,9 +105,16 @@ class CCIAggregationCreator(AggregationCreator):
                 ]
                 break
 
+        # Attributes to remove
+        remove_attrs = [
+            "number_of_processed_orbits",
+            "number_of_files_composited"
+        ]
+
         return super().create_aggregation(file_list, *args,
                                           global_attrs=global_attrs,
-                                          attr_aggs=attr_aggs, **kwargs)
+                                          attr_aggs=attr_aggs,
+                                          remove_attrs=remove_attrs, **kwargs)
 
     @classmethod
     def get_global_attrs(cls, file_list, drs):

@@ -30,6 +30,12 @@ requirements](http://cci.esa.int/sites/default/files/CCI_Data_Requirements_Iss1.
 The requirements document specifies only `time_coverage_{start,end}` and
 `geospatial_{lat,lon}_{min,max}`.
 
+
+There are also some attributes that are removed from the aggregation (if present):
+
+* `number_of_processed_orbits`
+* `number_of_files_composited`
+
 ## Aerosol data
 
 The aerosol NetCDF files do not have a `time` variable or dimension. However
