@@ -62,8 +62,6 @@ class TestCatalogUpdates(object):
         wms = [s for s in services if s.get("name") == "wms"]
         wcs = [s for s in services if s.get("name") == "wcs"]
 
-        for s in services:
-            print(s.get("name") == "wms")
         assert len(wms) > 0
         assert len(wcs) > 0
 
@@ -493,7 +491,6 @@ class TestAggregations:
         ]
         for i, attr_names in enumerate(formats):
             n_attr, e_attr, s_attr, w_attr = attr_names
-            print(attr_names)
             data_dir = tmpdir.mkdir(str(i))
             files = [
                 self.netcdf_file(data_dir, "f1.nc", values=[1], global_attrs={
@@ -515,8 +512,6 @@ class TestAggregations:
                     n_attr: 77.0
                 })
             ]
-            print({ w_attr: -119.0, e_attr: 175.0, s_attr: 75.0, n_attr: 77.0 })
-            print(files)
             agg = CCIAggregationCreator("time").create_aggregation("drs", files)
 
             attrs_dict = self.get_attrs_dict(agg)
