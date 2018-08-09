@@ -380,58 +380,40 @@ class TestAggregations:
         return attrs_dict
 
     def test_time_coverage_attributes(self, tmpdir):
-        files = [
-            self.netcdf_file(tmpdir, "f1.nc", values=[1], global_attrs={
-                # 1st Jan 2000. Sometimes omit the 'T' separator and seconds to
-                # mimic the real data
-                "time_coverage_start": "200001010745Z",
-                "time_coverage_end":   "20000101T120000Z",
-            }),
-            self.netcdf_file(tmpdir, "f2.nc", values=[2], global_attrs={
-                # 4th Jan 2000
-                "time_coverage_start": "20000104T000000Z",
-                "time_coverage_end":   "200001041200Z",
-            }),
-            self.netcdf_file(tmpdir, "f3.nc", values=[3], global_attrs={
-                # 6th Jan 2000
-                "time_coverage_start": "200001060000Z",
-                "time_coverage_end":   "20000106T120000Z",
-            })
+        formats = [
+            ("time_coverage_start", "time_coverage_end"),
+            ("start_time", "stop_time"),
         ]
-        agg = CCIAggregationCreator("time").create_aggregation("drs", files)
+        for i, (start_attr_name, end_attr_name) in enumerate(formats):
+            data_dir = tmpdir.mkdir(str(i))
+            files = [
+                self.netcdf_file(data_dir, "f1.nc", values=[1], global_attrs={
+                    # 1st Jan 2000. Sometimes omit the 'T' separator and seconds to
+                    # mimic the real data
+                    start_attr_name: "200001010745Z",
+                    end_attr_name:   "20000101T120000Z",
+                }),
+                self.netcdf_file(data_dir, "f2.nc", values=[2], global_attrs={
+                    # 4th Jan 2000
+                    start_attr_name: "20000104T000000Z",
+                    end_attr_name:   "200001041200Z",
+                }),
+                self.netcdf_file(data_dir, "f3.nc", values=[3], global_attrs={
+                    # 6th Jan 2000
+                    start_attr_name: "200001060000Z",
+                    end_attr_name:   "20000106T120000Z",
+                })
+            ]
+            agg = CCIAggregationCreator("time").create_aggregation("drs", files)
 
-        attrs_dict = self.get_attrs_dict(agg)
-        assert "time_coverage_start" in attrs_dict
-        assert "time_coverage_end" in attrs_dict
-        assert "time_coverage_duration" in attrs_dict
+            attrs_dict = self.get_attrs_dict(agg)
+            assert start_attr_name in attrs_dict
+            assert end_attr_name in attrs_dict
+            assert "time_coverage_duration" in attrs_dict
 
-        assert attrs_dict["time_coverage_start"]["value"] == "20000101T074500Z"
-        assert attrs_dict["time_coverage_end"]["value"] == "20000106T120000Z"
-        assert attrs_dict["time_coverage_duration"]["value"] == "P5DT4H15M"
-
-    def test_time_coverage_attributes2(self, tmpdir):
-        """
-        Same principle as above, but use '{start,stop}_time' instead of
-        'time_coverage_{start,stop}'
-        """
-        files = [
-            self.netcdf_file(tmpdir, "f1.nc", values=[1], global_attrs={
-                "start_time": "200001010843Z",
-                "stop_time":   "20000101T120000Z",
-            }),
-            self.netcdf_file(tmpdir, "f2.nc", values=[2], global_attrs={
-                "start_time": "20000106T000000Z",
-                "stop_time":   "20000106T124500Z",
-            })
-        ]
-        agg = CCIAggregationCreator("time").create_aggregation("drs", files)
-        attrs_dict = self.get_attrs_dict(agg)
-        assert "start_time" in attrs_dict
-        assert "stop_time" in attrs_dict
-        assert "time_coverage_duration" in attrs_dict
-        assert attrs_dict["start_time"]["value"] == "20000101T084300Z"
-        assert attrs_dict["stop_time"]["value"] == "20000106T124500Z"
-        assert attrs_dict["time_coverage_duration"]["value"] == "P5DT4H2M"
+            assert attrs_dict[start_attr_name]["value"] == "20000101T074500Z"
+            assert attrs_dict[end_attr_name]["value"] == "20000106T120000Z"
+            assert attrs_dict["time_coverage_duration"]["value"] == "P5DT4H15M"
 
     def test_global_attributes(self, tmpdir):
         files = [
@@ -502,84 +484,47 @@ class TestAggregations:
         assert "number_of_files_composited" in remove_names
 
     def test_geospatial_attributes(self, tmpdir):
-        files = [
-            self.netcdf_file(tmpdir, "f1.nc", values=[1], global_attrs={
-                "geospatial_lon_min": 0.0,
-                "geospatial_lon_max": 45.0,
-                "geospatial_lat_min": -70.0,
-                "geospatial_lat_max": 10.0
-            }),
-            self.netcdf_file(tmpdir, "f2.nc", values=[2], global_attrs={
-                "geospatial_lon_min": -120.0,
-                "geospatial_lon_max": 45.0,
-                "geospatial_lat_min": 0.0,
-                "geospatial_lat_max": 85.0
-            }),
-            self.netcdf_file(tmpdir, "f3.nc", values=[3], global_attrs={
-                "geospatial_lon_min": -119.0,
-                "geospatial_lon_max": 175.0,
-                "geospatial_lat_min": 75.0,
-                "geospatial_lat_max": 77.0
-            })
+        # List attribute names as N E S W
+        formats = [
+            ("geospatial_lat_max", "geospatial_lon_max", "geospatial_lat_min",
+             "geospatial_lon_min"),
+            ("nothernmost_latitude", "easternmost_longitude",
+             "southernmost_latitude", "westernmost_longitude")
         ]
-        agg = CCIAggregationCreator("time").create_aggregation("drs", files)
+        for i, attr_names in enumerate(formats):
+            n_attr, e_attr, s_attr, w_attr = attr_names
+            print(attr_names)
+            data_dir = tmpdir.mkdir(str(i))
+            files = [
+                self.netcdf_file(data_dir, "f1.nc", values=[1], global_attrs={
+                    w_attr: 0.0,
+                    e_attr: 45.0,
+                    s_attr: -70.0,
+                    n_attr: 10.0
+                }),
+                self.netcdf_file(data_dir, "f2.nc", values=[2], global_attrs={
+                    w_attr: -120.0,
+                    e_attr: 45.0,
+                    s_attr: 0.0,
+                    n_attr: 85.0
+                }),
+                self.netcdf_file(data_dir, "f3.nc", values=[3], global_attrs={
+                    w_attr: -119.0,
+                    e_attr: 175.0,
+                    s_attr: 75.0,
+                    n_attr: 77.0
+                })
+            ]
+            print({ w_attr: -119.0, e_attr: 175.0, s_attr: 75.0, n_attr: 77.0 })
+            print(files)
+            agg = CCIAggregationCreator("time").create_aggregation("drs", files)
 
+            attrs_dict = self.get_attrs_dict(agg)
+            for attr in attr_names:
+                assert attr in attrs_dict
+                assert attrs_dict[attr]["type"] == "float"
 
-        attrs_dict = self.get_attrs_dict(agg)
-        names = [
-            "geospatial_lon_min",
-            "geospatial_lon_max",
-            "geospatial_lat_min",
-            "geospatial_lat_max"
-        ]
-        for attr in names:
-            assert attr in attrs_dict
-            assert attrs_dict[attr]["type"] == "float"
-
-        assert attrs_dict["geospatial_lon_min"]["value"] == "-120.0"
-        assert attrs_dict["geospatial_lon_max"]["value"] == "175.0"
-        assert attrs_dict["geospatial_lat_min"]["value"] == "-70.0"
-        assert attrs_dict["geospatial_lat_max"]["value"] == "85.0"
-
-    def test_geospatial_attributes2(self, tmpdir):
-        """
-        Same as above test but use {north,south}ernmost_latitude and
-        {east,west}ernmost_longitude instead
-        """
-        files = [
-            self.netcdf_file(tmpdir, "f1.nc", values=[1], global_attrs={
-                "westernmost_longitude": 0.0,
-                "easternmost_longitude": 45.0,
-                "southernmost_latitude": -70.0,
-                "nothernmost_latitude": 10.0
-            }),
-            self.netcdf_file(tmpdir, "f2.nc", values=[2], global_attrs={
-                "westernmost_longitude": -120.0,
-                "easternmost_longitude": 45.0,
-                "southernmost_latitude": 0.0,
-                "nothernmost_latitude": 85.0
-            }),
-            self.netcdf_file(tmpdir, "f3.nc", values=[3], global_attrs={
-                "westernmost_longitude": -119.0,
-                "easternmost_longitude": 175.0,
-                "southernmost_latitude": 75.0,
-                "nothernmost_latitude": 77.0
-            })
-        ]
-        agg = CCIAggregationCreator("time").create_aggregation("drs", files)
-
-        attrs_dict = self.get_attrs_dict(agg)
-        names = [
-            "westernmost_longitude",
-            "easternmost_longitude",
-            "southernmost_latitude",
-            "nothernmost_latitude"
-        ]
-        for attr in names:
-            assert attr in attrs_dict
-            assert attrs_dict[attr]["type"] == "float"
-
-        assert attrs_dict["westernmost_longitude"]["value"] == "-120.0"
-        assert attrs_dict["easternmost_longitude"]["value"] == "175.0"
-        assert attrs_dict["southernmost_latitude"]["value"] == "-70.0"
-        assert attrs_dict["nothernmost_latitude"]["value"] == "85.0"
+            assert attrs_dict[w_attr]["value"] == "-120.0"
+            assert attrs_dict[e_attr]["value"] == "175.0"
+            assert attrs_dict[s_attr]["value"] == "-70.0"
+            assert attrs_dict[n_attr]["value"] == "85.0"
