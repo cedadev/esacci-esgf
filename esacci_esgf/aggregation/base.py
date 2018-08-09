@@ -16,7 +16,13 @@ def str_to_date(date_str):
     if re.match("^\d{12}Z$", date_str):
         date_str = "{date}T{time}Z".format(date=date_str[:8], time=date_str[8:12])
 
-    return isodate.parse_datetime(date_str)
+    try:
+        return isodate.parse_datetime(date_str)
+    except isodate.isoerror.ISO8601Error:
+        # Try non-ISO format, e.g. '26-DEC-2016 00:00:00.000000'
+        dt = datetime.strptime(date_str, "%d-%b-%Y %H:%M:%S.%f")
+        # Use UTC timezone
+        return dt.replace(tzinfo=isodate.tzinfo.Utc())
 
 def date_to_str(dt):
     return isodate.datetime_isoformat(dt, format="%Y%m%dT%H%M%S%Z")
@@ -56,7 +62,8 @@ class CCIAggregationCreator(AggregationCreator):
     # coverage
     date_range_formats = [
         ("time_coverage_start", "time_coverage_end"),
-        ("start_time", "stop_time")
+        ("start_time", "stop_time"),
+        ("start_date", "stop_date")
     ]
 
     # Same as above for geospatial bounds
@@ -91,7 +98,6 @@ class CCIAggregationCreator(AggregationCreator):
                     AggregatedGlobalAttr(attr=start_attr, callback=min_date),
                     AggregatedGlobalAttr(attr=end_attr, callback=max_date)
                 ]
-                break
 
         # Geospatial bounds
         for attr_names in self.geospatial_bounds_formats:
@@ -103,7 +109,6 @@ class CCIAggregationCreator(AggregationCreator):
                     AggregatedGlobalAttr(attr=s_attr, callback=min),
                     AggregatedGlobalAttr(attr=w_attr, callback=min)
                 ]
-                break
 
         # Attributes to remove
         remove_attrs = [
@@ -153,9 +158,24 @@ class CCIAggregationCreator(AggregationCreator):
         for el in root.findall("attribute"):
             attr_dict[el.attrib["name"]] = el.attrib["value"]
 
+        # Calculate time coverage duration
+        time_coverage = None
         for start, end in self.date_range_formats:
             if start in attr_dict and end in attr_dict:
-                duration = str_to_date(attr_dict[end]) - str_to_date(attr_dict[start])
-                self.add_global_attr(root, "time_coverage_duration",
-                                     isodate.duration_isoformat(duration))
+                time_coverage = attr_dict[start], attr_dict[end]
+                break
+
+        if time_coverage is not None:
+            start, end = time_coverage
+            duration = str_to_date(end) - str_to_date(start)
+            self.add_global_attr(root, "time_coverage_duration",
+                                 isodate.duration_isoformat(duration))
+
+            # 'time_coverage_{start,end}' are the attributes listed in the
+            # CCI requirements doc, so make sure these are always present
+            # when time coverage info is available
+            if "time_coverage_start" not in attr_dict:
+                self.add_global_attr(root, "time_coverage_start", start)
+                self.add_global_attr(root, "time_coverage_end", end)
+
         return root

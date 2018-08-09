@@ -20,6 +20,7 @@ file in the list. The following attributes are added/overwritten:
 | `platform`    | As with `sensor` |
 | `time_coverage_{start,end}` | This is set to the earliest/latest time across the constituent files |
 | `{start,stop}_time`         | Same as `time_coverage_{start,end}` |
+| `{start,stop}_date`         | Same as `time_coverage_{start,end}` |
 | `time_coverage_duration`    | The time range the aggregation covers, calculated as the difference between latest end time and earliest start time |
 | `geospatial_{lat,lon}_{min,max}` | Similar to time coverage, this is set to the max/min longitude/latitude |
 | `{north,south}ernmost_latitude` and `{east,west}ernmost_longitude` | Same as above `geospatial_{lat,lon}_{min,max}` |
@@ -30,6 +31,12 @@ requirements](http://cci.esa.int/sites/default/files/CCI_Data_Requirements_Iss1.
 The requirements document specifies only `time_coverage_{start,end}` and
 `geospatial_{lat,lon}_{min,max}`.
 
+The non-standard attributes `start_{time,date}` etc are only included in the
+aggregation if they are present in the source data. The standard attributes
+`time_coverage_{start,end}` are always present.
+
+Note that dates in the aggregation are always in ISO 8601 datetime format
+(YYYYMMDDTHHMMSSZ) even if the dates in the source data use a different format.
 
 There are also some attributes that are removed from the aggregation (if present):
 

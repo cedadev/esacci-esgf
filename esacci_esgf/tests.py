@@ -413,6 +413,56 @@ class TestAggregations:
             assert attrs_dict[end_attr_name]["value"] == "20000106T120000Z"
             assert attrs_dict["time_coverage_duration"]["value"] == "P5DT4H15M"
 
+    def test_multiple_time_coverage_attrs(self, tmpdir):
+        """
+        Check that aggregation of time coverage attributes is done when more
+        than one format is used.
+
+        Also check that 'time_coverage_{start,end}' is present in the
+        aggregation regardless of whether it is in the source files
+        """
+        files = [
+            self.netcdf_file(tmpdir, "f1.nc", values=[1], global_attrs={
+                "start_time": "200001010745Z",
+                "stop_time":   "20000101T120000Z",
+
+                "start_date": "01-JAN-2000 07:45:00.000000",
+                "stop_date":   "01-JAN-2000 12:00:00.000000",
+            }),
+            self.netcdf_file(tmpdir, "f2.nc", values=[2], global_attrs={
+                "start_time": "20000101T120000Z",
+                "stop_time":   "200001041200Z",
+
+                "start_date": "04-JAN-2000 00:00:00.000000",
+                "stop_date":   "04-JAN-2000 12:00:00.000000",
+            })
+        ]
+        agg = CCIAggregationCreator("time").create_aggregation("drs", files)
+
+        attrs_dict = self.get_attrs_dict(agg)
+        expected_attrs = [
+            "start_time", "stop_time",
+            "start_date", "stop_date",
+            # Still expect to find time_coverage_{start,end} even though
+            # they're not in the source files
+            "time_coverage_start", "time_coverage_end",
+            "time_coverage_duration"
+        ]
+        for attr in expected_attrs:
+            assert attr in attrs_dict
+
+        assert attrs_dict["time_coverage_start"]["value"] == "20000101T074500Z"
+        assert attrs_dict["start_time"]["value"] == "20000101T074500Z"
+        # Note that ISO date is still used in output even though input format
+        # is different for {start,stop}_date
+        assert attrs_dict["start_date"]["value"] == "20000101T074500Z"
+
+        assert attrs_dict["time_coverage_end"]["value"] == "20000104T120000Z"
+        assert attrs_dict["stop_time"]["value"] == "20000104T120000Z"
+        assert attrs_dict["stop_date"]["value"] == "20000104T120000Z"
+
+        assert attrs_dict["time_coverage_duration"]["value"] == "P3DT4H15M"
+
     def test_global_attributes(self, tmpdir):
         files = [
             self.netcdf_file(tmpdir, "f.nc", values=[1], global_attrs={"history": "helo"})
