@@ -5,6 +5,7 @@ import json
 import xml.etree.cElementTree as ET
 from glob import glob
 from io import StringIO
+import freezegun
 
 import pytest
 import numpy as np
@@ -521,7 +522,9 @@ class TestAggregations:
     def test_removed_attributes(self, tmpdir):
         files = [
             self.netcdf_file(tmpdir, "f.nc", values=[1], global_attrs={
-                "number_of_processed_orbits": "12"
+                "number_of_processed_orbits": "12",
+                "number_of_files_composited": "104",
+                "creation_date": "some date",
             })
         ]
         agg = CCIAggregationCreator("time").create_aggregation("mydrs", files)
@@ -530,6 +533,23 @@ class TestAggregations:
         remove_names = [el.attrib["name"] for el in remove_elements]
         assert "number_of_processed_orbits" in remove_names
         assert "number_of_files_composited" in remove_names
+        assert "creation_date" in remove_names
+
+    @freezegun.freeze_time("2018-12-25", tz_offset=0)
+    def test_date_created(self, tmpdir):
+        files = [
+            self.netcdf_file(tmpdir, "f1.nc", values=[1], global_attrs={
+                "date_created": "some date that should not be parsed"
+            }),
+            self.netcdf_file(tmpdir, "f2.nc", values=[2], global_attrs={
+                "date_created": "another date"
+            })
+        ]
+
+        agg = CCIAggregationCreator("time").create_aggregation("mydrs", files)
+        attrs_dict = self.get_attrs_dict(agg)
+        assert "date_created" in attrs_dict
+        assert attrs_dict["date_created"]["value"] == "20181225T000000Z"
 
     def test_geospatial_attributes(self, tmpdir):
         # List attribute names as N E S W

@@ -10,14 +10,15 @@ attributes.
 By default, the aggregation inherits all global attributes from the penultimate
 file in the list. The following attributes are added/overwritten:
 
-| Attribute     | Description |
-| ------------- | ----------- |
-| `history`     | A message is appended to state that the CCI open data portal has aggregated a collection of files |
-| `id`          | This is overwritten to contain the DRS (if left unchanged if would be the filename of the penultimate file) |
-| `tracking_id` | A new version 4 UUID is created |
-| `source`      | A comma separated list of values from the original files (with duplicates removed) |
-| `sensor`      | As with `source`, but values in original files are comma separated lists of strings themselves |
-| `platform`    | As with `sensor` |
+| Attribute      | Description |
+| -------------- | ----------- |
+| `history`      | A message is appended to state that the CCI open data portal has aggregated a collection of files |
+| `id`           | Overwritten to contain the DRS (if left unchanged if would be the filename of the penultimate file) |
+| `tracking_id`  | A new version 4 UUID is created |
+| `date_created` | Set to the current time and date |
+| `source`       | A comma separated list of values from the original files (with duplicates removed) |
+| `sensor`       | As with `source`, but values in original files are comma separated lists of strings themselves |
+| `platform`     | As with `sensor` |
 | `time_coverage_{start,end}` | This is set to the earliest/latest time across the constituent files |
 | `{start,stop}_time`         | Same as `time_coverage_{start,end}` |
 | `{start,stop}_date`         | Same as `time_coverage_{start,end}` |
@@ -42,6 +43,7 @@ There are also some attributes that are removed from the aggregation (if present
 
 * `number_of_processed_orbits`
 * `number_of_files_composited`
+* `creation_date`
 
 ## Aerosol data
 

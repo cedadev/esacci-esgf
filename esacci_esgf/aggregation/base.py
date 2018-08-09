@@ -10,6 +10,8 @@ from tds_utils.aggregation import AggregationCreator, AggregatedGlobalAttr
 
 
 # Functions to convert between ISO datetime string and datetime objects
+ISO_DATE_FORMAT = "%Y%m%dT%H%M%S%Z"
+TZ_CLASS = isodate.tzinfo.Utc
 str_to_date = isodate.parse_datetime
 def str_to_date(date_str):
     # Fix some formats known to be in used in CCI data
@@ -22,10 +24,10 @@ def str_to_date(date_str):
         # Try non-ISO format, e.g. '26-DEC-2016 00:00:00.000000'
         dt = datetime.strptime(date_str, "%d-%b-%Y %H:%M:%S.%f")
         # Use UTC timezone
-        return dt.replace(tzinfo=isodate.tzinfo.Utc())
+        return dt.replace(tzinfo=TZ_CLASS())
 
 def date_to_str(dt):
-    return isodate.datetime_isoformat(dt, format="%Y%m%dT%H%M%S%Z")
+    return isodate.datetime_isoformat(dt, format=ISO_DATE_FORMAT)
 
 # Functions to find earliest/latest dates from a list of ISO-format strings
 def min_date(dates):
@@ -113,7 +115,8 @@ class CCIAggregationCreator(AggregationCreator):
         # Attributes to remove
         remove_attrs = [
             "number_of_processed_orbits",
-            "number_of_files_composited"
+            "number_of_files_composited",
+            "creation_date"
         ]
 
         return super().create_aggregation(file_list, *args,
@@ -149,6 +152,9 @@ class CCIAggregationCreator(AggregationCreator):
         attrs["id"] = drs
         # Generate a new tracking ID
         attrs["tracking_id"] = str(uuid4())
+        # Set date_created to now
+        now = datetime.now(tz=TZ_CLASS())
+        attrs["date_created"] = isodate.datetime_isoformat(now, format=ISO_DATE_FORMAT)
         return attrs
 
     def process_root_element(self, root):
