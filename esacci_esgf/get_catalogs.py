@@ -34,6 +34,10 @@ class CatalogGetter(object):
         # Directory in which data is stored -- required to translate thredds
         # dataset roots to real paths
         self.data_dir = EsgIniParser.get_value(esg_ini, "thredds_data_path")
+        # The hostname of the THREDDS server that will host the data. Required
+        # to link to THREDDS catalogues within global attributes in
+        # aggregations
+        self.thredds_host = EsgIniParser.get_value(esg_ini, "thredds_host")
 
     def get_catalog_locations(self, ds_names):
         """
@@ -83,7 +87,7 @@ class CatalogGetter(object):
             # thredds catalog root so that the links in the top-level catalog
             # are correct when catalogs are moved.
             #
-            # Thus take the directory name from the cat_log and append it to
+            # Thus take the directory name from the cat_loc and append it to
             # output dir
             output_dir = os.path.join(self.output_dir, os.path.dirname(cat_loc))
             if not os.path.isdir(output_dir):
@@ -91,7 +95,7 @@ class CatalogGetter(object):
 
             options = ["--output-dir", output_dir, "--ncml-dir", self.ncml_dir,
                        "--remote-agg-dir", self.remote_agg_dir, "--data-dir",
-                       self.data_dir]
+                       self.data_dir, "--server", self.thredds_host]
             if info["generate_aggregation"]:
                 options.append("--aggregate")
 

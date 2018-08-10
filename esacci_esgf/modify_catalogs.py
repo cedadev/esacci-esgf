@@ -21,6 +21,26 @@ from esacci_esgf.aggregation.base import CCIAggregationCreator
 from esacci_esgf.aggregation.aerosol import CCIAerosolAggregationCreator
 
 
+def get_thredds_url(host, in_file):
+    """
+    Return the URL for a THREDDS catalog on a remote server
+    """
+    # TODO: get this from a command line argument (so it can be passed from
+    # get_catalogs.py) instead of from the filename?
+    head, fname = os.path.split(in_file)
+    if fname.endswith(".xml"):
+        fname = fname[:-4]
+    numbered_subdir = os.path.basename(head)
+    try:
+        int(numbered_subdir)
+    except ValueError:
+        raise ValueError(
+            "Could not get THREDDS URL from filename '{}'".format(in_file)
+        )
+    path = "{}/{}".format(numbered_subdir, fname)
+    return "https://{host}/thredds/esacci/{path}.html".format(host=host, path=path)
+
+
 class AggregationInfo(namedtuple("AggregationInfo", ["xml_element", "basename",
                                                      "sub_dir"])):
     """
@@ -113,8 +133,8 @@ class ThreddsXMLDataset(ThreddsXMLBase):
     and NcML aggregation
     """
 
-    def __init__(self, aggregations_dir, thredds_roots=None, do_wcs=False,
-                 **kwargs):
+    def __init__(self, aggregations_dir, thredds_server, thredds_roots=None,
+                 do_wcs=False, **kwargs):
         """
         aggregations_dir is the directory in which NcML files will be placed on the
         server (used to reference aggregations from the THREDDS catalog)
@@ -123,6 +143,7 @@ class ThreddsXMLDataset(ThreddsXMLBase):
         self.thredds_roots = thredds_roots or {}
         self.do_wcs = do_wcs
         self.aggregations_dir = aggregations_dir
+        self.thredds_server = thredds_server
         self.aggregation = None
 
     @cached_property
@@ -272,8 +293,17 @@ class ThreddsXMLDataset(ThreddsXMLBase):
                       "'{}' could not be read in first file".format(agg_dim),
                       file=sys.stderr)
 
+        # Construct URL to THREDDS catalog on remote server (even though the
+        # catalog does not yet exist on the remote server!)
         try:
-            agg_element = creator.create_aggregation(dsid, file_list, cache=cache)
+            thredds_url = get_thredds_url(self.thredds_server, self.in_filename)
+        except ValueError:
+            # Fall back to root of THREDDS server, not specific catalog
+            thredds_url = self.thredds_server
+
+        try:
+            agg_element = creator.create_aggregation(dsid, thredds_url,
+                                                     file_list, cache=cache)
         except AggregationError:
             print("WARNING: Failed to create aggregation", file=sys.stderr)
             return
@@ -362,10 +392,19 @@ class ProcessBatch(object):
                  "[default: %(default)s]"
         )
         parser.add_argument(
+            "-s", "--server",
+            dest="thredds_server",
+            default="cci-odp-data.ceda.ac.uk",
+            help="The hostname of the THREDDS server on which the data will "
+                 "hosted. This is required to construct URLs to THREDDS "
+                 "catalogs in global attributes in aggregations "
+                 "[default: %(default)s]"
+        )
+        parser.add_argument(
             "--remote-agg-dir",
             default="/usr/local/aggregations/",
             help="Directory under which NcML aggregations are stored on the "
-                 "TDS server [default: %(default)s]"
+                 "THREDDS server [default: %(default)s]"
         )
         parser.add_argument(
             "--data-dir",
@@ -401,6 +440,7 @@ class ProcessBatch(object):
         }
 
         tx = ThreddsXMLDataset(aggregations_dir=self.args.remote_agg_dir,
+                               thredds_server=self.args.thredds_server,
                                thredds_roots=thredds_roots,
                                do_wcs=True)
         tx.read(in_file)

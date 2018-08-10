@@ -12,7 +12,7 @@ file in the list. The following attributes are added/overwritten:
 
 | Attribute      | Description |
 | -------------- | ----------- |
-| `history`      | A message is appended to state that the CCI open data portal has aggregated a collection of files |
+| `history`      | Overwritten to state that the CCI open data portal has aggregated a collection of files. A link to the THREDDS catalog where original files can be downloaded is given |
 | `id`           | Overwritten to contain the DRS (if left unchanged if would be the filename of the penultimate file) |
 | `tracking_id`  | A new version 4 UUID is created |
 | `date_created` | Set to the current time and date |

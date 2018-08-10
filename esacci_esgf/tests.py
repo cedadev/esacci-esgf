@@ -11,7 +11,7 @@ import pytest
 import numpy as np
 from netCDF4 import Dataset
 
-from esacci_esgf.modify_catalogs import ProcessBatch
+from esacci_esgf.modify_catalogs import ProcessBatch, get_thredds_url
 from esacci_esgf.input.merge_csv_json import Dataset as CsvRowDataset, parse_file, HEADER_ROW
 from esacci_esgf.input.parse_esg_ini import EsgIniParser
 from esacci_esgf.input.make_mapfiles import MakeMapfile
@@ -92,6 +92,34 @@ class TestCatalogUpdates(object):
         assert "name" in properties[0].attrib
         assert "value" in properties[0].attrib
         assert "jasmin.eofrom.space" in properties[0].attrib["value"]
+
+    def test_get_catalog_url(self):
+        host = "some-server.ceda.ac.uk"
+        tests = [
+            ("/path/to/cats/143/mydrs.xml",
+             "https://some-server.ceda.ac.uk/thredds/esacci/143/mydrs.html"),
+
+            ("/path/to/cats/1/otherdrs.xml",
+             "https://some-server.ceda.ac.uk/thredds/esacci/1/otherdrs.html"),
+
+            ("/path/to/cats/1/no-suffix",
+             "https://some-server.ceda.ac.uk/thredds/esacci/1/no-suffix.html"),
+
+            ("./200/cat.xml", "https://some-server.ceda.ac.uk/thredds/esacci/200/cat.html"),
+            ("/200/cat.xml", "https://some-server.ceda.ac.uk/thredds/esacci/200/cat.html"),
+            ("200/cat.xml", "https://some-server.ceda.ac.uk/thredds/esacci/200/cat.html"),
+        ]
+        for in_file, expected_url in tests:
+            assert get_thredds_url(host, in_file) == expected_url
+
+        bad_filenames = [
+            "cat.xml",
+            "/path/to/cat.xml",
+            "path/to/cat.xml",
+        ]
+        for in_file in bad_filenames:
+            with pytest.raises(ValueError):
+                get_thredds_url(host, in_file)
 
 
 class TestMergeCSV(object):
@@ -403,7 +431,7 @@ class TestAggregations:
                     end_attr_name:   "20000106T120000Z",
                 })
             ]
-            agg = CCIAggregationCreator("time").create_aggregation("drs", files)
+            agg = CCIAggregationCreator("time").create_aggregation("drs", "t.ac.uk", files)
 
             attrs_dict = self.get_attrs_dict(agg)
             assert start_attr_name in attrs_dict
@@ -438,7 +466,7 @@ class TestAggregations:
                 "stop_date":   "04-JAN-2000 12:00:00.000000",
             })
         ]
-        agg = CCIAggregationCreator("time").create_aggregation("drs", files)
+        agg = CCIAggregationCreator("time").create_aggregation("drs", "t.ac.uk", files)
 
         attrs_dict = self.get_attrs_dict(agg)
         expected_attrs = [
@@ -464,16 +492,21 @@ class TestAggregations:
 
         assert attrs_dict["time_coverage_duration"]["value"] == "P3DT4H15M"
 
+    @freezegun.freeze_time("2018-12-25", tz_offset=0)
     def test_global_attributes(self, tmpdir):
         files = [
-            self.netcdf_file(tmpdir, "f.nc", values=[1], global_attrs={"history": "helo"})
+            self.netcdf_file(tmpdir, "f.nc", values=[1], global_attrs={"history": "hello"})
         ]
-        agg = CCIAggregationCreator("time").create_aggregation("mydrs", files)
+        agg = CCIAggregationCreator("time").create_aggregation("mydrs", "someurl", files)
         attr_dict = self.get_attrs_dict(agg)
 
         assert "history" in attr_dict
-        assert ("The CCI Open Data Portal aggregated all files in the dataset"
-                in attr_dict["history"]["value"])
+        assert attr_dict["history"]["value"] == (
+            "2018-12-25 00:00:00: The CCI Open Data Portal aggregated all "
+            "files in the dataset over the time variable for OPeNDAP access. "
+            "For earlier history information see the original individual "
+            "files at someurl"
+        )
 
         assert "id" in attr_dict
         assert attr_dict["id"]["value"] == "mydrs"
@@ -507,7 +540,7 @@ class TestAggregations:
                 global_attrs={"platform": platforms, "sensor": sensors, "source": source}
             ))
 
-        agg = CCIAggregationCreator("time").create_aggregation("mydrs", files)
+        agg = CCIAggregationCreator("time").create_aggregation("mydrs", "t.ac.uk", files)
         attr_dict = self.get_attrs_dict(agg)
 
         assert "platform" in attr_dict
@@ -527,7 +560,7 @@ class TestAggregations:
                 "creation_date": "some date",
             })
         ]
-        agg = CCIAggregationCreator("time").create_aggregation("mydrs", files)
+        agg = CCIAggregationCreator("time").create_aggregation("mydrs", "t.ac.uk", files)
         remove_elements = agg.findall("remove")
         assert len(remove_elements) >= 2
         remove_names = [el.attrib["name"] for el in remove_elements]
@@ -546,7 +579,7 @@ class TestAggregations:
             })
         ]
 
-        agg = CCIAggregationCreator("time").create_aggregation("mydrs", files)
+        agg = CCIAggregationCreator("time").create_aggregation("mydrs", "t.ac.uk", files)
         attrs_dict = self.get_attrs_dict(agg)
         assert "date_created" in attrs_dict
         assert attrs_dict["date_created"]["value"] == "20181225T000000Z"
@@ -582,7 +615,7 @@ class TestAggregations:
                     n_attr: 77.0
                 })
             ]
-            agg = CCIAggregationCreator("time").create_aggregation("drs", files)
+            agg = CCIAggregationCreator("time").create_aggregation("drs", "t.ac.uk", files)
 
             attrs_dict = self.get_attrs_dict(agg)
             for attr in attr_names:

@@ -29,6 +29,10 @@ By default the code assumes that the files and directories created in
 `aggregations` will be placed under `/usr/local/aggregations` on the live server
 - this can be changed with `--remote-agg-dir`.
 
+A link to the THREDDS catalog is written to the 'history' global attribute in
+aggregations. The hostname for the remote THREDDS server can be given with
+`--server`.
+
 ## make_mapfiles
 
 This script generates ESGF mapfiles from a JSON file in

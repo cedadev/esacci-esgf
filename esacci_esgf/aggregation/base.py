@@ -77,10 +77,11 @@ class CCIAggregationCreator(AggregationCreator):
          "southernmost_latitude", "westernmost_longitude")
     ]
 
-    def create_aggregation(self, drs, file_list, *args, **kwargs):
+    def create_aggregation(self, drs, thredds_url, file_list,
+                           *args, **kwargs):
         # Add extra global attributes
         global_attrs = kwargs.pop("global_attrs", {})
-        global_attrs.update(self.get_global_attrs(file_list, drs))
+        global_attrs.update(self.get_global_attrs(file_list, drs, thredds_url))
 
         # Add aggregated global attributes
         attr_aggs = kwargs.pop("attr_aggs", [])
@@ -125,29 +126,24 @@ class CCIAggregationCreator(AggregationCreator):
                                           remove_attrs=remove_attrs, **kwargs)
 
     @classmethod
-    def get_global_attrs(cls, file_list, drs):
+    def get_global_attrs(cls, file_list, drs, thredds_url):
         """
         Return a dictionary mapping attribute name to value for global
         attributes that an aggregation should have
         """
         attrs = {}
 
-        # Get 'history' from the first file, and add our text to it
         now = datetime.now()
-        extra_history = ("{}: The CCI Open Data Portal aggregated all files "
-                         "in the dataset over the time variable for OPeNDAP "
-                         "access".format(now.strftime("%Y-%m-%d %H:%M:%S")))
-        dataset = Dataset(file_list[0])
-        try:
-            attrs["history"] = dataset.history
-            if not attrs["history"].endswith(". "):
-                attrs["history"] += ". "
-            attrs["history"] += extra_history
-        except AttributeError:
-            msg = ("WARNING: Could not read 'history' global attribute "
-                   "from '{}'")
-            print(msg.format(file_list[0]), file=sys.stderr)
-
+        history = (
+            "{date}: The CCI Open Data Portal aggregated all files in the "
+            "dataset over the time variable for OPeNDAP access. For earlier "
+            "history information see the original individual files at "
+            "{thredds_url}"
+        )
+        attrs["history"] = history.format(
+            date=now.strftime("%Y-%m-%d %H:%M:%S"),
+            thredds_url=thredds_url
+        )
         # Overwrite ID with DRS
         attrs["id"] = drs
         # Generate a new tracking ID
