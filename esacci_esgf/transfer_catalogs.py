@@ -203,7 +203,7 @@ def main():
     subparsers = parser.add_subparsers(
         dest="mode",
         metavar="MODE",
-        help="Mode to run in - either copy or delete"
+        help="Mode to run in"
     )
     subparsers.required = True
     subparsers.add_parser(
