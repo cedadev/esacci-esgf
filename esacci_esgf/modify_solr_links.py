@@ -7,7 +7,7 @@ import os
 
 import pysolr
 
-DEFAULT_SOLR_NODE = "http://esgf-index1.ceda.ac.uk:8984"
+DEFAULT_SOLR_NODE = "http://cci-odp-index.ceda.ac.uk:8984"
 
 
 def solr_update_doc(s, doc, func):
