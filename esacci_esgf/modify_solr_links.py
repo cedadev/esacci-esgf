@@ -72,6 +72,9 @@ def update_urls(doc):
         if bits[2] == "OPENDAP" and bits[0].endswith(".html"):
             bits[0] = bits[0][:-5]
             changed = True
+        if bits[2] == "OPENDAP" and bits[1] == 'application/opendap-html':
+            bits[1] = 'application/opendap'
+            changed = True
 
         urls[i] = "|".join(bits)
 
@@ -96,6 +99,9 @@ def main():
             sys.exit(0)
         else:
             solr_node = sys.argv[1]
+
+    while solr_node.endswith('/'):
+        solr_node = solr_node[:-1]
 
     s = pysolr.Solr("%s/solr/datasets" % solr_node)
     dsets = query_all(s, query="esacci")
